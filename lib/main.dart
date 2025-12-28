@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/views/login_screen.dart';
-import 'package:road_assist/views/splash_screen.dart';
+import 'package:road_assist/presentation/views/auth/login_screen.dart';
+import 'package:road_assist/presentation/views/auth/splash_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
@@ -34,13 +34,13 @@ class SplashWrapper extends StatefulWidget {
 
 class _SplashWrapperState extends State<SplashWrapper> {
   bool _showLogin = false;
-  
+
   @override
   Widget build(BuildContext context) {
     if (_showLogin) {
       return LoginScreen();
     }
-    
+
     return SplashScreen(
       onAnimationComplete: () {
         setState(() {

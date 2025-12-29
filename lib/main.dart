@@ -1,52 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/presentation/views/auth/login_screen.dart';
-import 'package:road_assist/presentation/views/auth/splash_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
+// import 'package:road_assist/presentation/views/auth/login_screen.dart';
+// import 'package:road_assist/presentation/views/auth/splash_screen.dart';
+// import 'package:google_fonts/google_fonts.dart';
+import 'package:road_assist/presentation/views/home/home_page.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const HomePage());
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+// void main() {
+//   runApp(const MyApp());
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'RoadAssist',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        primaryColor: const Color(0xFF242C3B),
-        brightness: Brightness.dark,
-      ),
-      home: SplashWrapper(),
-    );
-  }
-}
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
 
-class SplashWrapper extends StatefulWidget {
-  const SplashWrapper({super.key});
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'RoadAssist',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         textTheme: GoogleFonts.poppinsTextTheme(),
+//         primaryColor: const Color(0xFF242C3B),
+//         brightness: Brightness.dark,
+//       ),
+//       home: SplashWrapper(),
+//     );
+//   }
+// }
 
-  @override
-  State<SplashWrapper> createState() => _SplashWrapperState();
-}
+// class SplashWrapper extends StatefulWidget {
+//   const SplashWrapper({super.key});
 
-class _SplashWrapperState extends State<SplashWrapper> {
-  bool _showLogin = false;
+//   @override
+//   State<SplashWrapper> createState() => _SplashWrapperState();
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_showLogin) {
-      return LoginScreen();
-    }
+// class _SplashWrapperState extends State<SplashWrapper> {
+//   bool _showLogin = false;
 
-    return SplashScreen(
-      onAnimationComplete: () {
-        setState(() {
-          _showLogin = true;
-        });
-      },
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     if (_showLogin) {
+//       return LoginScreen();
+//     }
+
+//     return SplashScreen(
+//       onAnimationComplete: () {
+//         setState(() {
+//           _showLogin = true;
+//         });
+//       },
+//     );
+//   }
+// }

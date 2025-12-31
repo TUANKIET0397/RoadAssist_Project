@@ -9,6 +9,8 @@ class HomePage extends StatelessWidget {
     return MaterialApp(
       title: 'Home page of road assist',
       home: Scaffold(
+        extendBody: true,
+        extendBodyBehindAppBar: true,
         appBar: AppBar(
           title: Text(
             'Bạn cần hỗ trợ?',
@@ -30,7 +32,17 @@ class HomePage extends StatelessWidget {
           backgroundColor: Color.fromRGBO(37, 44, 59, 1),
         ),
 
-        body: MainHome(),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(56, 56, 224, 1),
+                Color.fromRGBO(46, 144, 183, 1),
+              ],
+            ),
+          ),
+          child: MainHome(),
+        ),
 
         bottomNavigationBar: _bottomNavigationBar(),
       ),

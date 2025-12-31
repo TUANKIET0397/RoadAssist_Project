@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:road_assist/viewmodels/login_viewmodel.dart';
-
+import 'package:road_assist/presentation/viewmodels/auth/login_viewmodel.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -16,10 +15,7 @@ class LoginScreen extends StatelessWidget {
             gradient: RadialGradient(
               center: Alignment.center,
               radius: 1.0,
-              colors: [
-                Color.fromARGB(255, 1, 23, 103),
-                Color(0xFF1A1E3D),
-              ],
+              colors: [Color.fromARGB(255, 1, 23, 103), Color(0xFF1A1E3D)],
             ),
           ),
           child: SafeArea(
@@ -28,11 +24,15 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 children: [
                   SizedBox(height: 60),
-                  
-                  Image.asset('assets/images/logo.png', width: 173, height: 155),
-                  
+
+                  Image.asset(
+                    'assets/images/logo.png',
+                    width: 173,
+                    height: 155,
+                  ),
+
                   SizedBox(height: 2),
-                  
+
                   // Title
                   Text(
                     'Đăng Nhập',
@@ -42,19 +42,16 @@ class LoginScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  
+
                   SizedBox(height: 2),
-                  
+
                   Text(
                     'Chào mừng bạn đến với RoadAssist',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                   ),
-                  
+
                   SizedBox(height: 40),
-                  
+
                   // Phone Number Input
                   Consumer<LoginViewModel>(
                     builder: (context, viewModel, child) {
@@ -66,9 +63,9 @@ class LoginScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   // Password Input
                   Consumer<LoginViewModel>(
                     builder: (context, viewModel, child) {
@@ -89,27 +86,23 @@ class LoginScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   // Forgot Password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                      },
+                      onPressed: () {},
                       child: Text(
                         'Quên mật khẩu?',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Login Button
                   Consumer<LoginViewModel>(
                     builder: (context, viewModel, child) {
@@ -121,8 +114,7 @@ class LoginScreen extends StatelessWidget {
                               ? null
                               : () async {
                                   final success = await viewModel.login();
-                                  if (success) {
-                                  }
+                                  if (success) {}
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0D7EFF),
@@ -144,9 +136,9 @@ class LoginScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Divider
                   Row(
                     children: [
@@ -161,9 +153,9 @@ class LoginScreen extends StatelessWidget {
                       Expanded(child: Divider(color: Colors.white24)),
                     ],
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Face ID Button
                   Consumer<LoginViewModel>(
                     builder: (context, viewModel, child) {
@@ -181,47 +173,56 @@ class LoginScreen extends StatelessWidget {
                           icon: Icon(Icons.face, color: Colors.white),
                           label: Text(
                             'Đăng nhập bằng Face ID',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.white),
                           ),
                         ),
                       );
                     },
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Social Login
                   Text(
                     'Hoặc đăng nhập với',
                     style: TextStyle(color: Colors.white54),
                   ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   Consumer<LoginViewModel>(
                     builder: (context, viewModel, child) {
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildSocialButton(
-                            Image.asset('assets/images/gmail_logo.png', width: 32, height: 32),
+                            Image.asset(
+                              'assets/images/gmail_logo.png',
+                              width: 32,
+                              height: 32,
+                            ),
                             icon: Icons.mail,
                             onTap: viewModel.loginWithGoogle,
                             color: Colors.red,
                           ),
                           SizedBox(width: 20),
                           _buildSocialButton(
-                            Image.asset('assets/images/apple_logo.png', width: 32, height: 32),
+                            Image.asset(
+                              'assets/images/apple_logo.png',
+                              width: 32,
+                              height: 32,
+                            ),
                             icon: Icons.apple,
                             onTap: viewModel.loginWithApple,
                             color: Colors.white,
                           ),
                           SizedBox(width: 20),
                           _buildSocialButton(
-                            Image.asset('assets/images/facebook_logo.png', width: 32, height: 32),
+                            Image.asset(
+                              'assets/images/facebook_logo.png',
+                              width: 32,
+                              height: 32,
+                            ),
                             icon: Icons.facebook,
                             onTap: viewModel.loginWithFacebook,
                             color: Colors.blue,
@@ -230,9 +231,9 @@ class LoginScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   // Sign Up
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -242,8 +243,7 @@ class LoginScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.white70),
                       ),
                       TextButton(
-                        onPressed: () {
-                        },
+                        onPressed: () {},
                         child: Text(
                           'Đăng ký ngay',
                           style: TextStyle(
@@ -254,7 +254,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   SizedBox(height: 24),
                 ],
               ),
@@ -264,7 +264,7 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildInputField({
     required IconData icon,
     required String hintText,
@@ -300,8 +300,9 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildSocialButton(Image image, {
+
+  Widget _buildSocialButton(
+    Image image, {
     required IconData icon,
     required VoidCallback onTap,
     required Color color,

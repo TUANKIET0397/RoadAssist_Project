@@ -6,9 +6,14 @@ import 'package:provider/provider.dart';
 import 'viewmodels/garageList_viewmodel.dart';
 import 'views/garageList_screen.dart';
 
+import 'package:road_assist/presentation/views/home/home_page.dart';
+
 //firebase
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+
+//void main() => runApp(const HomePage());
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

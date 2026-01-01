@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:road_assist/services/login/login_option.dart';
 
 class LoginViewModel extends ChangeNotifier {
   String _phoneNumber = '';
   String _password = '';
   bool _isLoading = false;
   bool _obscurePassword = true;
+  final AuthService _authService = AuthService();
+
 
   String get phoneNumber => _phoneNumber;
   String get password => _password;
@@ -39,9 +43,25 @@ class LoginViewModel extends ChangeNotifier {
     return true; // Return success/failure
   }
 
-  Future<void> loginWithGoogle() async {
-    // Implement Google login
+  Future<User?> loginWithGoogle() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final user = await _authService.signInWithGoogle();
+
+      _isLoading = false;
+      notifyListeners();
+
+      return user;
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      debugPrint('Google login error: $e');
+      return null;
+    }
   }
+
 
   Future<void> loginWithApple() async {
     // mplement Apple login

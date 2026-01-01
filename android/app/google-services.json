@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "642950415530",
+    "project_id": "roadassist-f1081",
+    "storage_bucket": "roadassist-f1081.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:642950415530:android:8b8bd3c0bd7bf61af6fcd3",
+        "android_client_info": {
+          "package_name": "com.example.road_assist"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "642950415530-gv9o48uttvn58kn2n99hqbrsfac9ucdd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMi86rIU-Me3Y_Y6sXM40JhUsKCeqbt3k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "642950415530-gv9o48uttvn58kn2n99hqbrsfac9ucdd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "642950415530-6gb30o4nugbf216u0262okm9nki0qdc9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.roadAssist"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

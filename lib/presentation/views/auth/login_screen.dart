@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:road_assist/presentation/viewmodels/auth/login_viewmodel.dart';
+import 'package:road_assist/presentation/views/home/home_page.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -202,7 +203,17 @@ class LoginScreen extends StatelessWidget {
                               height: 32,
                             ),
                             icon: Icons.mail,
-                            onTap: viewModel.loginWithGoogle,
+                            onTap: () async {
+                              final user = await viewModel.loginWithGoogle();
+                              if (user != null) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const HomePage(),
+                                  ),
+                                );
+                              }
+                            },
                             color: Colors.red,
                           ),
                           SizedBox(width: 20),

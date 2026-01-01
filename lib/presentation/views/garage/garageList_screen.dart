@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/garageList_viewmodel.dart';
-import '../models/garage_model.dart';
+import 'package:road_assist/presentation/viewmodels/garage/garageList_viewmodel.dart';
+import 'package:road_assist/data/models/response/garage_model.dart';
 
 class GarageListScreen extends StatefulWidget {
   const GarageListScreen({super.key});

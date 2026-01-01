@@ -44,152 +44,191 @@ class HomePage extends StatelessWidget {
           child: MainHome(),
         ),
 
-        bottomNavigationBar: _bottomNavigationBar(),
+        bottomNavigationBar: const SlantedAnimatedBottomBar(),
       ),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-// ignore: camel_case_types
-class _bottomNavigationBar extends StatefulWidget {
-  // ignore: unused_element_parameter
-  const _bottomNavigationBar({super.key});
+class SlantedAnimatedBottomBar extends StatefulWidget {
+  const SlantedAnimatedBottomBar({super.key});
 
   @override
-  State<_bottomNavigationBar> createState() => __bottomNavigationBarState();
+  State<SlantedAnimatedBottomBar> createState() =>
+      _SlantedAnimatedBottomBarState();
 }
 
-// ignore: camel_case_types
-class __bottomNavigationBarState extends State<_bottomNavigationBar> {
-  int _selectedIndex = 2;
+class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
+    with SingleTickerProviderStateMixin {
+  int _currentIndex = 2;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index; // cập nhật item khi bấm
-    });
+  late AnimationController _controller;
+  late Animation<double> _scale;
+  late Animation<double> _lift;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
+    );
+
+    _scale = Tween<double>(
+      begin: 1,
+      end: 1.15,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    _lift = Tween<double>(
+      begin: 0,
+      end: -26,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _controller.forward();
+  }
+
+  void _onTap(int index) {
+    setState(() => _currentIndex = index);
+    _controller.forward(from: 0);
   }
 
   @override
   Widget build(BuildContext context) {
-    return ClipPath(
-      clipper: SlantedBarClipper(),
-      child: SizedBox(
-        height: 120,
-        width: double.infinity,
-        child: BottomNavigationBar(
-          selectedItemColor: Color.fromRGBO(
-            52,
-            200,
-            232,
-            1,
-          ), // màu icon/text khi chọn
-          unselectedItemColor: Colors.white70,
-          backgroundColor: Color.fromRGBO(37, 44, 59, 1),
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: [
-            // messenger
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                'assets/images/icons/messenger.png',
-                width: 27,
-                height: 27,
-              ),
-              label: 'Messenger',
-            ),
-            //Garage
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                'assets/images/icons/map.png',
-                width: 27,
-                height: 27,
-              ),
-              label: 'Garage',
-            ),
-            //home
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                'assets/images/icons/bicycle.png',
-                width: 27,
-                height: 27,
-              ),
-              activeIcon: ClipPath(
-                clipper: SlantedBarClipper(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(52, 200, 232, 1),
-                  ),
-                  padding: EdgeInsets.all(8),
-                  child: Image.asset(
-                    'assets/images/icons/bicycle.png',
-                    width: 27,
-                    height: 27,
-                  ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final itemCount = _items.length;
+    final itemWidth = screenWidth / itemCount;
+
+    const double iconSize = 28;
+    const double iconPadding = 14;
+    final double activeSize = iconSize + iconPadding * 2;
+
+    return SizedBox(
+      height: 110,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          /// ================= BAR =================
+          Positioned.fill(
+            child: ClipPath(
+              clipper: SlantedBarClipper(),
+              child: Container(
+                height: 90,
+                color: const Color.fromRGBO(37, 44, 59, 1),
+                child: Row(
+                  children: List.generate(itemCount, (index) {
+                    final item = _items[index];
+                    final isActive = index == _currentIndex;
+
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => _onTap(index),
+                        behavior: HitTestBehavior.translucent,
+                        child: isActive
+                            ? const SizedBox() // chừa chỗ cho icon nổi
+                            : _NormalItem(item: item),
+                      ),
+                    );
+                  }),
                 ),
               ),
+            ),
+          ),
 
-              label: 'Trang chủ',
-            ),
-            //history
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                'assets/images/icons/doc.png',
-                width: 27,
-                height: 27,
+          /// ================= ACTIVE ICON =================
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutBack,
+            bottom: 24,
+            left: itemWidth * _currentIndex + itemWidth / 2 - activeSize / 2,
+            child: GestureDetector(
+              onTap: () => _onTap(_currentIndex),
+              child: AnimatedBuilder(
+                animation: _controller,
+                builder: (context, _) {
+                  return Transform.translate(
+                    offset: Offset(0, _lift.value),
+                    child: Transform.scale(
+                      scale: _scale.value,
+                      child: ClipPath(
+                        clipper: SlantedBarClipper(), // ✅ đúng shape
+                        child: Container(
+                          padding: const EdgeInsets.all(iconPadding),
+                          color: const Color.fromRGBO(52, 200, 232, 1),
+                          child: Image.asset(
+                            _items[_currentIndex].icon,
+                            width: iconSize,
+                            height: iconSize,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-              label: 'Lịch sử',
             ),
-            //account
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                'assets/images/icons/user.png',
-                width: 27,
-                height: 27,
-              ),
-              label: 'Tài khoản',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 }
+
+class _NormalItem extends StatelessWidget {
+  final BottomItem item;
+  const _NormalItem({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(item.icon, width: 26, height: 26, color: Colors.white),
+        const SizedBox(height: 4),
+        Text(
+          item.label,
+          style: const TextStyle(color: Colors.white, fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+class BottomItem {
+  final String icon;
+  final String label;
+
+  BottomItem(this.icon, this.label);
+}
+
+final List<BottomItem> _items = [
+  BottomItem('assets/images/icons/messenger.png', 'Chat'),
+  BottomItem('assets/images/icons/map.png', 'Garage'),
+  BottomItem('assets/images/icons/bicycle.png', 'Trang chủ'),
+  BottomItem('assets/images/icons/doc.png', 'Lịch sử'),
+  BottomItem('assets/images/icons/user.png', 'Tài khoản'),
+];
 
 class SlantedBarClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-
-    // Điểm bắt đầu: góc trên trái, lệch xuống 20px
-    path.moveTo(0, 20);
-    // Góc trên phải: giữ nguyên
+    path.moveTo(0, 20); // 🔥 cắt xéo như cũ
     path.lineTo(size.width, 0);
-    // Góc dưới phải
     path.lineTo(size.width, size.height);
-    // Góc dưới trái
     path.lineTo(0, size.height);
     path.close();
-
     return path;
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(_) => false;
 }
-
-
-
-
-
-
-
-   // gradient: LinearGradient(
-            //   colors: [
-            //     Color.fromRGBO(52, 200, 232, 1),
-            //     Color.fromRGBO(78, 74, 242, 1),
-            //   ],
-            //   begin: Alignment.topLeft,
-            //   end: Alignment.bottomRight,
-            // ),

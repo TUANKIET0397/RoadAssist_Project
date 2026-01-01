@@ -67,7 +67,7 @@ class MainHome extends StatelessWidget {
 
         /// ================= TITLE =================
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          padding: EdgeInsets.symmetric(horizontal: 20),
           child: Text(
             'Phương tiện của bạn',
             style: TextStyle(
@@ -80,17 +80,55 @@ class MainHome extends StatelessWidget {
 
         /// ================= GRID =================
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 2,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 0,
+              childAspectRatio:
+                  0.8, // ✅ FIX: Giảm xuống 0.68 để card cao hơn nữa
+            ),
+            itemBuilder: (context, index) {
+              return const VehicleGridItem(
+                title: 'Xe Máy Các Loại',
+                subtitle1: 'Tay ga',
+                subtitle2: 'Bạn đã đăng ký',
+                image: 'assets/images/illustrations/vehicle1.png',
+              );
+            },
+          ),
+        ),
+
+        /// ================= TITLE =================
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Phương tiện khác',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+        /// ================= GRID =================
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: 6,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 16,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 0,
               childAspectRatio:
-                  0.68, // ✅ FIX: Giảm xuống 0.68 để card cao hơn nữa
+                  0.8, // ✅ FIX: Giảm xuống 0.68 để card cao hơn nữa
             ),
             itemBuilder: (context, index) {
               return const VehicleGridItem(
@@ -132,14 +170,14 @@ class VehicleGridItem extends StatelessWidget {
 
         return ClippedCard(
           width: width,
-          heightFactor: 1.42,
+          heightFactor: 1.73,
           clipper: RPSClipperSmall(),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
-              10,
-              10,
-              10,
-              12,
+              14,
+              26,
+              20,
+              26,
             ), // ✅ Giảm padding
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,7 +189,7 @@ class VehicleGridItem extends StatelessWidget {
                     Icon(
                       Icons.favorite_border,
                       color: Colors.white70,
-                      size: 16,
+                      size: 20,
                     ),
                   ],
                 ),
@@ -361,14 +399,34 @@ class RPSClipperSmall extends CustomClipper<Path> {
   @override
   Path getClip(Size s) {
     final p = Path();
-    p.moveTo(w(20, s), h(52, s));
-    p.cubicTo(w(20, s), h(38, s), w(32, s), h(28, s), w(48, s), h(28, s));
-    p.lineTo(w(342, s), h(28, s));
-    p.cubicTo(w(358, s), h(28, s), w(370, s), h(38, s), w(370, s), h(52, s));
-    p.lineTo(w(370, s), h(210, s));
-    p.cubicTo(w(370, s), h(224, s), w(358, s), h(232, s), w(342, s), h(234, s));
-    p.lineTo(w(48, s), h(258, s));
-    p.cubicTo(w(32, s), h(260, s), w(20, s), h(246, s), w(20, s), h(232, s));
+
+    /// 🔥 TOP LEFT – NÂNG MIỆNG CARD LÊN
+    p.moveTo(w(20, s), h(44, s)); // ⬆️ 52 → 44
+    p.cubicTo(
+      w(20, s),
+      h(30, s), // 38 → 30
+      w(32, s),
+      h(22, s), // 28 → 22
+      w(48, s),
+      h(22, s),
+    );
+
+    /// TOP RIGHT
+    p.lineTo(w(342, s), h(22, s));
+    p.cubicTo(w(358, s), h(22, s), w(370, s), h(30, s), w(370, s), h(44, s));
+
+    /// RIGHT SIDE (GIỮ NGUYÊN)
+    p.lineTo(w(370, s), h(212, s));
+
+    /// BOTTOM RIGHT
+    p.cubicTo(w(370, s), h(228, s), w(350, s), h(238, s), w(330, s), h(240, s));
+
+    /// BOTTOM
+    p.lineTo(w(60, s), h(255, s));
+
+    /// BOTTOM LEFT
+    p.cubicTo(w(40, s), h(258, s), w(20, s), h(244, s), w(20, s), h(228, s));
+
     p.close();
     return p;
   }

@@ -14,9 +14,13 @@ import 'package:road_assist/presentation/views/garage/chatList_screen.dart';
 //firebase
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+//void main() => runApp();
 
-//void main() => runApp(const HomePage());
 
+
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

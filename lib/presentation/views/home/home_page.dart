@@ -152,7 +152,7 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
                     child: Transform.scale(
                       scale: _scale.value,
                       child: ClipPath(
-                        clipper: SlantedBarClipper(), // ✅ đúng shape
+                        clipper: SlantedBarClipper(), //
                         child: Container(
                           padding: const EdgeInsets.all(iconPadding),
                           color: const Color.fromRGBO(52, 200, 232, 1),

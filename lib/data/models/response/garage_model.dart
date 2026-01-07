@@ -12,6 +12,7 @@ class GarageModel {
   final double? rating;
   final bool isActive;
   final String? imageUrl;
+  final String? bgimgUrl;
   bool isFavorite;
 
   GarageModel({
@@ -28,6 +29,7 @@ class GarageModel {
     this.rating,
     required this.isActive,
     this.imageUrl,
+    this.bgimgUrl,
     this.isFavorite = false,
   });
 
@@ -46,6 +48,7 @@ class GarageModel {
       rating: data['rating']?.toDouble(),
       isActive: data['isActive'] ?? false,
       imageUrl: data['imageUrl'],
+      bgimgUrl: data['bgimgUrl'],
     );
   }
   // Đăng ký garage mới.
@@ -68,6 +71,8 @@ class GarageModel {
       'rating': rating,
       'isActive': isActive,
       'imageUrl': imageUrl,
+      'bgimgUrl': bgimgUrl,
+
     };
   }
 }

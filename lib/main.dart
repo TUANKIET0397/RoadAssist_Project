@@ -10,7 +10,7 @@ import 'package:road_assist/presentation/views/home/home_page.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'firebase_options.dart';
 
-void main() => runApp(const HomePage());
+void main() => runApp();
 
 
 // void main() async {

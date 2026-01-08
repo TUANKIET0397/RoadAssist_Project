@@ -6,10 +6,9 @@ import 'package:provider/provider.dart';
 import 'package:road_assist/presentation/viewmodels/auth/login_viewmodel.dart';
 
 //import 'package:road_assist/presentation/views/home/home_page.dart';
-import 'package:road_assist/presentation/views/garage/garageDetail.dart';
-import 'package:road_assist/presentation/views/garage/garageList_screen.dart';
+//import 'package:road_assist/presentation/views/garage/chatList_screen.dart';
 
-import 'package:road_assist/presentation/views/garage/chatList_screen.dart';
+import 'package:road_assist/presentation/views/rescue/rescueRequest_screen.dart';
 
 //firebase
 import 'package:firebase_core/firebase_core.dart';
@@ -50,7 +49,7 @@ class MyApp extends StatelessWidget {
           primaryColor: const Color(0xFF242C3B),
           brightness: Brightness.dark,
         ),
-        home: const ChatGarageScreen(),
+        home: const RescueRequestScreen(),
       ),
     );
   }

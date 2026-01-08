@@ -1,68 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/presentation/views/home/main_home.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/presentation/views/navigation/viewmodel/navigation_viewmodel.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Home page of road assist',
-      home: Scaffold(
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          title: Text(
-            'Bạn cần hỗ trợ?',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                // Action for search button
-              },
-            ),
-          ],
-
-          backgroundColor: Color.fromRGBO(37, 44, 59, 1),
-        ),
-
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(56, 56, 224, 1),
-                Color.fromRGBO(46, 144, 183, 1),
-              ],
-            ),
-          ),
-          child: MainHome(),
-        ),
-
-        bottomNavigationBar: const SlantedAnimatedBottomBar(),
-      ),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class SlantedAnimatedBottomBar extends StatefulWidget {
+class SlantedAnimatedBottomBar extends ConsumerStatefulWidget {
   const SlantedAnimatedBottomBar({super.key});
 
   @override
-  State<SlantedAnimatedBottomBar> createState() =>
+  ConsumerState<SlantedAnimatedBottomBar> createState() =>
       _SlantedAnimatedBottomBarState();
 }
 
-class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
+class _SlantedAnimatedBottomBarState
+    extends ConsumerState<SlantedAnimatedBottomBar>
     with SingleTickerProviderStateMixin {
-  int _currentIndex = 2;
-
   late AnimationController _controller;
   late Animation<double> _scale;
   late Animation<double> _lift;
@@ -90,12 +40,14 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
   }
 
   void _onTap(int index) {
-    setState(() => _currentIndex = index);
+    ref.read(navigationProvider.notifier).state = index;
     _controller.forward(from: 0);
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(navigationProvider);
+
     final screenWidth = MediaQuery.of(context).size.width;
     final itemCount = _items.length;
     final itemWidth = screenWidth / itemCount;
@@ -109,7 +61,7 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          /// ================= BAR =================
+          /// BAR
           Positioned.fill(
             child: ClipPath(
               clipper: SlantedBarClipper(),
@@ -119,14 +71,14 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
                 child: Row(
                   children: List.generate(itemCount, (index) {
                     final item = _items[index];
-                    final isActive = index == _currentIndex;
+                    final isActive = index == currentIndex;
 
                     return Expanded(
                       child: GestureDetector(
                         onTap: () => _onTap(index),
                         behavior: HitTestBehavior.translucent,
                         child: isActive
-                            ? const SizedBox() // chừa chỗ cho icon nổi
+                            ? const SizedBox()
                             : _NormalItem(item: item),
                       ),
                     );
@@ -136,14 +88,14 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
             ),
           ),
 
-          /// ================= ACTIVE ICON =================
+          /// ACTIVE ICON
           AnimatedPositioned(
             duration: const Duration(milliseconds: 320),
             curve: Curves.easeOutBack,
             bottom: 24,
-            left: itemWidth * _currentIndex + itemWidth / 2 - activeSize / 2,
+            left: itemWidth * currentIndex + itemWidth / 2 - activeSize / 2,
             child: GestureDetector(
-              onTap: () => _onTap(_currentIndex),
+              onTap: () => _onTap(currentIndex),
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
@@ -152,12 +104,12 @@ class _SlantedAnimatedBottomBarState extends State<SlantedAnimatedBottomBar>
                     child: Transform.scale(
                       scale: _scale.value,
                       child: ClipPath(
-                        clipper: SlantedBarClipper(), //
+                        clipper: SlantedBarClipper(),
                         child: Container(
                           padding: const EdgeInsets.all(iconPadding),
                           color: const Color.fromRGBO(52, 200, 232, 1),
                           child: Image.asset(
-                            _items[_currentIndex].icon,
+                            _items[currentIndex].icon,
                             width: iconSize,
                             height: iconSize,
                             color: Colors.white,
@@ -205,7 +157,6 @@ class _NormalItem extends StatelessWidget {
 class BottomItem {
   final String icon;
   final String label;
-
   BottomItem(this.icon, this.label);
 }
 
@@ -221,7 +172,7 @@ class SlantedBarClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final path = Path();
-    path.moveTo(0, 20); // 🔥 cắt xéo như cũ
+    path.moveTo(0, 20);
     path.lineTo(size.width, 0);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);

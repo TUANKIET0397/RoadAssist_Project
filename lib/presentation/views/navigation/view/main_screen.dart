@@ -4,6 +4,8 @@ import 'package:road_assist/presentation/history/view/history_screen.dart';
 import 'package:road_assist/presentation/views/account/view/account_screen.dart';
 import 'package:road_assist/presentation/views/chat/view/chat_screen.dart';
 import 'package:road_assist/presentation/views/garage/view/garage_screen.dart';
+import 'package:road_assist/presentation/views/garage/view/garageDetail.dart';
+import 'package:road_assist/presentation/views/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/presentation/views/home/view/home_screen.dart';
 import 'package:road_assist/presentation/views/navigation/view/slanted_bottom_bar.dart';
 import 'package:road_assist/presentation/views/navigation/viewmodel/navigation_viewmodel.dart';
@@ -13,19 +15,28 @@ class MainScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final index = ref.watch(navigationProvider);
+    final Index = ref.watch(navigationProvider);
+    final selectedGarage = ref.watch(selectedGarageProvider);
 
-    final pages = const [
-      ChatScreen(),
-      GarageScreen(),
-      HomeScreen(),
-      HistoryScreen(),
-      AccountScreen(),
+    Widget buildGaragePage() {
+      if (selectedGarage == null) {
+        return const GarageListScreen();
+      } else {
+        return GarageDetailScreen(garage: selectedGarage);
+      }
+    }
+
+    final pages = [
+      const ChatScreen(),
+      buildGaragePage(),
+      const HomeScreen(),
+      const HistoryScreen(),
+      const AccountScreen(),
     ];
 
     return Scaffold(
       extendBody: true,
-      body: pages[index],
+      body: pages[Index],
       bottomNavigationBar: const SlantedAnimatedBottomBar(),
     );
   }

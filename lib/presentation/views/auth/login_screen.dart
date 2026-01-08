@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:road_assist/presentation/viewmodels/auth/login_viewmodel.dart';
-import 'package:road_assist/presentation/views/home/home_page.dart';
+import 'package:road_assist/presentation/views/home/view/home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -209,7 +209,7 @@ class LoginScreen extends StatelessWidget {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const HomePage(),
+                                    builder: (context) => const HomeScreen(),
                                   ),
                                 );
                               }

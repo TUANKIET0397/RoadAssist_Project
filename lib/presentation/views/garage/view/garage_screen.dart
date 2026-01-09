@@ -29,8 +29,6 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
             Color.fromRGBO(56, 56, 224, 1),
             Color.fromRGBO(46, 144, 183, 1),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
         ),
       ),
       child: SafeArea(
@@ -47,7 +45,7 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
                 children: [
                   const Expanded(
                     child: Text(
-                      ' Danh sách garage',
+                      '   Danh sách garage',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,

@@ -33,8 +33,6 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             Color.fromRGBO(56, 56, 224, 1),
             Color.fromRGBO(46, 144, 183, 1),
           ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
         ),
       ),
       child: Column(

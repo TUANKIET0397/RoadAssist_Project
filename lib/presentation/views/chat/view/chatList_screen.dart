@@ -20,63 +20,65 @@ class ChatListScreen extends ConsumerWidget {
           ],
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Header
-            Container(
-              decoration: const BoxDecoration(
-                color: Color.fromRGBO(37, 44, 59, 1),
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Chat garage',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4A90E2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.search,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                      onPressed: () {
-                        // TODO: Implement search
-                      },
-                    ),
-                  ),
-                ],
-              ),
+      child: Column(
+        children: [
+          // Header full status bar
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top,
+              left: 16,
+              right: 16,
+              bottom: 8,
             ),
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(37, 44, 59, 1),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Chat garage',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white, size: 16),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-            // Body
-            Expanded(
+          // Body: Chat list
+          Expanded(
+            child: SafeArea(
+              top: false, // header đã xử lý top
+              bottom: false,
               child: chatStream.when(
                 data: (chats) {
-                  if (chats.isEmpty) {
-                    return _buildEmptyState();
-                  }
+                  if (chats.isEmpty) return _buildEmptyState();
 
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(8, 16, 8, 120),
                     itemCount: chats.length,
                     itemBuilder: (context, index) {
                       final chat = chats[index];
-
                       return ChatItem(
                         name: chat.garageName,
                         message: chat.lastMessage,
@@ -89,11 +91,11 @@ class ChatListScreen extends ConsumerWidget {
                           final chatId = await ref
                               .read(chatRepositoryProvider)
                               .getOrCreateChat(
-                                userId: userId,
-                                garageId: chat.garageId,
-                                garageName: chat.garageName,
-                                garageImage: chat.garageImage,
-                              );
+                            userId: userId,
+                            garageId: chat.garageId,
+                            garageName: chat.garageName,
+                            garageImage: chat.garageImage,
+                          );
 
                           // TODO: Navigate to ChatDetailScreen
                         },
@@ -114,8 +116,8 @@ class ChatListScreen extends ConsumerWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

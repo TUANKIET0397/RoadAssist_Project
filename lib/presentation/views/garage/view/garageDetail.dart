@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/response/garage_model.dart';
 import 'package:road_assist/presentation/views/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/presentation/views/garage/viewmodel/garageDetail_viewmodel.dart';
+import 'package:road_assist/presentation/views/garage/view/review_screen.dart';
 
 class GarageDetailScreen extends ConsumerStatefulWidget {
   final GarageModel garage;
@@ -66,43 +67,44 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
   }
 
   Widget _buildHeader() {
-    return SafeArea(
-      bottom: false,
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Color.fromRGBO(37, 44, 59, 1),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () {
-                ref.read(selectedGarageProvider.notifier).state = null;
-              },
-            ),
-            Expanded(
-              child: Text(
-                widget.garage.name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top, // chiếm luôn phần status bar
+        left: 16,
+        right: 16,
+        bottom: 4,
+      ),
+      color: const Color.fromRGBO(37, 44, 59, 1),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              ref.read(selectedGarageProvider.notifier).state = null;
+            },
+          ),
+          Expanded(
+            child: Text(
+              widget.garage.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            IconButton(
-              icon: Icon(
-                widget.garage.isFavorite
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: widget.garage.isFavorite ? Colors.red : Colors.white,
-              ),
-              onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(
+              widget.garage.isFavorite
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: widget.garage.isFavorite ? Colors.red : Colors.white,
             ),
-          ],
-        ),
+            onPressed: () {},
+          ),
+        ],
       ),
     );
   }
@@ -447,7 +449,14 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: () => _showReviewDialog(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GarageReviewView(garage: widget.garage),
+                  ),
+                );
+              },
               icon: const Icon(Icons.edit, size: 18),
               label: const Text('Đánh giá', style: TextStyle(fontSize: 16)),
               style: OutlinedButton.styleFrom(
@@ -476,74 +485,6 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showReviewDialog() {
-    int selectedRating = 5;
-    final commentController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF253447),
-          title: const Text('Đánh giá Garage', style: TextStyle(color: Colors.white)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                      5,
-                      (index) => IconButton(
-                            icon: Icon(
-                                index < selectedRating
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                color: Colors.amber,
-                                size: 32),
-                            onPressed: () =>
-                                setState(() => selectedRating = index + 1),
-                          ))),
-              const SizedBox(height: 16),
-              TextField(
-                controller: commentController,
-                maxLines: 3,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Nhập nhận xét của bạn...',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // TODO: Get real user info from an auth provider
-                ref.read(garageDetailProvider.notifier).submitReview(
-                      garageId: widget.garage.id,
-                      userId: 'currentUserId',
-                      userName: 'Current User',
-                      userAvatar: null,
-                      rating: selectedRating,
-                      comment: commentController.text,
-                    );
-                Navigator.pop(dialogContext);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: const Text('Gửi'),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/presentation/views/navigation/viewmodel/navigation_viewmodel.dart';
 
 class SlantedAnimatedBottomBar extends ConsumerStatefulWidget {
-  const SlantedAnimatedBottomBar({super.key});
+  final bool popNavigator;
+  const SlantedAnimatedBottomBar({super.key, this.popNavigator = false});
 
   @override
   ConsumerState<SlantedAnimatedBottomBar> createState() =>
@@ -40,6 +41,9 @@ class _SlantedAnimatedBottomBarState
   }
 
   void _onTap(int index) {
+    if (widget.popNavigator) {
+      Navigator.of(context).pop();
+    }
     ref.read(navigationProvider.notifier).state = index;
     _controller.forward(from: 0);
   }

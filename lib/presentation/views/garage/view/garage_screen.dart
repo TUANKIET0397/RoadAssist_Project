@@ -31,75 +31,74 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
           ],
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Header
-            Container(
-              decoration: const BoxDecoration(
-                color: Color.fromRGBO(37, 44, 59, 1),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      '   Danh sách garage',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+      child: Column(
+        children: [
+          // Header full lên status bar
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top,
+              left: 16,
+              right: 16,
+              bottom: 8,
+            ),
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(37, 44, 59, 1),
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Danh sách garage',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.search,
-                          color: Colors.white, size: 16),
-                      onPressed: () {
-                        // TODO: search
-                      },
+                ),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
                   ),
-                ],
+                  child: IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white, size: 16),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Body: phần list vẫn dùng SafeArea
+          Expanded(
+            child: SafeArea(
+              top: false, // header đã xử lý top
+              child: Builder(
+                builder: (_) {
+                  if (state.isLoading) return const Center(child: CircularProgressIndicator());
+                  if (state.garages.isEmpty) return const Center(child: Text('Không có garage nào', style: TextStyle(color: Colors.white)));
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                    itemCount: state.garages.length,
+                    itemBuilder: (context, index) {
+                      final garage = state.garages[index];
+                      return GarageCard(garage: garage);
+                    },
+                  );
+                },
               ),
             ),
-
-            // List
-            Expanded(
-              child: Builder(builder: (_) {
-                if (state.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (state.garages.isEmpty) {
-                  return const Center(
-                      child: Text('Không có garage nào',
-                          style: TextStyle(color: Colors.white)));
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-                  itemCount: state.garages.length,
-                  itemBuilder: (context, index) {
-                    final garage = state.garages[index];
-                    return GarageCard(garage: garage);
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

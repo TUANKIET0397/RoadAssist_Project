@@ -4,6 +4,9 @@ import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
 import 'package:road_assist/ui/chat/viewmodel/chatGarage_vm.dart';
 
+import 'package:road_assist/ui/chat/widgets/date_divider.dart';
+import 'package:road_assist/ui/chat/widgets/message_bubble.dart';
+
 class ChatScreen extends ConsumerStatefulWidget {
   final ChatModel chat;
 
@@ -199,8 +202,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
         return Column(
           children: [
-            if (showDate) _buildDateSeparator(msg.createdAt),
-            _buildMessageBubble(msg, isMe),
+            if (showDate) DateDivider(date: msg.createdAt),
+            MessageBubble(
+              message: msg,
+              isMe: isMe,
+            ),
           ],
         );
       },
@@ -231,85 +237,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(MessageModel msg, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.only(
-          top: 2,
-          bottom: 2,
-          left: isMe ? 80 : 0,
-          right: isMe ? 0 : 80,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (isMe) _buildTime(msg.createdAt, right: true),
-            Flexible(
-              child: Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isMe
-                      ? const Color(0xFF050D23)
-                      : const Color(0xFF051F4F),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: _buildMessageContent(msg),
-              ),
-            ),
-            if (!isMe) _buildTime(msg.createdAt, right: false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageContent(MessageModel msg) {
-    if (msg.type == 'image' && msg.imageUrl != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Image.network(
-          msg.imageUrl!,
-          width: 200,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
-
-    return Text(
-      msg.text ?? '',
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 14,
-        height: 1.4,
-      ),
-    );
-  }
-
-  Widget _buildTime(DateTime time, {required bool right}) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: right ? 0 : 4,
-        right: right ? 4 : 0,
-        bottom: 2,
-      ),
-      child: Text(
-        _formatTime(time),
-        style: const TextStyle(
-          color: Color(0xFF34CAE8),
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:'
-        '${time.minute.toString().padLeft(2, '0')}';
-  }
 
   // input
 

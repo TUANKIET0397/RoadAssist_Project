@@ -68,7 +68,7 @@ class ChatRepository {
     required bool isFromUser,
     String? imageUrl,
   }) async {
-    final msgRef = await _firestore
+    await _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
@@ -82,14 +82,15 @@ class ChatRepository {
       'imageUrl': imageUrl,
     });
 
-    // Cập nhật chat
+    /// phân biệt user / garage
     await _firestore.collection('chats').doc(chatId).update({
       'lastMessage': message,
       'lastMessageTime': FieldValue.serverTimestamp(),
       'isFromUser': isFromUser,
-      'unreadCount': FieldValue.increment(1),
+      'unreadCount': isFromUser ? 0 : FieldValue.increment(1),
     });
   }
+
 
   /// Lấy tin nhắn realtime
   Stream<List<MessageModel>> getMessagesStream(String chatId) {

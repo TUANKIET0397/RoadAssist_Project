@@ -1,0 +1,368 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/models/response/chat_model.dart';
+import 'package:road_assist/data/models/response/message_model.dart';
+import 'package:road_assist/presentation/views/chat/viewmodel/chatGarage_vm.dart';
+
+class ChatScreen extends ConsumerStatefulWidget {
+  final ChatModel chat;
+
+  const ChatScreen({super.key, required this.chat});
+
+  @override
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends ConsumerState<ChatScreen> {
+  final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  late final ProviderSubscription<ChatState> _chatListener;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatProvider(widget.chat).notifier).markAsRead();
+    });
+
+    _chatListener = ref.listenManual<ChatState>(
+      chatProvider(widget.chat),
+          (prev, next) {
+        if (prev == null) return;
+
+        if (prev.messages.length != next.messages.length) {
+          Future.delayed(const Duration(milliseconds: 80), () {
+            _scrollToBottom();
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom({bool animated = true}) {
+    if (!_scrollController.hasClients) return;
+
+    final max = _scrollController.position.maxScrollExtent;
+    if (max <= 0) return;
+
+    if (animated) {
+      _scrollController.animateTo(
+        max,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _scrollController.jumpTo(max);
+    }
+  }
+
+
+  void _sendMessage(ChatNotifier notifier) {
+    final text = _textController.text.trim();
+    if (text.isEmpty) return;
+
+    notifier.sendMessage(text);
+    _textController.clear();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _scrollToBottom();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final chatState = ref.watch(chatProvider(widget.chat));
+    final chatNotifier = ref.read(chatProvider(widget.chat).notifier);
+
+    ref.listen(chatProvider(widget.chat), (prev, next) {
+      if (prev?.messages.length != next.messages.length) {
+        Future.delayed(const Duration(milliseconds: 80), () {
+          _scrollToBottom();
+        });
+      }
+    });
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: _buildAppBar(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromRGBO(56, 56, 224, 1),
+              Color.fromRGBO(46, 144, 183, 1),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(child: _buildMessages(chatState, chatNotifier)),
+              _buildInput(chatNotifier),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Color.fromRGBO(37, 44, 59, 1),
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          _buildAvatar(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              widget.chat.garageName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.call, color: Color(0xFF3B82F6)),
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatar() {
+    final img = widget.chat.garageImage;
+
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: const Color(0xFF475569),
+        image: img.startsWith('http')
+            ? DecorationImage(
+          image: NetworkImage(img),
+          fit: BoxFit.cover,
+        )
+            : null,
+      ),
+      child: !img.startsWith('http')
+          ? Center(
+        child: Text(
+          img,
+          style: const TextStyle(fontSize: 20),
+        ),
+      )
+          : null,
+    );
+  }
+
+  Widget _buildMessages(ChatState state, ChatNotifier notifier) {
+    if (state.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
+
+    if (state.error != null) {
+      return Center(
+        child: Text(
+          state.error!,
+          style: const TextStyle(color: Colors.redAccent),
+        ),
+      );
+    }
+
+    if (state.messages.isEmpty) {
+      return const Center(
+        child: Text(
+          'Chưa có tin nhắn nào',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      itemCount: state.messages.length,
+      itemBuilder: (context, index) {
+        final msg = state.messages[index];
+        final isMe = msg.senderId == notifier.currentUserId;
+
+        bool showDate = false;
+        if (index == 0) {
+          showDate = true;
+        } else {
+          final prevMsg = state.messages[index - 1];
+          if (!_isSameDay(prevMsg.timestamp, msg.timestamp)) {
+            showDate = true;
+          }
+        }
+
+        return Column(
+          children: [
+            if (showDate) _buildDateSeparator(msg.timestamp),
+            _buildMessageBubble(msg, isMe),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  Widget _buildDateSeparator(DateTime date) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Text(
+          '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} ${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+          style: const TextStyle(
+            color: Color(0xFF34CAE8),
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageBubble(MessageModel msg, bool isMe) {
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.only(
+          top: 2,
+          bottom: 2,
+          left: isMe ? 80 : 0,
+          right: isMe ? 0 : 80,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (isMe) ...[
+              Padding(
+                padding: const EdgeInsets.only(right: 4, bottom: 2),
+                child: Text(
+                  _formatTime(msg.timestamp),
+                  style: const TextStyle(
+                    color: Color(0xFF34CAE8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isMe ? const Color(0xFF050D23) : const Color(0xFF051F4F),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  msg.message,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ),
+            if (!isMe) ...[
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 2),
+                child: Text(
+                  _formatTime(msg.timestamp),
+                  style: const TextStyle(
+                    color: Color(0xFF34CAE8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildInput(ChatNotifier notifier) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0D0783),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: TextField(
+                controller: _textController,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
+                decoration: const InputDecoration(
+                  hintText: 'Aa',
+                  hintStyle: TextStyle(color: Color(0xFF475569)),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                onSubmitted: (_) => _sendMessage(notifier),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              icon: const Icon(
+                Icons.send,
+                color: Color(0xFF34C8E8),
+                size: 24,
+              ),
+              onPressed: () => _sendMessage(notifier),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

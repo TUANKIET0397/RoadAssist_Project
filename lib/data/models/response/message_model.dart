@@ -28,11 +28,13 @@ class MessageModel {
       senderId: data['senderId'] ?? '',
       senderName: data['senderName'] ?? '',
       message: data['message'] ?? '',
-      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      timestamp: (data['timestamp'] as Timestamp?)?.toDate()
+          ?? DateTime.fromMillisecondsSinceEpoch(0),
       isRead: data['isRead'] ?? false,
       imageUrl: data['imageUrl'],
     );
   }
+
 
   Map<String, dynamic> toMap() {
     return {

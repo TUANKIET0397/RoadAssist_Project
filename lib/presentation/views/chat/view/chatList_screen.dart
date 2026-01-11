@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/response/chat_model.dart';
 import 'package:road_assist/presentation/views/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/presentation/views/chat/view/chatGarage_screen.dart';
+
 
 class ChatListScreen extends ConsumerWidget {
   final String userId;
@@ -22,7 +24,6 @@ class ChatListScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Header full status bar
           Container(
             width: double.infinity,
             padding: EdgeInsets.only(
@@ -65,10 +66,10 @@ class ChatListScreen extends ConsumerWidget {
             ),
           ),
 
-          // Body: Chat list
+          // Body
           Expanded(
             child: SafeArea(
-              top: false, // header đã xử lý top
+              top: false,
               bottom: false,
               child: chatStream.when(
                 data: (chats) {
@@ -88,16 +89,36 @@ class ChatListScreen extends ConsumerWidget {
                         imageUrl: chat.garageImage,
                         unreadCount: chat.unreadCount,
                         onTap: () async {
-                          final chatId = await ref
-                              .read(chatRepositoryProvider)
-                              .getOrCreateChat(
+                          final chatRepo = ref.read(chatRepositoryProvider);
+
+                          final chatId = await chatRepo.getOrCreateChat(
                             userId: userId,
                             garageId: chat.garageId,
                             garageName: chat.garageName,
                             garageImage: chat.garageImage,
                           );
 
-                          // TODO: Navigate to ChatDetailScreen
+                          /// Tạo ChatModel để truyền sang ChatScreen
+                          final chatModel = ChatModel(
+                            id: chatId,
+                            garageId: chat.garageId,
+                            garageName: chat.garageName,
+                            garageImage: chat.garageImage,
+                            userId: userId,
+                            lastMessage: chat.lastMessage,
+                            lastMessageTime: chat.lastMessageTime,
+                            unreadCount: 0,
+                            isFromUser: false,
+                          );
+
+                          if (!context.mounted) return;
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(chat: chatModel),
+                            ),
+                          );
                         },
                       );
                     },
@@ -135,7 +156,6 @@ class ChatListScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Text với gradient
           RichText(
             textAlign: TextAlign.center,
             text: const TextSpan(

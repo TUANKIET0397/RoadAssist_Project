@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/app.dart';
-// import 'package:road_assist/presentation/views/auth/login_screen.dart';
-// import 'package:road_assist/presentation/views/auth/splash_screen.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:provider/provider.dart';
-// import 'package:road_assist/presentation/viewmodels/garage/garageList_viewmodel.dart';
-// import 'package:road_assist/presentation/views/home/home_page.dart';
 
 // //firebase
 // import 'package:firebase_core/firebase_core.dart';

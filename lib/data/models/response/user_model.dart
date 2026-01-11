@@ -1,14 +1,15 @@
 class UserModel {
-  final String phoneNumber;
-  final String password;
+  final String name;
+  final String phone;
+  final String? email;
 
-  UserModel({
-    required this.phoneNumber,
-    required this.password,
-  });
+  const UserModel({required this.name, required this.phone, this.email});
 
-  Map<String, dynamic> toJson() => {
-    'phoneNumber': phoneNumber,
-    'password': password,
-  };
+  factory UserModel.mock() {
+    return const UserModel(
+      name: 'Minh Thuận',
+      phone: '+84 337 760 280',
+      email: null,
+    );
+  }
 }

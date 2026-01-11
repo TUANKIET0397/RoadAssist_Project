@@ -40,6 +40,9 @@ class _SlantedAnimatedBottomBarState
   }
 
   void _onTap(int index) {
+    final current = ref.read(navigationProvider);
+    if (current == index) return; // 👈 CHỐNG ANIMATE THỪA
+
     ref.read(navigationProvider.notifier).state = index;
     _controller.forward(from: 0);
   }

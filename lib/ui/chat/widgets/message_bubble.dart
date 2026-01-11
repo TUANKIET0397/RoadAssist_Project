@@ -1,61 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/data/models/message.dart';
+import 'package:road_assist/data/models/message_model.dart';
 
 class MessageBubble extends StatelessWidget {
-  final Message message;
+  final MessageModel message;
+  final bool isMe;
 
-  const MessageBubble({super.key, required this.message});
+  const MessageBubble({
+    super.key,
+    required this.message,
+    required this.isMe,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Align(
-        alignment: message.isSent
-            ? Alignment.centerLeft
-            : Alignment.centerRight,
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: message.isSent
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.end,
+          crossAxisAlignment:
+          isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Container(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.75,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: message.isSent
-                    ? const Color(0xFF2563eb)
-                    : const Color(0xFF1e293b),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+                color: isMe
+                    ? const Color(0xFF050D23)
+                    : const Color(0xFF051F4F),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
-                message.text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  height: 1.4,
-                ),
-              ),
+              child: _buildContent(),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-              child: Text(
-                message.timestamp,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748b)),
+            const SizedBox(height: 4),
+            Text(
+              _formatTime(message.createdAt),
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF64748b),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildContent() {
+    if (message.type == 'image' && message.imageUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          message.imageUrl!,
+          width: 200,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Text(
+      message.text ?? '',
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 14,
+        height: 1.4,
+      ),
+    );
+  }
+
+  String _formatTime(DateTime time) {
+    return '${time.hour.toString().padLeft(2, '0')}:'
+        '${time.minute.toString().padLeft(2, '0')}';
   }
 }

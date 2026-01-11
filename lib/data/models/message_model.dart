@@ -2,49 +2,49 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessageModel {
   final String id;
-  final String chatId;
   final String senderId;
-  final String senderName;
-  final String message;
-  final DateTime timestamp;
-  final bool isRead;
+  final String senderRole;
+  final String type;
+  final String? text;
   final String? imageUrl;
+  final DateTime createdAt;
+  final List<String> readBy;
 
   MessageModel({
     required this.id,
-    required this.chatId,
     required this.senderId,
-    required this.senderName,
-    required this.message,
-    required this.timestamp,
-    required this.isRead,
+    required this.senderRole,
+    required this.type,
+    this.text,
     this.imageUrl,
+    required this.createdAt,
+    required this.readBy,
   });
 
   factory MessageModel.fromMap(String id, Map<String, dynamic> data) {
+    final Timestamp? ts = data['createdAt'];
+
     return MessageModel(
       id: id,
-      chatId: data['chatId'] ?? '',
       senderId: data['senderId'] ?? '',
-      senderName: data['senderName'] ?? '',
-      message: data['message'] ?? '',
-      timestamp: (data['timestamp'] as Timestamp?)?.toDate()
-          ?? DateTime.fromMillisecondsSinceEpoch(0),
-      isRead: data['isRead'] ?? false,
+      senderRole: data['senderRole'] ?? 'user',
+      type: data['type'] ?? 'text',
+      text: data['text'],
       imageUrl: data['imageUrl'],
+      createdAt: ts?.toDate() ?? DateTime.now(),
+      readBy: List<String>.from(data['readBy'] ?? []),
     );
   }
 
-
   Map<String, dynamic> toMap() {
     return {
-      'chatId': chatId,
       'senderId': senderId,
-      'senderName': senderName,
-      'message': message,
-      'timestamp': Timestamp.fromDate(timestamp),
-      'isRead': isRead,
+      'senderRole': senderRole,
+      'type': type,
+      'text': text,
       'imageUrl': imageUrl,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'readBy': readBy,
     };
   }
 }

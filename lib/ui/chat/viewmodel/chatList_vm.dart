@@ -3,24 +3,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
 
+/// Providers
 final chatRepositoryProvider = Provider((ref) => ChatRepository());
 
-final chatStreamProvider = StreamProvider.family<List<ChatModel>, String>((
-  ref,
-  userId,
-) {
+final chatStreamProvider =
+StreamProvider.family<List<ChatModel>, String>((ref, userId) {
   return ref.watch(chatRepositoryProvider).getChatStream(userId);
 });
 
 final messagesStreamProvider =
-    StreamProvider.family<List<MessageModel>, String>((ref, chatId) {
-      return ref.watch(chatRepositoryProvider).getMessagesStream(chatId);
-    });
+StreamProvider.family<List<MessageModel>, String>((ref, chatId) {
+  return ref.watch(chatRepositoryProvider).getMessagesStream(chatId);
+});
 
+
+/// Repository
 class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Lấy danh sách chat cho user
   Stream<List<ChatModel>> getChatStream(String userId) {
     return _firestore
         .collection('chats')
@@ -29,26 +29,28 @@ class ChatRepository {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => ChatModel.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+          .map((doc) => ChatModel.fromMap(doc.id, doc.data()))
+          .toList(),
+    );
   }
 
-  /// Lấy hoặc tạo chat mới
+  /// Get or create chat
   Future<String> getOrCreateChat({
     required String userId,
     required String garageId,
     required String garageName,
     required String garageImage,
   }) async {
-    final existingChat = await _firestore
+    final existing = await _firestore
         .collection('chats')
         .where('userId', isEqualTo: userId)
         .where('garageId', isEqualTo: garageId)
         .limit(1)
         .get();
 
-    if (existingChat.docs.isNotEmpty) return existingChat.docs.first.id;
+    if (existing.docs.isNotEmpty) {
+      return existing.docs.first.id;
+    }
 
     final chatRef = await _firestore.collection('chats').add({
       'userId': userId,
@@ -65,68 +67,95 @@ class ChatRepository {
     return chatRef.id;
   }
 
-  /// Gửi tin nhắn
-  Future<void> sendMessage({
+  /// Send text message
+  Future<void> sendTextMessage({
     required String chatId,
     required String senderId,
-    required String senderName,
-    required String message,
-    required bool isFromUser,
-    String? imageUrl,
+    required String senderRole,
+    required String text,
   }) async {
-    await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
-        .add({
-          'chatId': chatId,
-          'senderId': senderId,
-          'senderName': senderName,
-          'message': message,
-          'timestamp': FieldValue.serverTimestamp(),
-          'isRead': false,
-          'imageUrl': imageUrl,
-        });
+    final now = DateTime.now();
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    final messageRef = chatRef.collection('messages').doc();
 
-    /// phân biệt user / garage
-    await _firestore.collection('chats').doc(chatId).update({
-      'lastMessage': message,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'isFromUser': isFromUser,
-      'unreadCount': isFromUser ? 0 : FieldValue.increment(1),
+    final message = MessageModel(
+      id: messageRef.id,
+      senderId: senderId,
+      senderRole: senderRole,
+      type: 'text',
+      text: text,
+      imageUrl: null,
+      createdAt: now,
+      readBy: [senderId],
+    );
+
+    await _firestore.runTransaction((tx) async {
+      tx.set(messageRef, message.toMap());
+
+      tx.update(chatRef, {
+        'lastMessage': text,
+        'lastMessageTime': Timestamp.fromDate(now),
+        'isFromUser': senderRole == 'user',
+        'unreadCount': FieldValue.increment(1),
+      });
     });
   }
 
-  /// Lấy tin nhắn realtime
+
+  /// Messages realtime
+
   Stream<List<MessageModel>> getMessagesStream(String chatId) {
     return _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('timestamp', descending: false)
+        .orderBy('createdAt', descending: false)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => MessageModel.fromMap(doc.id, doc.data()))
-              .toList(),
-        );
+          .map(
+            (doc) => MessageModel.fromMap(
+          doc.id,
+          doc.data(),
+        ),
+      )
+          .toList(),
+    );
   }
 
-  /// Đánh dấu đã đọc
-  Future<void> markAsRead(String chatId) async {
-    await _firestore.collection('chats').doc(chatId).update({'unreadCount': 0});
-  }
 
-  /// Xóa chat và messages
-  Future<void> deleteChat(String chatId) async {
-    final messages = await _firestore
-        .collection('chats')
-        .doc(chatId)
-        .collection('messages')
+  /// Mark messages as read
+
+  Future<void> markAsRead({
+    required String chatId,
+    required String userId,
+  }) async {
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    final messagesRef = chatRef.collection('messages');
+
+    final snapshot = await messagesRef
+        .where('senderId', isNotEqualTo: userId)
         .get();
-    for (var doc in messages.docs) {
-      await doc.reference.delete();
+
+    final batch = _firestore.batch();
+    bool needUpdate = false;
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      final List<dynamic> readBy = data['readBy'] ?? [];
+
+      if (!readBy.contains(userId)) {
+        batch.update(doc.reference, {
+          'readBy': FieldValue.arrayUnion([userId]),
+        });
+        needUpdate = true;
+      }
     }
-    await _firestore.collection('chats').doc(chatId).delete();
+
+    if (needUpdate) {
+      batch.update(chatRef, {'unreadCount': 0});
+      await batch.commit();
+    }
   }
+
 }

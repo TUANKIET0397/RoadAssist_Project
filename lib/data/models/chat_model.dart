@@ -1,59 +1,66 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
 class ChatModel {
   final String id;
+  final String userId;
   final String garageId;
   final String garageName;
   final String garageImage;
-  final String userId;
   final String lastMessage;
   final DateTime lastMessageTime;
-  final int unreadCount;
-  final bool isFromUser;
+  final String lastSenderId;
+  final Map<String, int> unread;
+  final DateTime createdAt;
 
   ChatModel({
     required this.id,
+    required this.userId,
     required this.garageId,
     required this.garageName,
     required this.garageImage,
-    required this.userId,
     required this.lastMessage,
     required this.lastMessageTime,
-    required this.unreadCount,
-    required this.isFromUser,
+    required this.lastSenderId,
+    required this.unread,
+    required this.createdAt,
   });
 
   factory ChatModel.fromMap(String id, Map<String, dynamic> data) {
+    final Timestamp? lastTs = data['lastMessageTime'];
+    final Timestamp? createdTs = data['createdAt'];
+
     return ChatModel(
       id: id,
+      userId: data['userId'] ?? '',
       garageId: data['garageId'] ?? '',
       garageName: data['garageName'] ?? '',
       garageImage: data['garageImage'] ?? '',
-      userId: data['userId'] ?? '',
       lastMessage: data['lastMessage'] ?? '',
-      lastMessageTime: (data['lastMessageTime'] as Timestamp).toDate(),
-      unreadCount: data['unreadCount'] ?? 0,
-      isFromUser: data['isFromUser'] ?? false,
+      lastMessageTime: lastTs?.toDate() ?? DateTime.now(),
+      lastSenderId: data['lastSenderId'] ?? '',
+      unread: Map<String, int>.from(data['unread'] ?? {}),
+      createdAt: createdTs?.toDate() ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
+      'userId': userId,
       'garageId': garageId,
       'garageName': garageName,
       'garageImage': garageImage,
-      'userId': userId,
       'lastMessage': lastMessage,
       'lastMessageTime': Timestamp.fromDate(lastMessageTime),
-      'unreadCount': unreadCount,
-      'isFromUser': isFromUser,
+      'lastSenderId': lastSenderId,
+      'unread': unread,
+      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 
   // Tính thời gian hiển thị
   String getTimeAgo() {
-    final now = DateTime.now();
-    final difference = now.difference(lastMessageTime);
+    final difference = DateTime.now().difference(lastMessageTime);
 
     if (difference.inMinutes < 1) {
       return 'Vừa xong';

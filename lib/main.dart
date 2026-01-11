@@ -1,45 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/app.dart';
+<<<<<<< HEAD
+=======
+
+// import 'package:road_assist/presentation/views/chat/chat_screen.dart';
+// import 'package:road_assist/presentation/viewmodels/chat/chat_viewmodel.dart';
+// import 'package:provider/provider.dart';
+>>>>>>> 0c090f0001d9b6aa41c7043f70947c8dc6aaa7c4
 
 // //firebase
-// import 'package:firebase_core/firebase_core.dart';
-// import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-// void main() => runApp(const HomePage());
-void main() {
-  runApp(const ProviderScope(child: MyApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Khởi tạo Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(
+    const ProviderScope(
+      child: MaterialApp(
+        home: MyApp(),
+      ),
+    ),
+  );
 }
 
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await Firebase.initializeApp(
-//     options: DefaultFirebaseOptions.currentPlatform,
-//   );
-//   runApp(const MyApp());
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return MultiProvider(
+// void main() {
+//   runApp(
+//     MultiProvider(
 //       providers: [
-//         ChangeNotifierProvider(
-//           create: (_) => GarageViewModel(),
-//         ),
+//         // Khai báo Provider cho ChatViewModel ở đây
+//         ChangeNotifierProvider(create: (_) => ChatViewModel()),
 //       ],
-//       child: MaterialApp(
-//         title: 'RoadAssist',
+//       child: const MaterialApp(
 //         debugShowCheckedModeBanner: false,
-//         theme: ThemeData(
-//           textTheme: GoogleFonts.poppinsTextTheme(),
-//           primaryColor: const Color(0xFF242C3B),
-//           brightness: Brightness.dark,
-//         ),
-//         home: const SplashWrapper(),
+//         home: ChatScreen(),
 //       ),
-//     );
-//   }
+//     ),
+//   );
 // }

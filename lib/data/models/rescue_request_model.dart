@@ -13,6 +13,11 @@ class RescueRequestModel {
   final double longitude;
   final String? imageUrl;
   final String status; // pending, accepted, completed, cancelled
+  final List<String> statusUpdates = [
+    'Garage đã nhận yêu cầu',
+    'Garage đang điều phối kỹ thuật',
+    'Garage sẽ liên hệ trong ít phút',
+  ];
   final DateTime createdAt;
   final String? garageId;
   final String? garageName;
@@ -36,7 +41,7 @@ class RescueRequestModel {
     this.garageId,
     this.garageName,
     this.acceptedAt,
-    this.completedAt,
+    this.completedAt, required List<String> statusUpdates,
   });
 
   factory RescueRequestModel.fromMap(String id, Map<String, dynamic> data) {
@@ -61,7 +66,7 @@ class RescueRequestModel {
           : null,
       completedAt: data['completedAt'] != null
           ? (data['completedAt'] as Timestamp).toDate()
-          : null,
+          : null, statusUpdates: [],
     );
   }
 
@@ -98,6 +103,8 @@ class RescueRequestModel {
         return 'Hoàn thành';
       case 'cancelled':
         return 'Đã hủy';
+      case 'timed_out':
+        return 'Hết thời gian';
       default:
         return 'Không xác định';
     }

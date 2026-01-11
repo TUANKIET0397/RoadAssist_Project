@@ -335,7 +335,7 @@ class GarageCard extends ConsumerWidget {
 
             // Services
             Text(
-              garage.services.join('  ·  '),
+              garage.issues.join('  ·  '),
               style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
 

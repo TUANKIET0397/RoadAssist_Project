@@ -99,7 +99,7 @@ class _SlantedAnimatedBottomBarState
           AnimatedPositioned(
             duration: const Duration(milliseconds: 320),
             curve: Curves.easeOutBack,
-            bottom: 24,
+            bottom: 15,
             left: itemWidth * currentIndex + itemWidth / 2 - activeSize / 2,
             child: GestureDetector(
               onTap: () => _onTap(currentIndex),
@@ -110,18 +110,35 @@ class _SlantedAnimatedBottomBarState
                     offset: Offset(0, _lift.value),
                     child: Transform.scale(
                       scale: _scale.value,
-                      child: ClipPath(
-                        clipper: SlantedBarClipper(),
-                        child: Container(
-                          padding: const EdgeInsets.all(iconPadding),
-                          color: const Color.fromRGBO(52, 200, 232, 1),
-                          child: Image.asset(
-                            _items[currentIndex].icon,
-                            width: iconSize,
-                            height: iconSize,
-                            color: Colors.white,
+                      child: Column(
+                        children: [
+                          ClipPath(
+                            clipper: SlantedRoundedClipper(),
+                            clipBehavior: Clip.antiAlias,
+                            child: ClipRRect(
+                              child: Container(
+                                width: 55,
+                                height: 55,
+                                padding: const EdgeInsets.all(iconPadding),
+                                color: const Color.fromRGBO(52, 200, 232, 1),
+                                child: Image.asset(
+                                  _items[currentIndex].icon,
+                                  width: iconSize,
+                                  height: iconSize,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(height:1),
+                          Text(
+                            _items[currentIndex].label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -189,4 +206,53 @@ class SlantedBarClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(_) => false;
+}
+
+class SlantedRoundedClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const double skew = 10;
+
+    // Bo góc trái
+    const double lTop = 6;
+    const double lBottom = 8;
+
+    // Bo góc phải
+    const double rTop = 8;
+    const double rBottom = 6;
+
+    final path = Path();
+
+    // ===== TOP LEFT =====
+    path.moveTo(0, skew + lTop);
+    path.quadraticBezierTo(0, skew, lTop, skew);
+
+    // ===== TOP EDGE (xiên) =====
+    path.lineTo(size.width - rTop, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, rTop);
+
+    // ===== RIGHT EDGE =====
+    path.lineTo(size.width, size.height - skew - rBottom);
+    path.quadraticBezierTo(
+      size.width,
+      size.height - skew,
+      size.width - rBottom,
+      size.height - skew,
+    );
+
+    // ===== BOTTOM EDGE (xiên) =====
+    path.lineTo(lBottom, size.height);
+    path.quadraticBezierTo(
+      0,
+      size.height,
+      0,
+      size.height - lBottom,
+    );
+
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

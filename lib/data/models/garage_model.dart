@@ -4,24 +4,27 @@ class GarageModel {
   final String address;
   final String phone;
   final List<String> vehicleTypes;
-  final List<String> services;
+  final List<String> issues;
   final String openTime;
   final String closeTime;
-  final double lat;
-  final double lng;
+  final double? lat;
+  final double? lng;
   final double? rating;
   final bool isActive;
+  final double? distance;
   final String? imageUrl;
   final String? bgimgUrl;
   bool isFavorite;
+  
 
   GarageModel({
     required this.id,
     required this.name,
+    required this.distance,
     required this.address,
     required this.phone,
     required this.vehicleTypes,
-    required this.services,
+    required this.issues,
     required this.openTime,
     required this.closeTime,
     required this.lat,
@@ -38,9 +41,10 @@ class GarageModel {
       id: id,
       name: data['name'] ?? '',
       address: data['address'] ?? '',
+      distance: data['distance']?.toDouble(),
       phone: data['phone'] ?? '',
       vehicleTypes: List<String>.from(data['vehicleTypes'] ?? []),
-      services: List<String>.from(data['services'] ?? []),
+      issues: List<String>.from(data['issues'] ?? []),
       openTime: data['openTime'] ?? '',
       closeTime: data['closeTime'] ?? '',
       lat: (data['location']?['lat'] ?? 0).toDouble(),
@@ -61,7 +65,7 @@ class GarageModel {
       'address': address,
       'phone': phone,
       'vehicleTypes': vehicleTypes,
-      'services': services,
+      'issues': issues,
       'openTime': openTime,
       'closeTime': closeTime,
       'location': {

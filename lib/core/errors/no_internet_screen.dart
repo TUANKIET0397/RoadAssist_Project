@@ -104,12 +104,12 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 17),
 
                 /// ===== EMERGENCY CARD =====
                 const EmergencyCard(),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
 
                 /// ===== INFO LIST =====
                 _buildInfoItem('Ứng dụng tạm thời không thể kết nối Internet.'),
@@ -117,9 +117,10 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   'Chúng tôi sẽ hoạt động lại ngay khi có Internet.',
                 ),
                 _buildInfoItem('Một số tính năng sẽ tạm thời bị hạn chế.'),
-                const SizedBox(height: 18),
 
-                const Spacer(),
+                const SizedBox(height: 8),
+
+                // const Spacer(),
 
                 /// ===== RETRY BUTTON =====
                 Column(

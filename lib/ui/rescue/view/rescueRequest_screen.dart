@@ -205,7 +205,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       location: testAddress,
       latitude: testLat,
       longitude: testLng,
-      image: selectedImages.isNotEmpty ? selectedImages.first : null,
+      image: selectedImages.isNotEmpty ? selectedImages.first : null, 
     );
 
     if (id != null) {

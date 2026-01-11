@@ -4,6 +4,9 @@ import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
 import 'package:road_assist/ui/chat/viewmodel/chatGarage_vm.dart';
 
+import 'package:road_assist/ui/chat/widgets/date_divider.dart';
+import 'package:road_assist/ui/chat/widgets/message_bubble.dart';
+
 class ChatScreen extends ConsumerStatefulWidget {
   final ChatModel chat;
 
@@ -17,8 +20,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  late final ProviderSubscription<ChatState> _chatListener;
-
   @override
   void initState() {
     super.initState();
@@ -27,16 +28,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ref.read(chatProvider(widget.chat).notifier).markAsRead();
     });
 
-    _chatListener = ref.listenManual<ChatState>(chatProvider(widget.chat), (
-      prev,
-      next,
-    ) {
+    ref.listenManual(chatProvider(widget.chat), (prev, next) {
       if (prev == null) return;
-
       if (prev.messages.length != next.messages.length) {
-        Future.delayed(const Duration(milliseconds: 80), () {
-          _scrollToBottom();
-        });
+        _scrollToBottom();
       }
     });
   }
@@ -52,8 +47,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (!_scrollController.hasClients) return;
 
     final max = _scrollController.position.maxScrollExtent;
-    if (max <= 0) return;
-
     if (animated) {
       _scrollController.animateTo(
         max,
@@ -72,23 +65,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     notifier.sendMessage(text);
     _textController.clear();
 
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollToBottom();
-    });
+    Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
 
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatProvider(widget.chat));
     final chatNotifier = ref.read(chatProvider(widget.chat).notifier);
-
-    ref.listen(chatProvider(widget.chat), (prev, next) {
-      if (prev?.messages.length != next.messages.length) {
-        Future.delayed(const Duration(milliseconds: 80), () {
-          _scrollToBottom();
-        });
-      }
-    });
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -114,9 +97,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  // APP BAR
+
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Color.fromRGBO(37, 44, 59, 1),
+      backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -162,10 +147,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             : null,
       ),
       child: !img.startsWith('http')
-          ? Center(child: Text(img, style: const TextStyle(fontSize: 20)))
+          ? Center(
+        child: Text(
+          img.isNotEmpty ? img[0].toUpperCase() : '?',
+          style: const TextStyle(color: Colors.white),
+        ),
+      )
           : null,
     );
   }
+
+  // message
 
   Widget _buildMessages(ChatState state, ChatNotifier notifier) {
     if (state.isLoading) {
@@ -204,26 +196,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         if (index == 0) {
           showDate = true;
         } else {
-          final prevMsg = state.messages[index - 1];
-          if (!_isSameDay(prevMsg.timestamp, msg.timestamp)) {
-            showDate = true;
-          }
+          final prev = state.messages[index - 1];
+          showDate = !_isSameDay(prev.createdAt, msg.createdAt);
         }
 
         return Column(
           children: [
-            if (showDate) _buildDateSeparator(msg.timestamp),
-            _buildMessageBubble(msg, isMe),
+            if (showDate) DateDivider(date: msg.createdAt),
+            MessageBubble(
+              message: msg,
+              isMe: isMe,
+            ),
           ],
         );
       },
     );
   }
 
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year &&
+        d1.month == d2.month &&
+        d1.day == d2.day;
   }
 
   Widget _buildDateSeparator(DateTime date) {
@@ -231,7 +224,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
         child: Text(
-          '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} ${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+          '${date.day.toString().padLeft(2, '0')}/'
+              '${date.month.toString().padLeft(2, '0')}/'
+              '${date.year}',
           style: const TextStyle(
             color: Color(0xFF34CAE8),
             fontSize: 12,
@@ -242,77 +237,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildMessageBubble(MessageModel msg, bool isMe) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.only(
-          top: 2,
-          bottom: 2,
-          left: isMe ? 80 : 0,
-          right: isMe ? 0 : 80,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (isMe) ...[
-              Padding(
-                padding: const EdgeInsets.only(right: 4, bottom: 2),
-                child: Text(
-                  _formatTime(msg.timestamp),
-                  style: const TextStyle(
-                    color: Color(0xFF34CAE8),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-            Flexible(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: isMe
-                      ? const Color(0xFF050D23)
-                      : const Color(0xFF051F4F),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  msg.message,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ),
-            if (!isMe) ...[
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 2),
-                child: Text(
-                  _formatTime(msg.timestamp),
-                  style: const TextStyle(
-                    color: Color(0xFF34CAE8),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
 
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
+  // input
 
   Widget _buildInput(ChatNotifier notifier) {
     return Container(
@@ -341,15 +267,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.transparent,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Color(0xFF34C8E8), size: 24),
-              onPressed: () => _sendMessage(notifier),
-            ),
+          IconButton(
+            icon: const Icon(Icons.send, color: Color(0xFF34C8E8)),
+            onPressed: () => _sendMessage(notifier),
           ),
         ],
       ),

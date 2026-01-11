@@ -4,10 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
-/// =====================
 /// Chat State
-/// =====================
 class ChatState {
   final ChatModel chat;
   final List<MessageModel> messages;
@@ -31,129 +30,171 @@ class ChatState {
       chat: chat ?? this.chat,
       messages: messages ?? this.messages,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error,
     );
   }
 }
 
-/// =====================
 /// Chat Notifier
-/// =====================
 class ChatNotifier extends StateNotifier<ChatState> {
-  final String currentUserId;
   final FirebaseFirestore _firestore;
+  final String? currentUserId;
+  final String senderRole;
 
-  StreamSubscription<QuerySnapshot>? _messageSubscription;
+  StreamSubscription<QuerySnapshot>? _messageSub;
 
   ChatNotifier({
-    required this.currentUserId,
     required ChatModel chat,
+    required this.currentUserId,
+    required this.senderRole,
     FirebaseFirestore? firestore,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       super(ChatState(chat: chat, messages: [])) {
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        super(ChatState(chat: chat, messages: [], isLoading: true)) {
+    final id = currentUserId;
+    if (id == null || id.isEmpty) {
+      state = state.copyWith(error: "User not logged in.", isLoading: false);
+      return;
+    }
     _listenMessages();
   }
 
-  /// Lắng nghe messages realtime
+  /// Listen messages realtime
   void _listenMessages() {
+    final id = currentUserId;
+    if (id == null || id.isEmpty) return;
+
     state = state.copyWith(isLoading: true);
 
-    _messageSubscription = _firestore
+    _messageSub = _firestore
         .collection('chats')
         .doc(state.chat.id)
         .collection('messages')
-        .orderBy('timestamp', descending: false)
+        .orderBy('createdAt', descending: false)
         .snapshots()
         .listen(
           (snapshot) {
-            final messages = snapshot.docs
-                .map(
-                  (doc) => MessageModel.fromMap(
-                    doc.id,
-                    doc.data() as Map<String, dynamic>,
-                  ),
-                )
-                .where((m) => m.timestamp.millisecondsSinceEpoch > 0)
-                .toList();
+        final messages = snapshot.docs
+            .map(
+              (doc) => MessageModel.fromMap(
+            doc.id,
+            doc.data() as Map<String, dynamic>,
+          ),
+        )
+            .toList();
 
-            state = state.copyWith(messages: messages, isLoading: false);
-          },
-          onError: (error) {
-            state = state.copyWith(isLoading: false, error: error.toString());
-          },
+        state = state.copyWith(
+          messages: messages,
+          isLoading: false,
         );
+      },
+      onError: (e) {
+        state = state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        );
+      },
+    );
   }
 
-  /// Gửi tin nhắn
+
+  /// Send text message
   Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+    final content = text.trim();
+    if (content.isEmpty) return;
+
+    final id = currentUserId;
+    if (id == null || id.isEmpty) {
+      state = state.copyWith(error: "User not logged in");
+      return;
+    }
 
     final now = DateTime.now();
+    final chatRef = _firestore.collection('chats').doc(state.chat.id);
+    final messageRef = chatRef.collection('messages').doc();
 
     final message = MessageModel(
-      id: '',
-      chatId: state.chat.id,
-      senderId: currentUserId,
-      senderName: 'Bạn',
-      message: text.trim(),
-      timestamp: now,
-      isRead: false,
+      id: messageRef.id,
+      senderId: id,
+      senderRole: senderRole,
+      type: 'text',
+      text: content,
+      imageUrl: null,
+      createdAt: now,
+      readBy: [id],
     );
 
-    final chatRef = _firestore.collection('chats').doc(state.chat.id);
-
     try {
-      await chatRef.collection('messages').add(message.toMap());
+      await _firestore.runTransaction((transaction) async {
+        transaction.set(messageRef, message.toMap());
 
-      await chatRef.update({'isFromUser': true});
+        if (senderRole == 'garage') {
+          transaction.update(chatRef, {
+            'lastMessage': content,
+            'lastMessageTime': Timestamp.fromDate(now),
+            'lastSenderId': id,
+            'unreadCount': FieldValue.increment(1),
+          });
+        }
+      });
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
   }
 
-  /// Đánh dấu đã đọc
+
+
+  /// Mark messages as read
   Future<void> markAsRead() async {
-    final batch = _firestore.batch();
+    final id = currentUserId;
+    if (id == null || id.isEmpty) return;
 
-    final messagesRef = _firestore
-        .collection('chats')
-        .doc(state.chat.id)
-        .collection('messages');
+    final chatRef = _firestore.collection('chats').doc(state.chat.id);
+    final messagesRef = chatRef.collection('messages');
 
-    final unreadMessages = await messagesRef
-        .where('senderId', isNotEqualTo: currentUserId)
-        .where('isRead', isEqualTo: false)
+    final snapshot = await messagesRef
+        .where('senderId', isNotEqualTo: id)
         .get();
 
-    for (final doc in unreadMessages.docs) {
-      batch.update(doc.reference, {'isRead': true});
+    if (snapshot.docs.isEmpty) return;
+
+    final batch = _firestore.batch();
+    bool hasUpdate = false;
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final List<dynamic> readBy = data['readBy'] ?? [];
+
+      if (!readBy.contains(id)) {
+        batch.update(doc.reference, {
+          'readBy': FieldValue.arrayUnion([id]),
+        });
+        hasUpdate = true;
+      }
     }
 
-    batch.update(_firestore.collection('chats').doc(state.chat.id), {
-      'unreadCount': 0,
-    });
-
-    await batch.commit();
+    if (hasUpdate) {
+      batch.update(chatRef, {'unreadCount': 0});
+      await batch.commit();
+    }
   }
 
   @override
   void dispose() {
-    _messageSubscription?.cancel();
+    _messageSub?.cancel();
     super.dispose();
   }
 }
 
 /// Providers
 
-/// User hiện tại (sau này lấy từ Auth)
-final currentUserIdProvider = Provider<String>((ref) => 'currentUser123');
+final chatProvider = StateNotifierProvider.family<
+    ChatNotifier, ChatState, ChatModel>((ref, chat) {
 
-/// Chat Provider cho từng phòng chat
-final chatProvider =
-    StateNotifierProvider.family<ChatNotifier, ChatState, ChatModel>((
-      ref,
-      chat,
-    ) {
-      final userId = ref.watch(currentUserIdProvider);
-      return ChatNotifier(currentUserId: userId, chat: chat);
-    });
+  final userId = ref.watch(userIdProvider);
+
+  return ChatNotifier(
+    chat: chat,
+    currentUserId: userId ?? '',
+    senderRole: 'user',
+  );
+});

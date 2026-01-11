@@ -35,7 +35,8 @@ class ProfileCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   image: DecorationImage(
                     image: AssetImage(
-                      'assets/images/illustrations/vehicle1.png',
+                      user.avatar ??
+                          'assets/images/illustrations/avatarDefault.png',
                     ),
                     fit: BoxFit.contain,
                   ),
@@ -48,7 +49,7 @@ class ProfileCard extends StatelessWidget {
                   decoration: BoxDecoration(shape: BoxShape.circle),
                   child: Icon(
                     Icons.check_circle,
-                    color: Colors.green,
+                    color: user.email == null ? Colors.grey : Colors.green,
                     size: 28,
                   ),
                 ),

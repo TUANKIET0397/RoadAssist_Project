@@ -48,7 +48,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   @override
   void initState() {
     super.initState();
-    //_loadInitialLocation();
+    _loadInitialLocation();
   }
 
   Future<void> _loadInitialLocation() async {

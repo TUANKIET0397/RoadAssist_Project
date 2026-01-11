@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:road_assist/ui/account/model/vehicle_model.dart';
 import 'package:road_assist/ui/account/viewmodel/account_vm.dart';
+
 import 'package:road_assist/ui/account/widgets/action_grid.dart';
+import 'package:road_assist/ui/account/widgets/edit_vehicle_dialog.dart';
 import 'package:road_assist/ui/account/widgets/logout_button.dart';
 import 'package:road_assist/ui/account/widgets/profile_card.dart';
 import 'package:road_assist/ui/account/widgets/vehicle_section.dart';
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
+
+  void _openEditBottomSheet(
+    BuildContext context,
+    WidgetRef ref,
+    Vehicle vehicle,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color.fromRGBO(25, 37, 59, 1),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => EditVehicleBottomSheet(
+        vehicle: vehicle,
+        onSubmit: (value) {
+          ref
+              .read(accountVmProvider.notifier)
+              .updateVehicleDescription(vehicle, value);
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,23 +51,10 @@ class AccountScreen extends ConsumerWidget {
             color: Colors.white,
           ),
         ),
-        actions: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            margin: EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
-              ),
-            ),
-            child: const Icon(Icons.person, color: Colors.white),
-          ),
-        ],
         backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
       ),
       body: Container(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -53,6 +67,7 @@ class AccountScreen extends ConsumerWidget {
           children: [
             ProfileCard(user: state.user),
             const SizedBox(height: 20),
+
             const Text(
               'Phương tiện của tôi',
               style: TextStyle(
@@ -61,21 +76,18 @@ class AccountScreen extends ConsumerWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 250),
-              child: VehicleSection(
-                vehicles: state.vehicles,
-                onChangeN: vm.changeName,
-                onRemove: vm.removeVehicle,
-              ),
+            const SizedBox(height: 12),
+
+            VehicleSection(
+              vehicles: state.vehicles,
+              onEdit: (vehicle) => _openEditBottomSheet(context, ref, vehicle),
+              onRemove: vm.removeVehicle,
             ),
-            const SizedBox(height: 10),
 
+            const SizedBox(height: 20),
             ActionGrid(actions: vm.actions, onTap: vm.onActionTap),
-
             const SizedBox(height: 24),
             LogoutButton(onTap: vm.logout),
-            const SizedBox(height: 10),
           ],
         ),
       ),

@@ -23,53 +23,8 @@ class ChatListScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top,
-              left: 16,
-              right: 16,
-              bottom: 8,
-            ),
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(37, 44, 59, 1),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Chat garage',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.search,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    onPressed: () {},
-                  ),
-                ),
-              ],
-            ),
-          ),
+          _buildHeader(context),
 
-          // Body
           Expanded(
             child: SafeArea(
               top: false,
@@ -77,58 +32,11 @@ class ChatListScreen extends ConsumerWidget {
               child: chatStream.when(
                 data: (chats) {
                   if (chats.isEmpty) return _buildEmptyState();
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(8, 16, 8, 120),
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      final chat = chats[index];
-                      return ChatItem(
-                        name: chat.garageName,
-                        message: chat.lastMessage,
-                        time: chat.lastMessageTime != null
-                            ? formatTime(chat.lastMessageTime)
-                            : '',
-                        imageUrl: chat.garageImage,
-                        unreadCount: chat.unreadCount,
-                        onTap: () async {
-                          final chatRepo = ref.read(chatRepositoryProvider);
-
-                          final chatId = await chatRepo.getOrCreateChat(
-                            userId: userId,
-                            garageId: chat.garageId,
-                            garageName: chat.garageName,
-                            garageImage: chat.garageImage,
-                          );
-
-                          /// Tạo ChatModel để truyền sang ChatScreen
-                          final chatModel = ChatModel(
-                            id: chatId,
-                            garageId: chat.garageId,
-                            garageName: chat.garageName,
-                            garageImage: chat.garageImage,
-                            userId: userId,
-                            lastMessage: chat.lastMessage,
-                            lastMessageTime: chat.lastMessageTime,
-                            unreadCount: 0,
-                            isFromUser: false,
-                          );
-
-                          if (!context.mounted) return;
-
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChatScreen(chat: chatModel),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
+                  return _buildChatList(context, ref, chats);
                 },
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF4A90E2)),
+                  child:
+                  CircularProgressIndicator(color: Color(0xFF4A90E2)),
                 ),
                 error: (err, _) => Center(
                   child: Text(
@@ -144,6 +52,89 @@ class ChatListScreen extends ConsumerWidget {
     );
   }
 
+  // HEADER
+
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top,
+        left: 16,
+        right: 16,
+        bottom: 8,
+      ),
+      decoration: const BoxDecoration(
+        color: Color.fromRGBO(37, 44, 59, 1),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Chat garage',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.search, color: Colors.white, size: 16),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //Chat List
+
+  Widget _buildChatList(
+      BuildContext context,
+      WidgetRef ref,
+      List<ChatModel> chats,
+      ) {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(8, 16, 8, 120),
+      itemCount: chats.length,
+      itemBuilder: (context, index) {
+        final chat = chats[index];
+        final unreadCount = chat.unread[userId] ?? 0;
+
+        return ChatItem(
+          name: chat.garageName,
+          message: chat.lastMessage,
+          time: formatTime(chat.lastMessageTime),
+          imageUrl: chat.garageImage,
+          unreadCount: unreadCount,
+          onTap: () async {
+            if (!context.mounted) return;
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(chat: chat),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  //empty list
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -156,10 +147,9 @@ class ChatListScreen extends ConsumerWidget {
             fit: BoxFit.contain,
           ),
           const SizedBox(height: 24),
-
           RichText(
             textAlign: TextAlign.center,
-            text: const TextSpan(
+            text: TextSpan(
               style: TextStyle(fontSize: 18, color: Colors.white, height: 1.5),
               children: [
                 TextSpan(text: 'Bạn chưa có cuộc trò chuyện nào '),
@@ -181,7 +171,7 @@ class ChatListScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white70,
                 height: 1.5,
               ),
             ),
@@ -191,17 +181,20 @@ class ChatListScreen extends ConsumerWidget {
     );
   }
 
+  // time
+
   String formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
+    final diff = DateTime.now().difference(time);
 
     if (diff.inMinutes < 1) return 'Vừa xong';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
-    if (diff.inHours < 24) return '${diff.inHours} giờ trước';
-    if (diff.inDays < 7) return '${diff.inDays} ngày trước';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} phút';
+    if (diff.inHours < 24) return '${diff.inHours} giờ';
+    if (diff.inDays < 7) return '${diff.inDays} ngày';
     return '${time.day}/${time.month}/${time.year}';
   }
 }
+
+// chat item
 
 class ChatItem extends StatelessWidget {
   final String name;
@@ -238,95 +231,92 @@ class ChatItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Avatar
-            Stack(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                      image: NetworkImage(imageUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 20,
-                        minHeight: 20,
-                      ),
-                      child: Center(
-                        child: Text(
-                          unreadCount > 99 ? '99+' : unreadCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            _buildAvatar(),
             const SizedBox(width: 12),
-
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          name,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: unreadCount > 0
-                                ? FontWeight.bold
-                                : FontWeight.w600,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        time,
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    message,
-                    style: TextStyle(
-                      color: unreadCount > 0 ? Colors.white : Colors.grey[300],
-                      fontSize: 14,
-                      fontWeight: unreadCount > 0
-                          ? FontWeight.w500
-                          : FontWeight.normal,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
+            _buildContent(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Stack(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            image: DecorationImage(
+              image: NetworkImage(imageUrl),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        if (unreadCount > 0)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              child: Center(
+                child: Text(
+                  unreadCount > 99 ? '99+' : unreadCount.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight:
+                    unreadCount > 0 ? FontWeight.bold : FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                time,
+                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: unreadCount > 0 ? Colors.white : Colors.grey[300],
+              fontSize: 14,
+            ),
+          ),
+        ],
       ),
     );
   }

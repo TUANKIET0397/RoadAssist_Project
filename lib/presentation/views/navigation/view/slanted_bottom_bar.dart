@@ -41,6 +41,9 @@ class _SlantedAnimatedBottomBarState
   }
 
   void _onTap(int index) {
+    final current = ref.read(navigationProvider);
+    if (current == index) return; // 👈 CHỐNG ANIMATE THỪA
+
     if (widget.popNavigator) {
       Navigator.of(context).pop();
     }

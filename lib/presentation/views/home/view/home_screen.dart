@@ -7,18 +7,30 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      extendBodyBehindAppBar: true,
+      // extendBody: true,
+      // extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
           'Bạn cần hỗ trợ?',
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        actions: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            margin: EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+              ),
+            ),
+            child: const Icon(Icons.search, color: Colors.white),
+          ),
+        ],
         backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
       ),
       body: Container(

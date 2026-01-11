@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/presentation/views/completion/completion_screen.dart';
+import 'package:road_assist/presentation/views/completion/model/completion_payload.dart';
+import 'package:road_assist/presentation/views/completion/viewmodel/completion_vm.dart';
 
-class MainHome extends StatelessWidget {
+class MainHome extends ConsumerWidget {
   const MainHome({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       children: [
         /// ================= BIG CARD =================
@@ -140,6 +144,45 @@ class MainHome extends StatelessWidget {
             },
           ),
         ),
+
+        const SizedBox(height: 24),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('DEV: Test Completion'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: () {
+              ref
+                  .read(completionProvider.notifier)
+                  .setCompletion(
+                    CompletionPayload(
+                      title: 'Hoàn thành cứu hộ',
+                      subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
+                      vehicleImage: 'assets/images/illustrations/vehicle1.png',
+                      vehicleName: 'Xe tay ga',
+                      vehicleModel: 'Honda SH Mode 2025',
+                      issue: 'Bể lốp, hư máy',
+                      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
+                      completedTime: '19:00 08-01-2026',
+                      garageName: 'Minh Thuan Motor',
+                      garageAvatar: 'assets/images/illustrations/vehicle1.png',
+                    ),
+                  );
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CompletionScreen()),
+              );
+            },
+          ),
+        ),
+
+        const SizedBox(height: 32),
       ],
     );
   }

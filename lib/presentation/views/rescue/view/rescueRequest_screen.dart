@@ -11,7 +11,8 @@ class RescueRequestScreen extends ConsumerStatefulWidget {
   const RescueRequestScreen({super.key});
 
   @override
-  ConsumerState<RescueRequestScreen> createState() => _RescueRequestScreenState();
+  ConsumerState<RescueRequestScreen> createState() =>
+      _RescueRequestScreenState();
 }
 
 class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
@@ -113,7 +114,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
             ),
             const SizedBox(height: 16),
             ...vehicleTypes.map(
-                  (vehicle) => ListTile(
+              (vehicle) => ListTile(
                 leading: Container(
                   width: 48,
                   height: 48,
@@ -167,9 +168,9 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     final userId = ref.read(userIdProvider);
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bạn chưa đăng nhập!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Bạn chưa đăng nhập!')));
       return;
     }
     //
@@ -198,8 +199,9 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       userName: 'Nguyen Gia Bao',
       userPhone: '0123456789',
       vehicleType: selectedVehicleType,
-      vehicleModel: vehicleTypes
-          .firstWhere((v) => v['name'] == selectedVehicleType)['model'],
+      vehicleModel: vehicleTypes.firstWhere(
+        (v) => v['name'] == selectedVehicleType,
+      )['model'],
       issues: selectedIssues,
       location: testAddress,
       latitude: testLat,
@@ -208,25 +210,24 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     );
 
     if (id != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gửi yêu cầu thành công!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thành công!')));
       setState(() {
         selectedIssues.clear();
         selectedImages.clear();
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gửi yêu cầu thất bại!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thất bại!')));
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     final currentVehicle = vehicleTypes.firstWhere(
-          (v) => v['name'] == selectedVehicleType,
+      (v) => v['name'] == selectedVehicleType,
       orElse: () => vehicleTypes[0],
     );
 
@@ -424,8 +425,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () async {
-                        },
+                        onTap: () async {},
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -458,10 +458,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              Divider(
-                                color: Colors.white38,
-                                thickness: 1,
-                              ),
+                              Divider(color: Colors.white38, thickness: 1),
                               const SizedBox(height: 8),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -557,9 +554,14 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                       color: const Color(0xFF4B4CED),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: const [
-                                        Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                                        Icon(
+                                          Icons.camera_alt,
+                                          color: Colors.white,
+                                          size: 24,
+                                        ),
                                         SizedBox(width: 6),
                                         Text(
                                           'Thêm ảnh',
@@ -584,10 +586,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                         child: Text(
                           'Vui lòng đảm bảo vị trí và chụp hình trước khi gửi',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white38,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white38, fontSize: 14),
                         ),
                       ),
                     ],
@@ -605,10 +604,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                     minimumSize: const Size(double.infinity, 51),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: Colors.blue.shade700,
-                        width: 1,
-                      ),
+                      side: BorderSide(color: Colors.blue.shade700, width: 1),
                     ),
                   ),
                   child: const Text(
@@ -620,7 +616,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                     ),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),

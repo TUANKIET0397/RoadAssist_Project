@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/presentation/views/account/view/account_screen.dart';
 import 'package:road_assist/presentation/views/chat/view/chatList_screen.dart';
-import 'package:road_assist/presentation/views/garage/view/garage_screen.dart';
-<<<<<<< HEAD
-import 'package:road_assist/presentation/views/history/view/history_screen.dart';
-=======
 import 'package:road_assist/presentation/views/garage/view/garageDetail.dart';
-import 'package:road_assist/presentation/views/navigation/viewmodel/garage_navigation_provider.dart';
->>>>>>> 0c090f0001d9b6aa41c7043f70947c8dc6aaa7c4
+import 'package:road_assist/presentation/views/garage/view/garage_screen.dart';
+import 'package:road_assist/presentation/views/history/view/history_screen.dart';
 import 'package:road_assist/presentation/views/home/view/home_screen.dart';
 import 'package:road_assist/presentation/views/navigation/view/slanted_bottom_bar.dart';
+import 'package:road_assist/presentation/views/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/presentation/views/navigation/viewmodel/navigation_viewmodel.dart';
-
-import 'package:road_assist/core/providers/auth_provider.dart';
 
 class MainScreen extends ConsumerWidget {
   const MainScreen({super.key});

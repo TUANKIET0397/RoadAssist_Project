@@ -16,11 +16,7 @@ final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
 
 /// Giả lập user đã đăng nhập
 final authStateProvider = Provider<String?>((ref) {
-<<<<<<< HEAD
-  return 'mock-user-id kk'; // hoặc null để test login
-=======
   return 'JPAIBTQhXVYuW9obsQukIAWWsi03'; // hoặc null để test login
->>>>>>> 0c090f0001d9b6aa41c7043f70947c8dc6aaa7c4
 });
 
 /// Nếu em có userIdProvider riêng

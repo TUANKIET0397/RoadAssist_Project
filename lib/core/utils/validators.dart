@@ -1,1 +1,1 @@
-// validators.dart
+// validators - kiểm trả tính hợp lệ

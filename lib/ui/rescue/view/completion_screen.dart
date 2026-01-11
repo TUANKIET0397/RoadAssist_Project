@@ -36,7 +36,7 @@ class CompletionScreen extends ConsumerWidget {
               ),
               CompletionInfoCard(data: payload),
               Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 4),
+                padding: const EdgeInsets.only(left: 4, bottom: 2),
                 child: Text(
                   'Đánh giá',
                   style: TextStyle(
@@ -57,6 +57,7 @@ class CompletionScreen extends ConsumerWidget {
                   print('history');
                 },
               ),
+              const SizedBox(height: 12),
             ],
           ),
         ),

@@ -9,17 +9,7 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Khởi tạo Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(
-    const ProviderScope(
-      child: MaterialApp(
-        home: MyApp(),
-      ),
-    ),
-  );
+  runApp(const ProviderScope(child: MaterialApp(home: MyApp())));
 }
-
-

@@ -4,13 +4,13 @@ import 'vehicle_item.dart';
 
 class VehicleSection extends StatelessWidget {
   final List<Vehicle> vehicles;
-  final void Function(Vehicle) onChangeN;
+  final void Function(Vehicle) onEdit;
   final void Function(Vehicle) onRemove;
 
   const VehicleSection({
     super.key,
     required this.vehicles,
-    required this.onChangeN,
+    required this.onEdit,
     required this.onRemove,
   });
 
@@ -25,7 +25,7 @@ class VehicleSection extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 14),
             child: VehicleItem(
               vehicle: v,
-              onChange: () => onChangeN(v),
+              onEdit: () => onEdit(v),
               onDelete: () => onRemove(v),
             ),
           ),

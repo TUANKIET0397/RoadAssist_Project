@@ -1,6 +1,6 @@
 class Vehicle {
   final String name;
-  final String description;
+  final String? description;
   final String image;
 
   const Vehicle({
@@ -18,7 +18,7 @@ class Vehicle {
       ),
       Vehicle(
         name: 'Toyota Vios',
-        description: 'Ô tô',
+        description: null,
         image: 'assets/images/illustrations/vehicle2.png',
       ),
     ];

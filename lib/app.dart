@@ -6,8 +6,9 @@ import 'package:road_assist/core/network/network_status.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_theme.dart';
 import 'package:road_assist/core/theme/theme_provider.dart';
+import 'package:road_assist/ui/acount_garage/view/account_garage_screen.dart';
 import 'package:road_assist/ui/auth/view/login_screen.dart';
-import 'package:road_assist/ui/navigation/view/main_screen.dart';
+// import 'package:road_assist/ui/navigation/view/main_screen.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -20,7 +21,7 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.byType(themeType),
+      theme: AppTheme.themByType(themeType),
       home: _buildHome(networkStatus: networkStatus, authState: authState),
     );
   }
@@ -39,7 +40,8 @@ class MyApp extends ConsumerWidget {
       return const LoginScreen();
     }
 
-    return const MainScreen();
+    // return const MainScreen();
+    return GarageScreen();
   }
 }
 

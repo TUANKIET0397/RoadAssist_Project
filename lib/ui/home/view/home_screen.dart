@@ -25,7 +25,10 @@ class HomeScreen extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               gradient: const LinearGradient(
-                colors: [Color(0xFF4FACFE), Color(0xFF00F2FE)],
+                colors: [
+                  Color.fromRGBO(79, 172, 254, 1),
+                  Color.fromRGBO(0, 242, 254, 1),
+                ],
               ),
             ),
             child: const Icon(Icons.search, color: Colors.white),

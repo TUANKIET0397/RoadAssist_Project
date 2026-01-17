@@ -7,8 +7,8 @@ final networkStatusProvider =
     );
 
 class NetworkNotifier extends StateNotifier<NetworkStatus> {
-  // NetworkNotifier() : super(NetworkStatus.connected);
-  NetworkNotifier() : super(NetworkStatus.disconnected);
+  NetworkNotifier() : super(NetworkStatus.connected);
+  // NetworkNotifier() : super(NetworkStatus.disconnected);
 
   void setDisconnected() {
     state = NetworkStatus.disconnected;

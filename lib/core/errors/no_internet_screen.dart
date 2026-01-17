@@ -53,7 +53,11 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
             begin: Alignment.bottomLeft,
             end: Alignment.topRight,
             stops: [0.0, 0.6, 1.0],
-            colors: [Color(0xFF0E1A2B), Color(0xFF16233A), Color(0xFFB44A7D)],
+            colors: [
+              Color.fromRGBO(14, 26, 43, 1),
+              Color.fromRGBO(22, 35, 58, 1),
+              Color.fromRGBO(180, 74, 125, 1),
+            ],
           ),
         ),
         child: SafeArea(

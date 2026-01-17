@@ -1,1 +1,1 @@
-enum AppThemeType { lightBlue, lightGreen, darkBlue, darkPurple }
+enum AppThemeType { light, dark }

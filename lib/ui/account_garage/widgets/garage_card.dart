@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/ui/acount_garage/models/garage_model.dart';
+import 'package:road_assist/ui/account_garage/models/garage_model.dart';
 
 class GarageCard extends StatelessWidget {
   final Garage garage;

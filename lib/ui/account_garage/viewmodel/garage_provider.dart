@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/ui/acount_garage/models/garage_model.dart';
+import 'package:road_assist/ui/account_garage/models/garage_model.dart';
 
 /// Provider giữ trạng thái garage
 final garageProvider = StateProvider<Garage>((ref) {

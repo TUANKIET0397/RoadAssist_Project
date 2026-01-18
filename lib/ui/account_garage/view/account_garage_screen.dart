@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/ui/acount_garage/viewmodel/garage_provider.dart';
-import 'package:road_assist/ui/acount_garage/widgets/action_button.dart';
-import 'package:road_assist/ui/acount_garage/widgets/vehicle_support_item.dart';
+import 'package:road_assist/ui/account_garage/view/favorite_screen.dart';
+import 'package:road_assist/ui/account_garage/view/info_screen.dart';
+import 'package:road_assist/ui/account_garage/view/password_reset_sreen.dart';
+import 'package:road_assist/ui/account_garage/view/search_screen.dart';
+import 'package:road_assist/ui/account_garage/viewmodel/garage_provider.dart';
+import 'package:road_assist/ui/account_garage/widgets/action_button.dart';
+import 'package:road_assist/ui/account_garage/widgets/vehicle_support_item.dart';
 
 import '../widgets/garage_card.dart';
 
@@ -27,7 +31,7 @@ class GarageScreen extends ConsumerWidget {
         actions: [
           Container(
             padding: const EdgeInsets.all(10),
-            margin: EdgeInsets.only(right: 16),
+            margin: EdgeInsets.only(right: 16, bottom: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               gradient: const LinearGradient(
@@ -95,11 +99,55 @@ class GarageScreen extends ConsumerWidget {
                 Wrap(
                   spacing: 16,
                   runSpacing: 14,
-                  children: const [
-                    ActionButton(icon: Icons.search, label: 'Các cuộc cứu hộ'),
-                    ActionButton(icon: Icons.favorite, label: 'Đánh Giá'),
-                    ActionButton(icon: Icons.info, label: 'Thông tin Garage'),
-                    ActionButton(icon: Icons.lock, label: 'Đổi mật khẩu'),
+                  children: [
+                    ActionButton(
+                      icon: Icons.search,
+                      label: 'Các cuộc cứu hộ',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SearchScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    ActionButton(
+                      icon: Icons.favorite,
+                      label: 'Đánh Giá',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FavoriteScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    ActionButton(
+                      icon: Icons.info,
+                      label: 'Thông tin Garage',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const InfoScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    ActionButton(
+                      icon: Icons.lock,
+                      label: 'Đổi mật khẩu',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PasswordResetSreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
 

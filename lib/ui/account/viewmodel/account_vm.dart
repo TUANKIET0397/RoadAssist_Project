@@ -1,34 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'account_state.dart';
-import '../model/vehicle_model.dart';
-import '../model/account_action.dart';
+import 'package:road_assist/ui/account/model/account_action.dart';
+import 'package:road_assist/ui/account/model/vehicle_model.dart';
+import 'package:road_assist/ui/account/viewmodel/account_state.dart';
 
 final accountVmProvider = StateNotifierProvider<AccountViewModel, AccountState>(
   (ref) => AccountViewModel(ref),
 );
 
 class AccountViewModel extends StateNotifier<AccountState> {
+  AccountViewModel(this.ref) : super(AccountState.initial());
   final Ref ref;
 
-  AccountViewModel(this.ref) : super(AccountState.initial());
+  void updateVehicleDescription(Vehicle vehicle, String? description) {
+    final updated = state.vehicles.map((v) {
+      if (v == vehicle) {
+        return Vehicle(
+          name: v.name,
+          image: v.image,
+          description: description?.trim().isEmpty ?? true ? null : description,
+        );
+      }
+      return v;
+    }).toList();
 
-  /// ===== VEHICLE =====
-
-  void changeName(Vehicle vehicle) {}
+    state = state.copyWith(vehicles: updated);
+  }
 
   void removeVehicle(Vehicle vehicle) {
     final updated = [...state.vehicles]..remove(vehicle);
     state = state.copyWith(vehicles: updated);
   }
 
-  /// ===== LOGOUT =====
-  void logout() {
-    // TODO: clear session + navigate
-  }
-
-  /// ===== ACTION GRID =====
   List<AccountActionItem> get actions => const [
     AccountActionItem(
       type: AccountActionType.rescues,
@@ -52,7 +55,11 @@ class AccountViewModel extends StateNotifier<AccountState> {
     ),
   ];
 
+  void logout() {
+    // TODO
+  }
+
   void onActionTap(AccountActionType type) {
-    // TODO: navigation
+    // TODO
   }
 }

@@ -413,7 +413,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             child: Wrap(
               spacing: 12,
               runSpacing: 8,
-              children: widget.garage.services
+              children: widget.garage.issues
                   .map(
                     (s) => RichText(
                       text: TextSpan(

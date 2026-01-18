@@ -53,7 +53,11 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
             begin: Alignment.bottomLeft,
             end: Alignment.topRight,
             stops: [0.0, 0.6, 1.0],
-            colors: [Color(0xFF0E1A2B), Color(0xFF16233A), Color(0xFFB44A7D)],
+            colors: [
+              Color.fromRGBO(14, 26, 43, 1),
+              Color.fromRGBO(22, 35, 58, 1),
+              Color.fromRGBO(180, 74, 125, 1),
+            ],
           ),
         ),
         child: SafeArea(
@@ -104,12 +108,12 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 17),
 
                 /// ===== EMERGENCY CARD =====
                 const EmergencyCard(),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
 
                 /// ===== INFO LIST =====
                 _buildInfoItem('Ứng dụng tạm thời không thể kết nối Internet.'),
@@ -117,9 +121,10 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                   'Chúng tôi sẽ hoạt động lại ngay khi có Internet.',
                 ),
                 _buildInfoItem('Một số tính năng sẽ tạm thời bị hạn chế.'),
-                const SizedBox(height: 18),
 
-                const Spacer(),
+                const SizedBox(height: 8),
+
+                // const Spacer(),
 
                 /// ===== RETRY BUTTON =====
                 Column(

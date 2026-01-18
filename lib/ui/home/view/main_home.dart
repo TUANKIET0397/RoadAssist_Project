@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/rescue/view/completion_screen.dart';
 import 'package:road_assist/data/models/completion_payload.dart';
 import 'package:road_assist/ui/rescue/viewmodel/completion_vm.dart';
+import 'package:road_assist/ui/rescue/view/rescueRequest_screen.dart';
+import 'package:road_assist/ui/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/ui/navigation/viewmodel/home_navigation_provider.dart';
 
 class MainHome extends ConsumerWidget {
   const MainHome({super.key});
@@ -23,7 +27,7 @@ class MainHome extends ConsumerWidget {
                   width: width,
                   heightFactor: 1.0,
                   clipper: RPSClipperBig(),
-                  child: const BigVehicleCardContent(),
+                  child: const BigVehicleCardContent(recuerequest: null,),
                 ),
               ),
             );
@@ -330,9 +334,12 @@ class ClippedCard extends StatelessWidget {
             child: child,
           ),
         ),
-        CustomPaint(
-          size: Size(width, height),
-          painter: ClipperBorderPainter(clipper),
+        IgnorePointer(
+          ignoring: true,
+          child: CustomPaint(
+            size: Size(width, height),
+            painter: ClipperBorderPainter(clipper),
+          ),
         ),
       ],
     );
@@ -342,37 +349,50 @@ class ClippedCard extends StatelessWidget {
 /// =======================================================
 /// BIG CARD CONTENT
 /// =======================================================
-class BigVehicleCardContent extends StatelessWidget {
-  const BigVehicleCardContent({super.key});
+class BigVehicleCardContent extends ConsumerWidget {
+  
+  
+  final RescueRequestModel? recuerequest;
 
+  const BigVehicleCardContent({super.key, required this.recuerequest});
+  
   @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.topCenter,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 42),
-          child: Image.asset(
-            'assets/images/illustrations/vehicle1.png',
-            width: 260,
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(selectedRescueProvider.notifier).state = recuerequest;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RescueRequestScreen()),
+        );
+      },
+      child: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 42),
+            child: Image.asset(
+              'assets/images/illustrations/vehicle1.png',
+              width: 260,
+            ),
           ),
-        ),
-        Positioned(
-          bottom: 14,
-          left: 32,
-          child: Transform.rotate(
-            angle: -0.1,
-            child: const Text(
-              'Báo Cáo Sự Cố',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
+          Positioned(
+            bottom: 14,
+            left: 32,
+            child: Transform.rotate(
+              angle: -0.1,
+              child: const Text(
+                'Báo Cáo Sự Cố',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

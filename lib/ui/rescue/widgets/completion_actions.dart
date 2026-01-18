@@ -15,7 +15,9 @@ class CompletionActions extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             onTap: onViewHistory,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 90),
+              width: 350,
+              height: 60,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
                 gradient: const LinearGradient(
@@ -34,6 +36,7 @@ class CompletionActions extends StatelessWidget {
               ),
               child: const Text(
                 'Xem lịch sử cứu hộ',
+                maxLines: 1,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 19,

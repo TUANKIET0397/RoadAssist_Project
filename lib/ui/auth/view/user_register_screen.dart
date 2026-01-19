@@ -185,7 +185,12 @@ class UserRegisterView extends ConsumerWidget {
                         : () async {
                       final success = await vmNotifier.registerUser();
                       if (success && context.mounted) {
-                        // Navigate to success or login screen
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Đăng ký thành công!'),

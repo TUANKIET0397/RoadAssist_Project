@@ -85,11 +85,7 @@ class UserRegisterViewModel extends ChangeNotifier {
       return false;
     }
 
-    // Phone validation
-    if (!_isValidPhone(phoneController.text.trim())) {
-      errorMessage = 'Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10-11 số)';
-      return false;
-    }
+
 
     // Email validation (optional but must be valid if provided)
     if (emailController.text.trim().isNotEmpty &&
@@ -133,7 +129,7 @@ class UserRegisterViewModel extends ChangeNotifier {
 
   bool _isValidPhone(String phone) {
     // Vietnamese phone number: starts with 0, has 10-11 digits
-    return RegExp(r'^0\d{9,10}$').hasMatch(phone);
+    return RegExp(r'^\d{9,10}$').hasMatch(phone);
   }
 
   bool _isValidEmail(String email) {
@@ -155,7 +151,7 @@ class UserRegisterViewModel extends ChangeNotifier {
       // Create user with Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: emailController.text.trim().isEmpty
-            ? '${phoneController.text.trim()}@roadassist.com' // Use phone as email if not provided
+            ? '${phoneController.text.trim()}@roadassist.com'
             : emailController.text.trim(),
         password: passwordController.text,
       );
@@ -179,7 +175,7 @@ class UserRegisterViewModel extends ChangeNotifier {
       if (e.code == 'weak-password') {
         errorMessage = 'Mật khẩu quá yếu';
       } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'Email/Số điện thoại đã được sử dụng';
+        errorMessage = 'Số điện thoại đã được sử dụng';
       } else {
         errorMessage = 'Đăng ký thất bại: ${e.message}';
       }

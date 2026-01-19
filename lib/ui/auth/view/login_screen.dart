@@ -116,7 +116,14 @@ class LoginScreen extends StatelessWidget {
                               ? null
                               : () async {
                                   final success = await viewModel.login();
-                                  if (success) {}
+                                  if (success && context.mounted) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const HomeScreen(),
+                                      ),
+                                    );
+                                  }
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0D7EFF),

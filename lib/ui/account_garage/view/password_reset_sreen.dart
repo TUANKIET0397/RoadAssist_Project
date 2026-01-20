@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/account_garage/models/change_password_state.dart';
 import 'package:road_assist/ui/account_garage/viewmodel/change_password_vm.dart';
-import 'package:road_assist/ui/account_garage/viewmodel/garage_provider.dart';
+import 'package:road_assist/ui/account_garage/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/account_garage/widgets/garage_card.dart';
 import 'package:road_assist/ui/account_garage/widgets/password_field.dart';
 
@@ -75,8 +75,8 @@ class _PasswordResetSreenState extends ConsumerState<PasswordResetSreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final garage = ref.watch(garageProvider);
-    final state = ref.watch(changePasswordProvider);
+    final state = ref.watch(garageProvider);
+    final garage = state.savedGarage; // Dùng savedGarage cho card hiển thị
 
     /// ✅ LISTEN SIDE-EFFECT (SnackBar + Navigator)
     ref.listen<ChangePasswordState>(changePasswordProvider, (prev, next) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/ui/account_garage/models/garage_model.dart';
+import 'package:road_assist/data/models/garage_model.dart';
 
 class GarageCard extends StatelessWidget {
-  final Garage garage;
+  final GarageModel garage;
 
   const GarageCard({super.key, required this.garage});
 
@@ -97,11 +97,11 @@ class GarageCard extends StatelessWidget {
                         Icon(
                           Icons.circle,
                           size: 10,
-                          color: garage.isOpen ? Colors.green : Colors.red,
+                          color: garage.isActive ? Colors.green : Colors.red,
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          garage.isOpen ? 'Đang mở cửa' : 'Đã đóng cửa',
+                          garage.isActive ? 'Đang mở cửa' : 'Đã đóng cửa',
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],

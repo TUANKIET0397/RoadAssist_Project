@@ -76,7 +76,44 @@ class GarageModel {
       'isActive': isActive,
       'imageUrl': imageUrl,
       'bgimgUrl': bgimgUrl,
-
     };
+  }
+
+  GarageModel copyWith({
+    String? id,
+    String? name,
+    String? address,
+    String? phone,
+    List<String>? vehicleTypes,
+    List<String>? issues,
+    String? openTime,
+    String? closeTime,
+    double? lat,
+    double? lng,
+    double? rating,
+    bool? isActive,
+    double? distance,
+    String? imageUrl,
+    String? bgimgUrl,
+    bool? isFavorite,
+  }) {
+    return GarageModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      address: address ?? this.address,
+      phone: phone ?? this.phone,
+      vehicleTypes: vehicleTypes ?? this.vehicleTypes,
+      issues: issues ?? this.issues,
+      openTime: openTime ?? this.openTime,
+      closeTime: closeTime ?? this.closeTime,
+      lat: lat ?? this.lat,
+      lng: lng ?? this.lng,
+      rating: rating ?? this.rating,
+      isActive: isActive ?? this.isActive,
+      distance: distance ?? this.distance,
+      imageUrl: imageUrl ?? this.imageUrl,
+      bgimgUrl: bgimgUrl ?? this.bgimgUrl,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
   }
 }

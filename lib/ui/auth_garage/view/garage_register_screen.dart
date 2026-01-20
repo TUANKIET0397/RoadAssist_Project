@@ -10,7 +10,6 @@ import 'package:road_assist/ui/auth_garage/widget/time_picker_field.dart';
 import 'package:road_assist/ui/auth_garage/widget/service_chip.dart';
 import 'package:road_assist/ui/auth_garage/widget/vehicle_type_item.dart';
 import 'package:road_assist/ui/auth_garage/widget/section_header.dart';
-import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/auth_garage/view/garage_success_view.dart';
 

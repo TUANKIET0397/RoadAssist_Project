@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/chat_model.dart';
-import 'package:road_assist/data/models/message_model.dart';
 import 'package:road_assist/ui/chat/viewmodel/chatGarage_vm.dart';
 
 import 'package:road_assist/ui/chat/widgets/date_divider.dart';

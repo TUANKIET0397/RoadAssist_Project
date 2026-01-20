@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/account/model/account_action.dart';
@@ -55,8 +56,8 @@ class AccountViewModel extends StateNotifier<AccountState> {
     ),
   ];
 
-  void logout() {
-    // TODO
+  Future<void> logout() async {
+    await FirebaseAuth.instance.signOut();
   }
 
   void onActionTap(AccountActionType type) {

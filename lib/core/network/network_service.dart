@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'network_status.dart';
 
 final networkStatusProvider =
@@ -7,15 +9,23 @@ final networkStatusProvider =
     );
 
 class NetworkNotifier extends StateNotifier<NetworkStatus> {
-  NetworkNotifier() : super(NetworkStatus.connected);
-  // NetworkNotifier() : super(NetworkStatus.disconnected);
+  late final StreamSubscription _subscription;
 
-  void setDisconnected() {
-    state = NetworkStatus.disconnected;
+  NetworkNotifier() : super(NetworkStatus.connected) {
+    _subscription = Connectivity().onConnectivityChanged.listen(_updateStatus);
   }
 
-  void retry() {
-    // TODO: kiểm tra lại mạng thật
-    state = NetworkStatus.connected;
+  void _updateStatus(List<ConnectivityResult> results) {
+    if (results.contains(ConnectivityResult.none)) {
+      state = NetworkStatus.disconnected;
+    } else {
+      state = NetworkStatus.connected;
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

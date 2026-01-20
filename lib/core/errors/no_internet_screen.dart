@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/errors/widgets/emergency_card.dart';
 import 'package:road_assist/core/network/network_service.dart';
+import 'package:road_assist/core/network/network_status.dart';
 
 class NoInternetScreen extends ConsumerStatefulWidget {
   const NoInternetScreen({super.key});
@@ -15,6 +16,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
   late final AnimationController _controller;
   late final Animation<double> _scale;
   late final Animation<double> _opacity;
+  bool _checking = false;
 
   @override
   void initState() {
@@ -44,7 +46,18 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(networkStatusProvider.notifier);
+    ref.listen<NetworkStatus>(networkStatusProvider, (prev, next) {
+      if (prev == NetworkStatus.disconnected &&
+          next == NetworkStatus.connected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã kết nối Internet 🎉'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       body: Container(
@@ -133,9 +146,16 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(24),
-                        onTap: () async {
-                          notifier.retry();
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Chưa có kết nối Internet'),
+                              backgroundColor: Colors.orange,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
                         },
+
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             vertical: 15,
@@ -157,14 +177,23 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
                               ),
                             ],
                           ),
-                          child: const Text(
-                            'Thử kết nối lại',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          child: _checking
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Thử kết nối lại',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

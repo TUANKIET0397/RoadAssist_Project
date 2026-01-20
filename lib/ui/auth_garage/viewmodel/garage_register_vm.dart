@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 
@@ -16,7 +17,8 @@ class GarageRegisterViewModel extends ChangeNotifier {
 
   // Firebase
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
 
   bool isLoading = false;
   String? errorMessage;
@@ -25,6 +27,8 @@ class GarageRegisterViewModel extends ChangeNotifier {
   final taxCodeController = TextEditingController();
   final addressController = TextEditingController();
   final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   bool  isAgree = false;
 
 
@@ -53,8 +57,6 @@ class GarageRegisterViewModel extends ChangeNotifier {
     'Xe tải',
   ];
   final List<String> selectedVehicleTypes = [];
-
-  final List<File> selectedImages = [];
 
   void toggleDay(int day) {
     selectedDays.contains(day)
@@ -150,6 +152,23 @@ class GarageRegisterViewModel extends ChangeNotifier {
       return false;
     }
 
+    // Password validation
+    if (passwordController.text.isEmpty) {
+      errorMessage = 'Vui lòng nhập mật khẩu';
+      return false;
+    }
+
+    if (passwordController.text.length < 6) {
+      errorMessage = 'Mật khẩu phải có ít nhất 6 ký tự';
+      return false;
+    }
+
+    // Confirm password validation
+    if (passwordController.text != confirmPasswordController.text) {
+      errorMessage = 'Mật khẩu xác nhận không khớp';
+      return false;
+    }
+
     if (selectedDays.isEmpty) {
       errorMessage = 'Chưa chọn ngày hoạt động';
       return false;
@@ -169,6 +188,8 @@ class GarageRegisterViewModel extends ChangeNotifier {
       errorMessage = 'Chưa chọn loại phương tiện';
       return false;
     }
+
+
 
     errorMessage = null;
     return true;
@@ -190,12 +211,19 @@ class GarageRegisterViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final docRef = _firestore.collection('garages').doc();
-      final garageId = docRef.id;
+      final email = '${phoneController.text.trim()}@garage.roadassist.vn';
 
+      final userCredential =
+      await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: passwordController.text.trim(),
+      );
 
-      await docRef.set({
-        'id': garageId,
+      final uid = userCredential.user!.uid;
+
+      await _firestore.collection('garages').doc(uid).set({
+        'id': uid,
+        'role': 'garage',
         'name': nameController.text.trim(),
         'taxCode': taxCodeController.text.trim(),
         'address': addressController.text.trim(),
@@ -206,9 +234,9 @@ class GarageRegisterViewModel extends ChangeNotifier {
         },
         'operatingDays': selectedDays.toList(),
         'openTime':
-        '${openTime!.hour.toString().padLeft(2, '0')}:${openTime!.minute.toString().padLeft(2, '0')}',
+        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}',
         'closeTime':
-        '${closeTime!.hour.toString().padLeft(2, '0')}:${closeTime!.minute.toString().padLeft(2, '0')}',
+        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
         'services': selectedServices.toList(),
         'vehicleTypes': selectedVehicleTypes,
         'images': "",
@@ -218,14 +246,24 @@ class GarageRegisterViewModel extends ChangeNotifier {
       });
 
       return true;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        errorMessage = 'Số điện thoại đã được đăng ký';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'Mật khẩu quá yếu';
+      } else {
+        errorMessage = e.message;
+      }
+      return false;
     } catch (e) {
-      errorMessage = 'Đăng ký thất bại';
+      errorMessage = 'Đăng ký garage thất bại';
       return false;
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
+
 
   // DISPOSE
   @override

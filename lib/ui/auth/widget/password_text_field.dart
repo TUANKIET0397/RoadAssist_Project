@@ -4,12 +4,14 @@ class PasswordTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hint;
   final String? Function(String?)? validator;
+  final Color textColor;
 
   const PasswordTextField({
     super.key,
     required this.controller,
     required this.hint,
     this.validator,
+    this.textColor = Colors.white,
   });
 
   @override
@@ -30,18 +32,26 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
         TextField(
           controller: widget.controller,
           obscureText: _isObscured,
-          style: const TextStyle(color: Colors.white),
+
+          style: TextStyle(
+            color: widget.textColor,
+            fontSize: 16,
+          ),
+
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: const TextStyle(color: Colors.white),
+
+            hintStyle: TextStyle(
+              color: widget.textColor,
+            ),
+
             filled: true,
             fillColor: const Color(0xFF000718),
 
-            // Suffix icon to toggle visibility
             suffixIcon: IconButton(
               icon: Icon(
                 _isObscured ? Icons.visibility_off : Icons.visibility,
-                color: borderColor,
+                color: widget.textColor,
               ),
               onPressed: () {
                 setState(() {

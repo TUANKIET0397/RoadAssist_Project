@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/auth/view/user_register_screen.dart';
+import 'package:road_assist/ui/auth/widget/password_text_field.dart';
 import 'package:road_assist/ui/auth_garage/viewmodel/garage_register_vm.dart';
 import 'package:road_assist/ui/auth_garage/widget/custom_text_field.dart';
 import 'package:road_assist/ui/auth_garage/widget/day_selector.dart';
@@ -116,6 +117,18 @@ class GarageRegisterView extends ConsumerWidget {
                 CustomTextField(
                   controller: vm.phoneController,
                   hint: 'Số điện thoại Garage',
+                ),
+
+                // Password Section
+                PasswordTextField(
+                  controller: vm.passwordController,
+                  hint: 'Mật khẩu',
+                  textColor: Color(0xFF69BFF9),
+                ),
+                PasswordTextField(
+                  controller: vm.confirmPasswordController,
+                  hint: 'Xác nhận mật khẩu',
+                  textColor: Color(0xFF69BFF9),
                 ),
 
                 // Operating Days Section

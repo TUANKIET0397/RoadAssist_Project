@@ -81,15 +81,22 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   }
 
   Future<void> _pickImage() async {
-    if (selectedImages.length >= 2) return;
-
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (image != null) {
-      setState(() {
-        selectedImages.add(File(image.path));
-      });
-    }
+    if (image == null) return;
+    // {
+    //   setState(() {
+    //     selectedImages.add(File(image.path));
+    //   });
+    // }
+
+    // if (selectedImages.length >= 1) return;
+
+    setState(() {
+      selectedImages
+        ..clear()
+        ..add(File(image.path));
+    });
   }
 
   void _showVehicleSelector() {
@@ -196,7 +203,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       userPhone: '0123456789',
       vehicleType: selectedVehicleType,
       vehicleModel: vehicleTypes.firstWhere(
-            (v) => v['name'] == selectedVehicleType,
+        (v) => v['name'] == selectedVehicleType,
       )['model'],
       issues: selectedIssues,
       location: currentAddress!,
@@ -228,6 +235,15 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     );
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Gọi cứu hộ'),
+        actions: [
+          Container(
+            margin: EdgeInsets.only(right: 16),
+            child: Icon(Icons.error_outline, color: Colors.red, size: 32),
+          ),
+        ],
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -240,39 +256,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
-              Container(
-                color: const Color.fromRGBO(37, 44, 59, 1),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Text(
-                        'Gọi cứu hộ',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 32,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
               // Content
               Expanded(
                 child: SingleChildScrollView(
@@ -420,78 +403,84 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () async {
-                        final result = await Navigator.push<LocationPickResult>(
-                          context,
-                          MaterialPageRoute(builder: (_) => const MapPickScreen()),
-                        );
-
-                        if (result != null) {
-                          print(result.latitude);
-                          print(result.longitude);
-                          print(result.address);
-                        }
-                      },
-
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF001029),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.blue.shade700,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.map_outlined,
-                                  color: Colors.blue.shade300,
-                                  size: 32,
+                      GestureDetector(
+                        onTap: () async {
+                          final result =
+                              await Navigator.push<LocationPickResult>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const MapPickScreen(),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    currentAddress ?? 'Đang lấy vị trí...',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
+                              );
+
+                          if (result != null) {
+                            print(result.latitude);
+                            print(result.longitude);
+                            print(result.address);
+                          }
+                        },
+
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF001029),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.blue.shade700,
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.map_outlined,
+                                    color: Colors.blue.shade300,
+                                    size: 32,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      currentAddress ?? 'Đang lấy vị trí...',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            const Divider(color: Colors.white38, thickness: 1),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.navigation,
-                                  color: Colors.blue.shade300,
-                                  size: 32,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Chọn / cập nhật vị trí',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              const Divider(
+                                color: Colors.white38,
+                                thickness: 1,
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.navigation,
+                                    color: Colors.blue.shade300,
+                                    size: 32,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Chọn / cập nhật vị trí',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
                       // Photo Section
                       Container(
@@ -571,7 +560,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                         ),
                                         SizedBox(width: 6),
                                         Text(
-                                          'Thêm ảnh',
+                                          'Chụp ảnh',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 14,
@@ -587,7 +576,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
 
                       const Center(
                         child: Text(
@@ -603,7 +592,10 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
 
               // Bottom Button
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 16,
+                ),
                 child: ElevatedButton(
                   onPressed: _sendRequest,
                   style: ElevatedButton.styleFrom(

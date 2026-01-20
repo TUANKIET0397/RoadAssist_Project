@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:road_assist/core/services/gps/location_geolocator.dart';
+
 
 
 final userRegisterVMProvider =
@@ -14,6 +16,9 @@ class UserRegisterViewModel extends ChangeNotifier {
   // Firebase
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  double? latitude;
+  double? longitude;
 
   // Loading & Error State
   bool isLoading = false;
@@ -76,6 +81,24 @@ class UserRegisterViewModel extends ChangeNotifier {
       selectedVehicleTypes[index] = newType;
       notifyListeners();
     }
+  }
+
+  Future<void> setLocationFromLatLng({
+    required double lat,
+    required double lng,
+  }) async {
+    latitude = lat;
+    longitude = lng;
+
+    try {
+      final addr =
+      await LocationService.getAddressFromLatLng(lat, lng);
+      addressController.text = addr;
+    } catch (e) {
+      addressController.text = '$lat, $lng';
+    }
+
+    notifyListeners();
   }
 
   // Validation

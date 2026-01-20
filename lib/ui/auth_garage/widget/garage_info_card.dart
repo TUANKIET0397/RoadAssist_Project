@@ -105,9 +105,7 @@ class GarageInfoCard extends StatelessWidget {
                       Icon(
                         Icons.circle,
                         size: 8,
-                        color: garage.isActive
-                            ? Colors.greenAccent
-                            : Colors.redAccent,
+                        color: Colors.greenAccent,
                       ),
                       const SizedBox(width: 6),
                       Text(

@@ -29,8 +29,6 @@ class GarageSuccessState {
 
   // Helpers
   String get openStatus {
-    if (!garage.isActive) return 'Đang đóng cửa';
-
     final now = DateTime.now();
     final currentTime = TimeOfDay(hour: now.hour, minute: now.minute);
 

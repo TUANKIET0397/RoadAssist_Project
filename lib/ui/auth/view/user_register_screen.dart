@@ -7,6 +7,8 @@ import 'package:road_assist/ui/auth_garage/widget/custom_text_field.dart';
 import 'package:road_assist/ui/auth_garage/widget/vehicle_type_item.dart';
 import 'package:road_assist/ui/auth/widget/password_text_field.dart';
 import 'package:road_assist/ui/auth/widget/phone_text_field.dart';
+import 'package:road_assist/ui/map/map_pick_screen.dart';
+
 
 class UserRegisterView extends ConsumerWidget {
   const UserRegisterView({super.key});
@@ -73,10 +75,42 @@ class UserRegisterView extends ConsumerWidget {
                   controller: vm.phoneController,
                   hint: 'Số điện thoại',
                 ),
-                CustomTextField(
-                  controller: vm.addressController,
-                  hint: 'Địa chỉ (không bắt buộc)',
-                  maxLines: 1,
+                // Địa chỉ
+                GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MapPickScreen(
+                          initialLat: vm.latitude,
+                          initialLng: vm.longitude,
+                        ),
+                      ),
+                    );
+
+                    if (result != null && result is Map<String, dynamic>) {
+                      // Cập nhật lat, lng qua ViewModel
+                      await vmNotifier.setLocationFromLatLng(
+                        lat: result['lat'],
+                        lng: result['lng'],
+                      );
+
+                      // Cập nhật address trực tiếp vào controller
+                      if (result['address'] != null) {
+                        vm.addressController.text = result['address'];
+                      }
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: CustomTextField(
+                      controller: vm.addressController,
+                      hint: 'Chọn vị trí Garage trên bản đồ',
+                      suffixIcon: const Icon(
+                        Icons.location_on,
+                        color: Color(0xFF4FC3F7),
+                      ),
+                    ),
+                  ),
                 ),
                 CustomTextField(
                   controller: vm.emailController,

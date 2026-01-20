@@ -4,7 +4,7 @@ import 'package:road_assist/ui/account_garage/view/favorite_screen.dart';
 import 'package:road_assist/ui/account_garage/view/info_screen.dart';
 import 'package:road_assist/ui/account_garage/view/password_reset_sreen.dart';
 import 'package:road_assist/ui/account_garage/view/search_screen.dart';
-import 'package:road_assist/ui/account_garage/viewmodel/garage_provider.dart';
+import 'package:road_assist/ui/account_garage/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/account_garage/widgets/action_button.dart';
 import 'package:road_assist/ui/account_garage/widgets/vehicle_support_item.dart';
 
@@ -15,7 +15,8 @@ class GarageScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final garage = ref.watch(garageProvider);
+    final state = ref.watch(garageProvider);
+    final garage = state.savedGarage; // Dùng savedGarage cho hiển thị
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -73,7 +74,7 @@ class GarageScreen extends ConsumerWidget {
 
                 const SizedBox(height: 18),
 
-                ...garage.supportedVehicles.map(
+                ...garage.vehicleTypes.map(
                   (vehicle) => VehicleSupportItem(
                     name: vehicle,
                     onAdd: () {

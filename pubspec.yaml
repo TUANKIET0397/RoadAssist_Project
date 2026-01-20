@@ -47,11 +47,17 @@ dependencies:
 
     image_picker: ^1.1.2
     firebase_storage: ^12.4.10
-    geolocator: ^10.1.0
-    geocoding: ^2.1.0
-    google_maps_flutter: ^2.5.0
+
+    geolocator: ^13.0.4
+    geocoding: ^3.0.0
     permission_handler: ^11.3.1
     form_field_validator: ^1.1.0
+
+    # OpenStreetMap
+    http: ^1.2.0
+    flutter_map: ^7.0.2
+    flutter_map_location_marker: ^9.0.0
+    latlong2: ^0.9.1
 
 dev_dependencies:
     flutter_test:

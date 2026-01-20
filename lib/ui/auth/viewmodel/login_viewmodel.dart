@@ -30,17 +30,36 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   Future<bool> login() async {
+    if (_phoneNumber.isEmpty || _password.isEmpty) {
+      return false;
+    }
+
     _isLoading = true;
     notifyListeners();
 
-    // Implement actual login logic here
-    await Future.delayed(Duration(seconds: 2));
+    try {
+      // Convert phone → email
+      final email = _phoneNumber.contains('@')
+          ? _phoneNumber
+          : '${_phoneNumber.trim()}@roadassist.com';
 
-    _isLoading = false;
-    notifyListeners();
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: _password,
+      );
 
-    return true; // Return success/failure
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      _isLoading = false;
+      notifyListeners();
+
+      debugPrint('Login error: ${e.code}');
+      return false;
+    }
   }
+
 
   Future<User?> loginWithGoogle() async {
     try {

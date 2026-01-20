@@ -6,8 +6,13 @@ import 'package:road_assist/core/network/network_status.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_theme.dart';
 import 'package:road_assist/core/theme/theme_provider.dart';
-import 'package:road_assist/ui/account_garage/view/account_garage_screen.dart';
+import 'package:road_assist/ui/acount_garage/view/account_garage_screen.dart';
 import 'package:road_assist/ui/auth/view/login_screen.dart';
+
+import 'package:road_assist/ui/auth/view/user_register_screen.dart';
+
+import 'package:road_assist/ui/auth_garage/view/garage_register_screen.dart';
+import 'package:road_assist/ui/home/view/home_screen.dart';
 // import 'package:road_assist/ui/navigation/view/main_screen.dart';
 
 class MyApp extends ConsumerWidget {
@@ -41,7 +46,7 @@ class MyApp extends ConsumerWidget {
     }
 
     // return const MainScreen();
-    return GarageScreen();
+    return UserRegisterView();
   }
 }
 

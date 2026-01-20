@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:road_assist/ui/map/location_pick_result.dart';
+import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
@@ -172,24 +174,19 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       ).showSnackBar(const SnackBar(content: Text('Bạn chưa đăng nhập!')));
       return;
     }
-    //
-    // if (currentLat == null || currentLng == null) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(content: Text('Vui lòng xác định vị trí trước!')),
-    //   );
-    //   return;
-    // }
+
+    if (currentLat == null || currentLng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng xác định vị trí trước!')),
+      );
+      return;
+    }
     if (selectedIssues.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn ít nhất 1 vấn đề')),
       );
       return;
     }
-
-    // Hard code vị trí tạm thời
-    final testLat = 10.762622; // VD: TP.HCM
-    final testLng = 106.660172;
-    final testAddress = 'TP.Hồ Chí Minh, Việt Nam';
 
     final repo = ref.read(rescueRequestRepoProvider);
 
@@ -199,13 +196,13 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       userPhone: '0123456789',
       vehicleType: selectedVehicleType,
       vehicleModel: vehicleTypes.firstWhere(
-        (v) => v['name'] == selectedVehicleType,
+            (v) => v['name'] == selectedVehicleType,
       )['model'],
       issues: selectedIssues,
-      location: testAddress,
-      latitude: testLat,
-      longitude: testLng,
-      image: selectedImages.isNotEmpty ? selectedImages.first : null, 
+      location: currentAddress!,
+      latitude: currentLat!,
+      longitude: currentLng!,
+      image: selectedImages.isNotEmpty ? selectedImages.first : null,
     );
 
     if (id != null) {
@@ -423,67 +420,78 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: () async {},
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF001029),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.blue.shade700,
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.map_outlined,
-                                    color: Colors.blue.shade300,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      currentAddress ?? 'Đang lấy vị trí...',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Divider(color: Colors.white38, thickness: 1),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Icon(
-                                    Icons.navigation,
-                                    color: Colors.blue.shade300,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Chọn / cập nhật vị trí',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                    GestureDetector(
+                      onTap: () async {
+                        final result = await Navigator.push<LocationPickResult>(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MapPickScreen()),
+                        );
+
+                        if (result != null) {
+                          print(result.latitude);
+                          print(result.longitude);
+                          print(result.address);
+                        }
+                      },
+
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF001029),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.blue.shade700,
+                            width: 1,
                           ),
                         ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.map_outlined,
+                                  color: Colors.blue.shade300,
+                                  size: 32,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    currentAddress ?? 'Đang lấy vị trí...',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Divider(color: Colors.white38, thickness: 1),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.navigation,
+                                  color: Colors.blue.shade300,
+                                  size: 32,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Chọn / cập nhật vị trí',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
 
-                      const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
                       // Photo Section
                       Container(

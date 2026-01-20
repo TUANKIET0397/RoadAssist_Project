@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
 import 'package:road_assist/ui/home/view/home_screen.dart';
 
@@ -115,7 +116,14 @@ class LoginScreen extends StatelessWidget {
                               ? null
                               : () async {
                                   final success = await viewModel.login();
-                                  if (success) {}
+                                  if (success && context.mounted) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const HomeScreen(),
+                                      ),
+                                    );
+                                  }
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0D7EFF),
@@ -254,11 +262,18 @@ class LoginScreen extends StatelessWidget {
                         style: TextStyle(color: Colors.white70),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const UserRegisterView(),
+                            ),
+                          );
+                        },
                         child: Text(
                           'Đăng ký ngay',
                           style: TextStyle(
-                            color: Color(0xFF0D7EFF),
+                            color: Color(0xFF00D4FF),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

@@ -2,44 +2,71 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
 class LocationService {
-  /// Xin quyền + lấy vị trí hiện tại
+  /// Xin quyền + lấy vị trí (GPS)
   static Future<Position> getCurrentPosition() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      throw Exception('Dịch vụ định vị đã bị tắt. Vui lòng bật GPS.');
+      throw Exception('Vui lòng bật GPS để tiếp tục');
     }
 
-    LocationPermission permission = await Geolocator.checkPermission();
+    LocationPermission permission =
+    await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw Exception('Quyền truy cập vị trí đã bị từ chối.');
+        throw Exception('Quyền truy cập vị trí bị từ chối');
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
       throw Exception(
-          'Quyền truy cập vị trí bị từ chối vĩnh viễn. Vui lòng vào cài đặt ứng dụng để cấp quyền.');
+          'Quyền truy cập vị trí bị từ chối vĩnh viễn. Vui lòng cấp quyền trong cài đặt');
     }
 
+    // 3. Lấy vị trí hiện tại
     return await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
   }
 
-  /// Đổi lat/lng → địa chỉ
-  static Future<String> getAddressFromLatLng(double lat, double lng) async {
+  /// GPS → ĐỊA CHỈ
+  static Future<String> getAddressFromLatLng(
+      double latitude, double longitude) async {
     try {
-      final placemarks = await placemarkFromCoordinates(lat, lng);
+      final List<Placemark> placemarks =
+      await placemarkFromCoordinates(latitude, longitude);
 
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-        return '${p.street}, ${p.subAdministrativeArea}, ${p.administrativeArea}';
-      } else {
-        throw Exception('Không tìm thấy địa chỉ cho vị trí này.');
+      if (placemarks.isEmpty) {
+        throw Exception('Không tìm thấy địa chỉ');
       }
+
+      final p = placemarks.first;
+
+      final addressParts = [
+        p.street,
+        p.subAdministrativeArea,
+        p.administrativeArea,
+      ].where((e) => e != null && e!.isNotEmpty).toList();
+
+      return addressParts.join(', ');
     } catch (e) {
-      throw Exception('Lỗi mạng hoặc không thể lấy được địa chỉ.');
+      throw Exception('Không thể lấy địa chỉ từ GPS');
+    }
+  }
+
+  /// ĐỊA CHỈ → GPS
+  static Future<Location?> getLatLngFromAddress(
+      String address) async {
+    try {
+      final List<Location> locations =
+      await locationFromAddress(address);
+
+      if (locations.isEmpty) return null;
+
+      return locations.first;
+    } catch (e) {
+      return null;
     }
   }
 }

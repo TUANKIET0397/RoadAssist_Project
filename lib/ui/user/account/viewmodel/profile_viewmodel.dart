@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/user.dart';
 
 class ProfileViewModel extends ChangeNotifier {
@@ -71,3 +72,16 @@ class ProfileViewModel extends ChangeNotifier {
     super.dispose();
   }
 }
+
+/// ✅ RIVERPOD PROVIDER
+final profileViewModelProvider = ChangeNotifierProvider<ProfileViewModel>((
+  ref,
+) {
+  final vm = ProfileViewModel();
+
+  ref.onDispose(() {
+    vm.dispose();
+  });
+
+  return vm;
+});

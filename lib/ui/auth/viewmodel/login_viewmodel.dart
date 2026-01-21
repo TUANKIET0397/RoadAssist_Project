@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/services/login/login_option.dart';
 
 class LoginViewModel extends ChangeNotifier {
@@ -60,7 +61,6 @@ class LoginViewModel extends ChangeNotifier {
     }
   }
 
-
   Future<User?> loginWithGoogle() async {
     try {
       _isLoading = true;
@@ -92,3 +92,14 @@ class LoginViewModel extends ChangeNotifier {
     // Implement Face ID login
   }
 }
+
+/// ✅ RIVERPOD PROVIDER (đặt chung file)
+final loginViewModelProvider = ChangeNotifierProvider<LoginViewModel>((ref) {
+  final vm = LoginViewModel();
+
+  ref.onDispose(() {
+    vm.dispose();
+  });
+
+  return vm;
+});

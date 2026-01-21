@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
-import 'package:road_assist/ui/home/view/home_screen.dart';
+import 'package:road_assist/ui/user/home/view/home_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

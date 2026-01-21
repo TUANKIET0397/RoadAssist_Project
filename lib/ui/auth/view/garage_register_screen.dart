@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/ui/auth/view/login_screen.dart';
-import 'package:road_assist/ui/auth/viewmodel/user_register_vm.dart';
-import 'package:road_assist/ui/auth/view/garage_register_screen.dart';
-import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
-import 'package:road_assist/ui/auth/widgets/vehicle_type_item.dart';
+import 'package:road_assist/data/models/garage_model.dart';
+import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/widgets/password_text_field.dart';
-import 'package:road_assist/ui/auth/widgets/phone_text_field.dart';
+import 'package:road_assist/ui/auth/viewmodel/garage_register_vm.dart';
+import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
+import 'package:road_assist/ui/auth/widgets/day_selector.dart';
+import 'package:road_assist/ui/auth/widgets/time_picker_field.dart';
+import 'package:road_assist/ui/auth/widgets/service_chip.dart';
+import 'package:road_assist/ui/auth/widgets/vehicle_type_item.dart';
+import 'package:road_assist/ui/auth/widgets/section_header.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
+import 'package:road_assist/ui/auth/view/garage_success_screen.dart';
 
-class UserRegisterView extends ConsumerWidget {
-  const UserRegisterView({super.key});
+class GarageRegisterView extends ConsumerWidget {
+  const GarageRegisterView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(userRegisterVMProvider);
-    final vmNotifier = ref.read(userRegisterVMProvider.notifier);
+    final vm = ref.watch(garageRegisterVMProvider);
+    final vmNotifier = ref.read(garageRegisterVMProvider.notifier);
 
     return Scaffold(
       body: Container(
@@ -37,10 +41,9 @@ class UserRegisterView extends ConsumerWidget {
                 Center(
                   child: Column(
                     children: [
-                      Image.asset('assets/images/logos/logo.png', height: 140),
-                      const SizedBox(height: 12),
+                      Image.asset('assets/images/logos/logo.png', height: 160),
                       const Text(
-                        'Đăng ký tài khoản',
+                        'Đăng kí Garage',
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -57,18 +60,16 @@ class UserRegisterView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Thông tin cá nhân Section
-                _buildSectionHeader('Thông tin cá nhân'),
+                // Garage Info Section
+                const SectionHeader(title: 'Thông tin Garage'),
                 CustomTextField(
                   controller: vm.nameController,
-                  hint: 'Họ và tên',
+                  hint: 'Tên garage',
                 ),
-                const SizedBox(height: 8),
-                PhoneTextField(
-                  controller: vm.phoneController,
-                  hint: 'Số điện thoại',
+                CustomTextField(
+                  controller: vm.taxCodeController,
+                  hint: 'Mã số thuế',
                 ),
-                // Địa chỉ
                 GestureDetector(
                   onTap: () async {
                     final result = await Navigator.push(
@@ -105,25 +106,95 @@ class UserRegisterView extends ConsumerWidget {
                     ),
                   ),
                 ),
+
                 CustomTextField(
-                  controller: vm.emailController,
-                  hint: 'Email (không bắt buộc)',
-                  keyboardType: TextInputType.emailAddress,
+                  controller: vm.phoneController,
+                  hint: 'Số điện thoại Garage',
                 ),
 
                 // Password Section
                 PasswordTextField(
                   controller: vm.passwordController,
                   hint: 'Mật khẩu',
+                  textColor: Color(0xFF69BFF9),
                 ),
                 PasswordTextField(
                   controller: vm.confirmPasswordController,
                   hint: 'Xác nhận mật khẩu',
+                  textColor: Color(0xFF69BFF9),
                 ),
 
-                // Vehicle Type Section
-                const SizedBox(height: 24),
-                _buildSectionHeader('Thông tin phương tiện'),
+                // Operating Days Section
+                const SectionHeader(title: 'Ngày hoạt động'),
+                DaySelector(
+                  selectedDays: vm.selectedDays,
+                  onDayTap: vm.toggleDay,
+                ),
+
+                // Operating Hours Section
+                const SectionHeader(title: 'Giờ hoạt động'),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final vm = ref.watch(garageRegisterVMProvider);
+
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF243158),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: const Color(0xFF34CAE8),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          TimePickerField(
+                            time: vm.openTime,
+                            onTimeSelected: (time) {
+                              ref
+                                  .read(garageRegisterVMProvider)
+                                  .setOpenTime(time);
+                            },
+                          ),
+                          const Text(
+                            '  —  ',
+                            style: TextStyle(color: Colors.white, fontSize: 24),
+                          ),
+                          TimePickerField(
+                            time: vm.closeTime,
+                            onTimeSelected: (time) {
+                              ref
+                                  .read(garageRegisterVMProvider)
+                                  .setCloseTime(time);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                // Services Section
+                const SectionHeader(title: 'Dịch vụ hỗ trợ'),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: vm.allServices.map((s) {
+                    return ServiceChip(
+                      label: s,
+                      isSelected: vm.selectedServices.contains(s),
+                      onTap: () => vm.toggleService(s),
+                    );
+                  }).toList(),
+                ),
+
+                // Vehicle Types Section
+                const SectionHeader(title: 'Loại Phương Tiện Hỗ trợ'),
                 Column(
                   children: [
                     ...vm.selectedVehicleTypes.asMap().entries.map((entry) {
@@ -148,6 +219,7 @@ class UserRegisterView extends ConsumerWidget {
                       ),
                   ],
                 ),
+                const SizedBox(height: 24),
 
                 const SizedBox(height: 24),
 
@@ -162,7 +234,7 @@ class UserRegisterView extends ConsumerWidget {
                         }
                       },
                       checkColor: Colors.lightBlue,
-                      activeColor: const Color(0xFF000718),
+                      activeColor: Color(0xFF000718),
                     ),
                     const Expanded(
                       child: Text.rich(
@@ -192,18 +264,16 @@ class UserRegisterView extends ConsumerWidget {
                   ],
                 ),
 
-                const SizedBox(height: 16),
-
-                // Error Message
                 if (vm.errorMessage != null)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Text(
                       vm.errorMessage!,
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
 
+                const SizedBox(height: 16),
                 // Register Button
                 SizedBox(
                   width: double.infinity,
@@ -211,69 +281,38 @@ class UserRegisterView extends ConsumerWidget {
                     onPressed: vm.isLoading
                         ? null
                         : () async {
-                            final success = await vmNotifier.registerUser();
-                            if (success && context.mounted) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Đăng ký thành công!'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
+                            final ok = await ref
+                                .read(garageRegisterVMProvider)
+                                .registerGarage();
+
+                            if (ok && context.mounted) {
+                              _showSuccessDialog(context, vm);
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00A3E0),
+                      backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
                     child: vm.isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const CircularProgressIndicator()
                         : const Text(
                             'Đăng ký tài khoản',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                   ),
                 ),
 
                 const SizedBox(height: 20),
 
-                // Already have account
                 Center(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const GarageRegisterView(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Đăng ký Garage',
-                          style: TextStyle(
-                            color: Color(0xFF00D4FF),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
                       const Text(
-                        '  |  ',
+                        'Trở về tài khoản ? ',
                         style: TextStyle(
                           color: Color(0xFF53789A),
                           fontSize: 14,
@@ -284,15 +323,15 @@ class UserRegisterView extends ConsumerWidget {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
+                              builder: (_) => const UserRegisterView(),
                             ),
                           );
                         },
                         child: const Text(
-                          'Đăng nhập',
+                          'Người dùng',
                           style: TextStyle(
                             color: Color(0xFF00D4FF),
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
                         ),
@@ -300,8 +339,6 @@ class UserRegisterView extends ConsumerWidget {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -310,17 +347,28 @@ class UserRegisterView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF00D4FF),
-        ),
-      ),
+  void _showSuccessDialog(BuildContext context, GarageRegisterViewModel vm) {
+    final garageModel = GarageModel(
+      id: '',
+      name: vm.nameController.text,
+      address: vm.addressController.text,
+      phone: vm.phoneController.text,
+      distance: null,
+      vehicleTypes: vm.selectedVehicleTypes,
+      issues: vm.selectedServices.toList(),
+      openTime:
+          '${vm.openTime.hour.toString().padLeft(2, '0')}:${vm.openTime.minute.toString().padLeft(2, '0')}',
+      closeTime:
+          '${vm.closeTime.hour.toString().padLeft(2, '0')}:${vm.closeTime.minute.toString().padLeft(2, '0')}',
+      lat: vm.latitude,
+      lng: vm.longitude,
+      isActive: false,
+      rating: 0.0,
+    );
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => GarageSuccessView(garage: garageModel)),
     );
   }
 }

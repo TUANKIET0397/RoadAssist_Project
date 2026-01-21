@@ -1,5 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:road_assist/data/models/garage_model.dart';
 
 class LocationService {
   /// Xin quyền + lấy vị trí (GPS)
@@ -69,4 +70,31 @@ class LocationService {
       return null;
     }
   }
+
+  /// Tinh distance
+  Future<List<GarageModel>> calculateDistanceForGarages(
+      List<GarageModel> garages,
+      ) async {
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    return garages.map((garage) {
+      if (garage.lat == null || garage.lng == null) {
+        return garage.copyWith(distance: null);
+      }
+
+      final meters = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        garage.lat!,
+        garage.lng!,
+      );
+
+      return garage.copyWith(distance: meters / 1000);
+    }).toList();
+  }
+
+
+
 }

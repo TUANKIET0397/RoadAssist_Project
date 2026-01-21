@@ -8,13 +8,13 @@ import 'package:road_assist/core/providers/auth_provider.dart';
 
 /// Chat State
 class ChatState {
-  final ChatModel chat;
+  final ChatModel? chat;
   final List<MessageModel> messages;
   final bool isLoading;
   final String? error;
 
   const ChatState({
-    required this.chat,
+    this.chat,
     required this.messages,
     this.isLoading = false,
     this.error,
@@ -40,22 +40,39 @@ class ChatNotifier extends StateNotifier<ChatState> {
   final FirebaseFirestore _firestore;
   final String? currentUserId;
   final String senderRole;
+  final String chatId;
 
+  StreamSubscription<DocumentSnapshot>? _chatSub;
   StreamSubscription<QuerySnapshot>? _messageSub;
 
   ChatNotifier({
-    required ChatModel chat,
+    required this.chatId,
     required this.currentUserId,
     required this.senderRole,
     FirebaseFirestore? firestore,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        super(ChatState(chat: chat, messages: [], isLoading: true)) {
+        super(const ChatState(messages: [], isLoading: true)) {
     final id = currentUserId;
     if (id == null || id.isEmpty) {
       state = state.copyWith(error: "User not logged in.", isLoading: false);
       return;
     }
+    _listenToChat();
     _listenMessages();
+  }
+
+  void _listenToChat() {
+    _chatSub = _firestore.collection('chats').doc(chatId).snapshots().listen(
+      (snapshot) {
+        if (snapshot.exists) {
+          final chat = ChatModel.fromMap(snapshot.id, snapshot.data()!);
+          state = state.copyWith(chat: chat);
+        }
+      },
+      onError: (e) {
+        state = state.copyWith(error: e.toString());
+      },
+    );
   }
 
   /// Listen messages realtime
@@ -67,19 +84,19 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     _messageSub = _firestore
         .collection('chats')
-        .doc(state.chat.id)
+        .doc(chatId)
         .collection('messages')
         .orderBy('createdAt', descending: false)
         .snapshots()
         .listen(
-          (snapshot) {
+      (snapshot) {
         final messages = snapshot.docs
             .map(
               (doc) => MessageModel.fromMap(
-            doc.id,
-            doc.data() as Map<String, dynamic>,
-          ),
-        )
+                doc.id,
+                doc.data(),
+              ),
+            )
             .toList();
 
         state = state.copyWith(
@@ -96,7 +113,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
   }
 
-
   /// Send text message
   Future<void> sendMessage(String text) async {
     final content = text.trim();
@@ -109,7 +125,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
 
     final now = DateTime.now();
-    final chatRef = _firestore.collection('chats').doc(state.chat.id);
+    final chatRef = _firestore.collection('chats').doc(chatId);
     final messageRef = chatRef.collection('messages').doc();
 
     final message = MessageModel(
@@ -127,33 +143,32 @@ class ChatNotifier extends StateNotifier<ChatState> {
       await _firestore.runTransaction((transaction) async {
         transaction.set(messageRef, message.toMap());
 
-        if (senderRole == 'garage') {
-          transaction.update(chatRef, {
-            'lastMessage': content,
-            'lastMessageTime': Timestamp.fromDate(now),
-            'lastSenderId': id,
-            'unreadCount': FieldValue.increment(1),
-          });
+        final updateData = {
+          'lastMessage': content,
+          'lastMessageTime': Timestamp.fromDate(now),
+          'lastSenderId': id,
+        };
+
+        if (senderRole == 'user') {
+          updateData['unreadCount'] = FieldValue.increment(1);
         }
+
+        transaction.update(chatRef, updateData);
       });
     } catch (e) {
       state = state.copyWith(error: e.toString());
     }
   }
 
-
-
   /// Mark messages as read
   Future<void> markAsRead() async {
     final id = currentUserId;
     if (id == null || id.isEmpty) return;
 
-    final chatRef = _firestore.collection('chats').doc(state.chat.id);
+    final chatRef = _firestore.collection('chats').doc(chatId);
     final messagesRef = chatRef.collection('messages');
 
-    final snapshot = await messagesRef
-        .where('senderId', isNotEqualTo: id)
-        .get();
+    final snapshot = await messagesRef.where('senderId', isNotEqualTo: id).get();
 
     if (snapshot.docs.isEmpty) return;
 
@@ -161,7 +176,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     bool hasUpdate = false;
 
     for (final doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       final List<dynamic> readBy = data['readBy'] ?? [];
 
       if (!readBy.contains(id)) {
@@ -180,6 +195,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   @override
   void dispose() {
+    _chatSub?.cancel();
     _messageSub?.cancel();
     super.dispose();
   }
@@ -188,12 +204,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
 /// Providers
 
 final chatProvider = StateNotifierProvider.family<
-    ChatNotifier, ChatState, ChatModel>((ref, chat) {
-
+    ChatNotifier, ChatState, String>((ref, chatId) {
   final userId = ref.watch(userIdProvider);
 
   return ChatNotifier(
-    chat: chat,
+    chatId: chatId,
     currentUserId: userId ?? '',
     senderRole: 'user',
   );

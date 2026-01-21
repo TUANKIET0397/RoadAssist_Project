@@ -7,9 +7,9 @@ import 'package:road_assist/ui/user/chat/widgets/date_divider.dart';
 import 'package:road_assist/ui/user/chat/widgets/message_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  final ChatModel chat;
+  final String chatId;
 
-  const ChatScreen({super.key, required this.chat});
+  const ChatScreen({super.key, required this.chatId});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -24,10 +24,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatProvider(widget.chat).notifier).markAsRead();
+      ref.read(chatProvider(widget.chatId).notifier).markAsRead();
     });
 
-    ref.listenManual(chatProvider(widget.chat), (prev, next) {
+    ref.listenManual(chatProvider(widget.chatId), (prev, next) {
       if (prev == null) return;
       if (prev.messages.length != next.messages.length) {
         _scrollToBottom();
@@ -69,36 +69,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider(widget.chat));
-    final chatNotifier = ref.read(chatProvider(widget.chat).notifier);
+    final chatState = ref.watch(chatProvider(widget.chatId));
+    final chatNotifier = ref.read(chatProvider(widget.chatId).notifier);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(56, 56, 224, 1),
-              Color.fromRGBO(46, 144, 183, 1),
-            ],
+        backgroundColor: Colors.transparent,
+        appBar: _buildAppBar(chatState.chat),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(56, 56, 224, 1),
+                Color.fromRGBO(46, 144, 183, 1),
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Expanded(child: _buildMessages(chatState, chatNotifier)),
-              _buildInput(chatNotifier),
-            ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(child: _buildMessages(chatState, chatNotifier)),
+                _buildInput(chatNotifier),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   // APP BAR
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(ChatModel? chat) {
     return AppBar(
       backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
       elevation: 0,
@@ -107,22 +106,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         onPressed: () => Navigator.of(context).pop(),
       ),
       titleSpacing: 0,
-      title: Row(
-        children: [
-          _buildAvatar(),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              widget.chat.garageName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+      title: chat == null
+          ? const SizedBox.shrink()
+          : Row(
+              children: [
+                _buildAvatar(chat),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    chat.garageName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.call, color: Color(0xFF3B82F6)),
@@ -132,8 +133,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildAvatar() {
-    final img = widget.chat.garageImage;
+  Widget _buildAvatar(ChatModel chat) {
+    final img = chat.garageImage;
 
     return Container(
       width: 40,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
+import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
 import 'package:road_assist/ui/user/garage/view/review_screen.dart';
 
@@ -219,17 +221,27 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
   }
 
   Widget _buildDistance() {
+    if (widget.garage.distance == null) return const SizedBox();
+
     return Row(
-      children: const [
-        Icon(Icons.location_on_outlined, color: Color(0xFF2FB8FF), size: 20),
-        SizedBox(width: 4),
+      children: [
+        const Icon(
+          Icons.location_on_outlined,
+          color: Color(0xFF2FB8FF),
+          size: 20,
+        ),
+        const SizedBox(width: 4),
         Text(
-          '2.1 km',
-          style: TextStyle(color: Color(0xFF2FB8FF), fontSize: 16),
+          '${widget.garage.distance!.toStringAsFixed(1)} km',
+          style: const TextStyle(
+            color: Color(0xFF2FB8FF),
+            fontSize: 16,
+          ),
         ),
       ],
     );
   }
+
 
   Widget _buildStatusTime() {
     return Row(
@@ -500,8 +512,8 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                   ),
                 );
               },
-              icon: const Icon(Icons.edit, size: 18),
-              label: const Text('Đánh giá', style: TextStyle(fontSize: 16)),
+              icon: const Icon(Icons.edit, size: 22),
+              label: const Text('Đánh giá', style: TextStyle(fontSize: 18)),
               style: OutlinedButton.styleFrom(
                 backgroundColor: const Color(0xFF001029),
                 foregroundColor: Colors.white,
@@ -516,9 +528,24 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.phone_in_talk, size: 20),
-              label: const Text('Gửi cứu hộ', style: TextStyle(fontSize: 16)),
+              onPressed: () {
+                final userId = ref.read(userIdProvider);
+                if (userId == null) return;
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatListScreen(
+                      userId: userId,
+                      garageId: widget.garage.id,
+                      garageName: widget.garage.name,
+                      garageImage: widget.garage.imageUrl,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.wechat_outlined, size: 22),
+              label: const Text('Chat', style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF34CAE8),
                 foregroundColor: Colors.white,

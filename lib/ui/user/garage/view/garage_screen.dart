@@ -232,9 +232,11 @@ class GarageCard extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(height: 1),
-                              const Text(
-                                '3.5 km',
-                                style: TextStyle(
+                              Text(
+                                garage.distance == null
+                                    ? '-- km'
+                                    : '${garage.distance!.toStringAsFixed(1)} km',
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,

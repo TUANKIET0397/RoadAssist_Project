@@ -237,7 +237,7 @@ class GarageRegisterViewModel extends ChangeNotifier {
         '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}',
         'closeTime':
         '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
-        'services': selectedServices.toList(),
+        'issues': selectedServices.toList(),
         'vehicleTypes': selectedVehicleTypes,
         'images': "",
         'bgImages': "",

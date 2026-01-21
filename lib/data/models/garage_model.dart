@@ -11,16 +11,16 @@ class GarageModel {
   final double? lng;
   final double? rating;
   final bool isActive;
-  final double? distance;
   final String? imageUrl;
   final String? bgimgUrl;
+
   bool isFavorite;
-  
+  double? distance;
+
 
   GarageModel({
     required this.id,
     required this.name,
-    required this.distance,
     required this.address,
     required this.phone,
     required this.vehicleTypes,
@@ -34,6 +34,7 @@ class GarageModel {
     this.imageUrl,
     this.bgimgUrl,
     this.isFavorite = false,
+    this.distance,
   });
 
   factory GarageModel.fromMap(String id, Map<String, dynamic> data) {
@@ -41,7 +42,6 @@ class GarageModel {
       id: id,
       name: data['name'] ?? '',
       address: data['address'] ?? '',
-      distance: data['distance']?.toDouble(),
       phone: data['phone'] ?? '',
       vehicleTypes: List<String>.from(data['vehicleTypes'] ?? []),
       issues: List<String>.from(data['issues'] ?? []),
@@ -53,11 +53,9 @@ class GarageModel {
       isActive: data['isActive'] ?? false,
       imageUrl: data['imageUrl'],
       bgimgUrl: data['bgimgUrl'],
+      distance: null,
     );
   }
-  // Đăng ký garage mới.
-  // FirebaseFirestore.instance.collection('garages').add(myGarage.toMap());
-
 
   Map<String, dynamic> toMap() {
     return {
@@ -96,6 +94,7 @@ class GarageModel {
     String? imageUrl,
     String? bgimgUrl,
     bool? isFavorite,
+    double? distanceKm,
   }) {
     return GarageModel(
       id: id ?? this.id,

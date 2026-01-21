@@ -4,13 +4,75 @@ import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 
-class ChatListScreen extends ConsumerWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   final String userId;
-  const ChatListScreen({super.key, required this.userId});
+  final String? garageId;
+  final String? garageName;
+  final String? garageImage;
+
+  const ChatListScreen({
+    super.key,
+    required this.userId,
+    this.garageId,
+    this.garageName,
+    this.garageImage,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chatStream = ref.watch(chatStreamProvider(userId));
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.garageId != null) {
+      _navigateToChat();
+    }
+  }
+
+  void _navigateToChat() async {
+    await Future.microtask(() {});
+    try {
+      final chat = await ref.read(chatRepositoryProvider).getOrCreateChat(
+            userId: widget.userId,
+            garageId: widget.garageId!,
+            garageName: widget.garageName ?? '',
+            garageImage: widget.garageImage ?? '',
+          );
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatId: chat,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Không thể tạo phòng chat: ${e.toString()}'),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.garageId != null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    final chatStream = ref.watch(chatStreamProvider(widget.userId));
 
     return Container(
       decoration: const BoxDecoration(
@@ -24,7 +86,6 @@ class ChatListScreen extends ConsumerWidget {
       child: Column(
         children: [
           _buildHeader(context),
-
           Expanded(
             child: SafeArea(
               top: false,
@@ -107,7 +168,7 @@ class ChatListScreen extends ConsumerWidget {
       itemCount: chats.length,
       itemBuilder: (context, index) {
         final chat = chats[index];
-        final unreadCount = chat.unread[userId] ?? 0;
+        final unreadCount = chat.unread[widget.userId] ?? 0;
 
         return ChatItem(
           name: chat.garageName,
@@ -120,7 +181,7 @@ class ChatListScreen extends ConsumerWidget {
 
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => ChatScreen(chat: chat)),
+              MaterialPageRoute(builder: (_) => ChatScreen(chatId: chat.id)),
             );
           },
         );
@@ -144,7 +205,7 @@ class ChatListScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           RichText(
             textAlign: TextAlign.center,
-            text: TextSpan(
+            text: const TextSpan(
               style: TextStyle(fontSize: 18, color: Colors.white, height: 1.5),
               children: [
                 TextSpan(text: 'Bạn chưa có cuộc trò chuyện nào '),
@@ -159,10 +220,10 @@ class ChatListScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 48),
             child: Text(
-              'Khi gửi yêu cầu cứu hộ, bạn có thể trò chuyện\ntrực tiếp với Garage',
+              'Khi gửi yêu cầu cứu hộ, bạn có thể trò chuyện trực tiếp với Garage',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

@@ -136,6 +136,7 @@ class GarageDetailNotifier extends StateNotifier<GarageDetailState> {
     }
   }
 
+
   @override
   void dispose() {
     _reviewsSubscription?.cancel();

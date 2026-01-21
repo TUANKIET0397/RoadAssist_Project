@@ -370,7 +370,7 @@ class BigVehicleCardContent extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(top: 42),
             child: Image.asset(
-              'assets/images/illustrations/vehicle1.png',
+              'assets/images/illustrations/vehicle.png',
               width: 260,
             ),
           ),

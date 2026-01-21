@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     // Sau 5 giây, fade out và chuyển màn hình
-    Future.delayed(Duration(milliseconds: 8000), () {
+    Future.delayed(Duration(milliseconds: 2000), () {
       _fadeController.forward().then((_) {
         _triangleController.stop();
         widget.onAnimationComplete();
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
-                          'assets/images/logo.png',
+                          'assets/images/logos/logo.png',
                           width: 251,
                           height: 225,
                         ),
@@ -160,6 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
+
 class TrianglePainter extends CustomPainter {
   final Offset progress;
   final double rotation;
@@ -184,30 +185,31 @@ class TrianglePainter extends CustomPainter {
 
     // Định nghĩa kích thước: Cạnh đứng dài gấp đôi cạnh ngang
     const double baseWidth = 380.0;
-    const double verticalHeight = 600.0; 
+    const double verticalHeight = 600.0;
 
     final paint = Paint()
-      ..shader = LinearGradient(
-        colors: colors,
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(
-        Rect.fromLTWH(0, -verticalHeight / 2, baseWidth, verticalHeight),
-      )
+      ..shader =
+          LinearGradient(
+            colors: colors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ).createShader(
+            Rect.fromLTWH(0, -verticalHeight / 2, baseWidth, verticalHeight),
+          )
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 40);
 
     final path = Path();
 
     // VẼ TAM GIÁC VUÔNG ĐỨNG TẠI GỐC (0,0)
     // 1. Điểm đỉnh (Góc nhọn phía trên)
-    path.moveTo(0, -verticalHeight / 2); 
-    
+    path.moveTo(0, -verticalHeight / 2);
+
     // 2. Điểm góc vuông (Nằm ở giữa cạnh đứng)
-    path.lineTo(0, verticalHeight / 2); 
-    
+    path.lineTo(0, verticalHeight / 2);
+
     // 3. Điểm đáy (Kéo ngang ra để tạo góc nhọn còn lại)
-    path.lineTo(baseWidth, verticalHeight / 2); 
-    
+    path.lineTo(baseWidth, verticalHeight / 2);
+
     path.close();
 
     canvas.drawPath(path, paint);

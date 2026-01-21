@@ -17,60 +17,53 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
     final themeType = ref.watch(appThemeProvider);
-    final networkStatus = ref.watch(networkStatusProvider);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themByType(themeType),
-
-      home: _buildHome(networkStatus: networkStatus, authState: authState),
+      home: const SplashWrapper(),
     );
   }
+}
 
-  //
-  Widget _buildHome({
-    required NetworkStatus networkStatus,
-    required AsyncValue<User?> authState,
-  }) {
-    /// 1️⃣ NO INTERNET – override toàn app
+///
+class SplashWrapper extends ConsumerStatefulWidget {
+  const SplashWrapper({super.key});
+
+  @override
+  ConsumerState<SplashWrapper> createState() => _SplashWrapperState();
+}
+
+class _SplashWrapperState extends ConsumerState<SplashWrapper> {
+  bool _animationDone = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_animationDone) {
+      return SplashScreen(
+        onAnimationComplete: () {
+          setState(() {
+            _animationDone = true;
+          });
+        },
+      );
+    }
+
+    final networkStatus = ref.watch(networkStatusProvider);
+    final authState = ref.watch(authStateProvider);
+
+    /// 1️⃣ NO INTERNET
     if (networkStatus == NetworkStatus.disconnected) {
       return const NoInternetScreen();
     }
 
     /// 2️⃣ AUTH FLOW
     return authState.when(
-      loading: () => const SplashWrapper(),
+      loading: () => const SizedBox(),
       error: (_, __) => const LoginScreen(),
-      data: (user) {
+      data: (User? user) {
         return user == null ? const LoginScreen() : const MainScreen();
-      },
-    );
-  }
-}
-
-class SplashWrapper extends StatefulWidget {
-  const SplashWrapper({super.key});
-
-  @override
-  State<SplashWrapper> createState() => _SplashWrapperState();
-}
-
-class _SplashWrapperState extends State<SplashWrapper> {
-  bool _showLogin = false;
-
-  @override
-  Widget build(BuildContext context) {
-    if (_showLogin) {
-      return LoginScreen();
-    }
-
-    return SplashScreen(
-      onAnimationComplete: () {
-        setState(() {
-          _showLogin = true;
-        });
       },
     );
   }

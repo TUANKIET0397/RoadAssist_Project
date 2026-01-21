@@ -4,6 +4,10 @@ import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
 import 'package:road_assist/ui/navigation/widgets/slanted_bottom_bar.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+
 class GarageReviewView extends ConsumerStatefulWidget {
   final GarageModel garage;
 
@@ -16,6 +20,7 @@ class GarageReviewView extends ConsumerStatefulWidget {
 class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
   int selectedRating = 5;
   final TextEditingController commentController = TextEditingController();
+
 
   @override
   Widget build(BuildContext context) {
@@ -321,20 +326,45 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
           width: double.infinity,
           height: 60,
           child: ElevatedButton(
-            onPressed: () {
-              ref
-                  .read(garageDetailProvider.notifier)
-                  .submitReview(
-                    garageId: widget.garage.id,
-                    userId: 'currentUserId',
-                    userName: 'Current User',
-                    userAvatar: null,
-                    rating: selectedRating,
-                    comment: commentController.text,
-                  );
+            onPressed: () async {
+              final authUser = FirebaseAuth.instance.currentUser;
+
+              if (authUser == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bạn cần đăng nhập để đánh giá')),
+                );
+                return;
+              }
+
+              final userDoc = await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(authUser.uid)
+                  .get();
+
+              if (!userDoc.exists) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Không tìm thấy thông tin người dùng')),
+                );
+                return;
+              }
+
+              final userData = userDoc.data()!;
+
+              ref.read(garageDetailProvider.notifier).submitReview(
+                garageId: widget.garage.id,
+                userId: authUser.uid,
+                userName: userData['name'] ?? 'Ẩn danh',
+                userAvatar: userData['avatar'],
+                rating: selectedRating,
+                comment: commentController.text.trim(),
+              );
+
               commentController.clear();
               setState(() => selectedRating = 5);
+
+              Navigator.of(context).pop();
             },
+
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.zero,
               shape: RoundedRectangleBorder(
@@ -369,4 +399,21 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
       ],
     );
   }
+
+
+  // Lấy UID
+  Future<Map<String, dynamic>?> getCurrentUserProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!doc.exists) return null;
+
+    return doc.data();
+  }
 }
+

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/auth/auth_state.dart';
+import 'package:road_assist/core/providers/selected_role.dart';
 import 'package:road_assist/core/routes/route_paths.dart';
 
-class AuthRoleScreen extends StatelessWidget {
+class AuthRoleScreen extends ConsumerWidget {
   const AuthRoleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       body: SafeArea(
@@ -17,7 +20,6 @@ class AuthRoleScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 48),
 
-              // ===== TITLE =====
               const Text(
                 'Chào mừng bạn 👋',
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
@@ -34,24 +36,26 @@ class AuthRoleScreen extends StatelessWidget {
 
               const Spacer(),
 
-              // ===== USER ROLE =====
               _RoleCard(
                 icon: Icons.person,
                 title: 'Người dùng',
                 subtitle: 'Tìm garage, chat, lịch sử cứu hộ',
                 onTap: () {
+                  ref.read(selectedRoleProvider.notifier).state =
+                      UserRole.customer;
                   context.go(RoutePaths.userLogin);
                 },
               ),
 
               const SizedBox(height: 16),
 
-              // ===== GARAGE ROLE =====
               _RoleCard(
                 icon: Icons.store,
                 title: 'Garage',
                 subtitle: 'Nhận yêu cầu, quản lý dịch vụ',
                 onTap: () {
+                  ref.read(selectedRoleProvider.notifier).state =
+                      UserRole.garage;
                   context.go(RoutePaths.garageLogin);
                 },
               ),
@@ -72,6 +76,7 @@ class AuthRoleScreen extends StatelessWidget {
     );
   }
 }
+
 
 class _RoleCard extends StatelessWidget {
   final IconData icon;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 
@@ -56,17 +57,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: RoutePaths.userLogin,
-        builder: (_, __) => const LoginScreen(),
+        builder: (context, state) {
+          return const LoginScreen();
+        },
       ),
+
+      GoRoute(
+        path: RoutePaths.garageLogin,
+        builder: (context, state) {
+          return const LoginScreen();
+        },
+      ),
+
       GoRoute(
         path: RoutePaths.userRegister,
         builder: (_, __) => const UserRegisterScreen(),
       ),
 
-      GoRoute(
-        path: RoutePaths.garageLogin,
-        builder: (_, __) => const LoginScreen(),
-      ),
       GoRoute(
         path: RoutePaths.garageRegister,
         builder: (_, __) => const GarageRegisterScreen(),
@@ -136,9 +143,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => Text('hello history page of GARAGE'),
           ),
           GoRoute(
-            path: 'account',
+            path: RoutePaths.garageAccount,
             // builder: (_, __) => const GarageAccountScreen(),
-            builder: (_, __) => Text('hello account page of GARAGE'),
+            builder: (_, __) => const AccountScreen(),
           ),
         ],
       ),

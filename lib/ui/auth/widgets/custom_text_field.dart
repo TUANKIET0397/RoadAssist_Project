@@ -8,6 +8,7 @@ class CustomTextField extends StatelessWidget {
   final int? maxLines;
   final bool readOnly;
   final VoidCallback? onTap;
+  final Color? hintColor;
 
   const CustomTextField({
     super.key,
@@ -18,6 +19,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onTap,
+    this.hintColor,
   });
 
   @override
@@ -37,7 +39,7 @@ class CustomTextField extends StatelessWidget {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: borderColor),
+            hintStyle: TextStyle(color: hintColor ?? borderColor),
             filled: true,
             fillColor: const Color(0xFF000718),
 

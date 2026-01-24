@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:road_assist/core/auth/auth_state.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
-import 'package:road_assist/core/providers/auth_provider.dart';
 
-/// Chat State
+/// CHAT STATE
+
 class ChatState {
   final ChatModel? chat;
   final List<MessageModel> messages;
@@ -35,39 +38,45 @@ class ChatState {
   }
 }
 
-/// Chat Notifier
+/// =======================
+/// CHAT NOTIFIER
+/// =======================
+
 class ChatNotifier extends StateNotifier<ChatState> {
   final FirebaseFirestore _firestore;
-  final String? currentUserId;
-  final String senderRole;
   final String chatId;
+  final String userId;
+  final UserRole role;
 
   StreamSubscription<DocumentSnapshot>? _chatSub;
   StreamSubscription<QuerySnapshot>? _messageSub;
 
   ChatNotifier({
     required this.chatId,
-    required this.currentUserId,
-    required this.senderRole,
+    required this.userId,
+    required this.role,
     FirebaseFirestore? firestore,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         super(const ChatState(messages: [], isLoading: true)) {
-    final id = currentUserId;
-    if (id == null || id.isEmpty) {
-      state = state.copyWith(error: "User not logged in.", isLoading: false);
-      return;
-    }
-    _listenToChat();
+    _listenChat();
     _listenMessages();
   }
 
-  void _listenToChat() {
-    _chatSub = _firestore.collection('chats').doc(chatId).snapshots().listen(
-      (snapshot) {
-        if (snapshot.exists) {
-          final chat = ChatModel.fromMap(snapshot.id, snapshot.data()!);
-          state = state.copyWith(chat: chat);
-        }
+  /// =======================
+  /// LISTEN CHAT INFO
+  /// =======================
+
+  void _listenChat() {
+    _chatSub = _firestore
+        .collection('chats')
+        .doc(chatId)
+        .snapshots()
+        .listen(
+          (snapshot) {
+        if (!snapshot.exists) return;
+
+        final chat = ChatModel.fromMap(snapshot.id, snapshot.data()!);
+        state = state.copyWith(chat: chat);
       },
       onError: (e) {
         state = state.copyWith(error: e.toString());
@@ -75,28 +84,21 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
   }
 
-  /// Listen messages realtime
+  /// =======================
+  /// LISTEN MESSAGES
+  /// =======================
+
   void _listenMessages() {
-    final id = currentUserId;
-    if (id == null || id.isEmpty) return;
-
-    state = state.copyWith(isLoading: true);
-
     _messageSub = _firestore
         .collection('chats')
         .doc(chatId)
         .collection('messages')
-        .orderBy('createdAt', descending: false)
+        .orderBy('createdAt')
         .snapshots()
         .listen(
-      (snapshot) {
+          (snapshot) {
         final messages = snapshot.docs
-            .map(
-              (doc) => MessageModel.fromMap(
-                doc.id,
-                doc.data(),
-              ),
-            )
+            .map((doc) => MessageModel.fromMap(doc.id, doc.data()))
             .toList();
 
         state = state.copyWith(
@@ -106,88 +108,84 @@ class ChatNotifier extends StateNotifier<ChatState> {
       },
       onError: (e) {
         state = state.copyWith(
-          isLoading: false,
           error: e.toString(),
+          isLoading: false,
         );
       },
     );
   }
 
-  /// Send text message
-  Future<void> sendMessage(String text) async {
+  /// =======================
+  /// SEND MESSAGE
+  /// =======================
+
+  Future<void> sendTextMessage(String text) async {
     final content = text.trim();
     if (content.isEmpty) return;
-
-    final id = currentUserId;
-    if (id == null || id.isEmpty) {
-      state = state.copyWith(error: "User not logged in");
-      return;
-    }
 
     final now = DateTime.now();
     final chatRef = _firestore.collection('chats').doc(chatId);
     final messageRef = chatRef.collection('messages').doc();
 
+    final sender = role == UserRole.customer ? 'customer' : 'garage';
+    final receiver = role == UserRole.customer ? 'garage' : 'customer';
+
     final message = MessageModel(
       id: messageRef.id,
-      senderId: id,
-      senderRole: senderRole,
+      senderId: userId,
+      senderRole: sender,
       type: 'text',
       text: content,
       imageUrl: null,
       createdAt: now,
-      readBy: [id],
+      readBy: [userId],
     );
 
-    try {
-      await _firestore.runTransaction((transaction) async {
-        transaction.set(messageRef, message.toMap());
+    await _firestore.runTransaction((tx) async {
+      tx.set(messageRef, message.toMap());
 
-        final updateData = {
-          'lastMessage': content,
-          'lastMessageTime': Timestamp.fromDate(now),
-          'lastSenderId': id,
-        };
+      tx.update(chatRef, {
+        'lastMessage': content,
+        'lastMessageTime': Timestamp.fromDate(now),
+        'lastSenderId': userId,
+        'lastSenderRole': sender,
 
-        if (senderRole == 'user') {
-          updateData['unreadCount'] = FieldValue.increment(1);
-        }
-
-        transaction.update(chatRef, updateData);
+        'unread.$receiver': FieldValue.increment(1),
       });
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-    }
+    });
   }
 
-  /// Mark messages as read
-  Future<void> markAsRead() async {
-    final id = currentUserId;
-    if (id == null || id.isEmpty) return;
 
+  /// =======================
+  /// MARK AS READ
+  /// =======================
+
+  Future<void> markAsRead() async {
     final chatRef = _firestore.collection('chats').doc(chatId);
     final messagesRef = chatRef.collection('messages');
 
-    final snapshot = await messagesRef.where('senderId', isNotEqualTo: id).get();
+    final snapshot = await messagesRef
+        .where('senderId', isNotEqualTo: userId)
+        .get();
 
     if (snapshot.docs.isEmpty) return;
 
     final batch = _firestore.batch();
-    bool hasUpdate = false;
+    bool needUpdate = false;
 
     for (final doc in snapshot.docs) {
       final data = doc.data();
       final List<dynamic> readBy = data['readBy'] ?? [];
 
-      if (!readBy.contains(id)) {
+      if (!readBy.contains(userId)) {
         batch.update(doc.reference, {
-          'readBy': FieldValue.arrayUnion([id]),
+          'readBy': FieldValue.arrayUnion([userId]),
         });
-        hasUpdate = true;
+        needUpdate = true;
       }
     }
 
-    if (hasUpdate) {
+    if (needUpdate) {
       batch.update(chatRef, {'unreadCount': 0});
       await batch.commit();
     }
@@ -201,15 +199,24 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 }
 
-/// Providers
+/// =======================
+/// PROVIDER
+/// =======================
 
-final chatProvider = StateNotifierProvider.family<
+final chatBoxProvider = StateNotifierProvider.family<
     ChatNotifier, ChatState, String>((ref, chatId) {
-  final userId = ref.watch(userIdProvider);
+  final auth = ref.watch(authStateProvider);
+
+  if (!auth.isLoggedIn ||
+      !auth.isInitialized ||
+      auth.userId == null ||
+      auth.role == null) {
+    throw Exception('User not authenticated');
+  }
 
   return ChatNotifier(
     chatId: chatId,
-    currentUserId: userId ?? '',
-    senderRole: 'user',
+    userId: auth.userId!,
+    role: auth.role!,
   );
 });

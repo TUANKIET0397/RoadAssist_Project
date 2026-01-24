@@ -3,12 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/auth/view/login_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/user_register_vm.dart';
-import 'package:road_assist/ui/auth/view/garage_register_screen.dart';
 import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
 import 'package:road_assist/ui/auth/widgets/vehicle_type_item.dart';
 import 'package:road_assist/ui/auth/widgets/password_text_field.dart';
 import 'package:road_assist/ui/auth/widgets/phone_text_field.dart';
-import 'package:road_assist/ui/map/map_pick_screen.dart';
 
 class UserRegisterScreen extends ConsumerWidget {
   const UserRegisterScreen({super.key});
@@ -63,53 +61,12 @@ class UserRegisterScreen extends ConsumerWidget {
                 CustomTextField(
                   controller: vm.nameController,
                   hint: 'Họ và tên',
+                  hintColor: Colors.white70,
                 ),
                 const SizedBox(height: 8),
                 PhoneTextField(
                   controller: vm.phoneController,
                   hint: 'Số điện thoại',
-                ),
-                // Địa chỉ
-                GestureDetector(
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MapPickScreen(
-                          initialLat: vm.latitude,
-                          initialLng: vm.longitude,
-                        ),
-                      ),
-                    );
-
-                    if (result != null && result is Map<String, dynamic>) {
-                      // Cập nhật lat, lng qua ViewModel
-                      await vmNotifier.setLocationFromLatLng(
-                        lat: result['lat'],
-                        lng: result['lng'],
-                      );
-
-                      // Cập nhật address trực tiếp vào controller
-                      if (result['address'] != null) {
-                        vm.addressController.text = result['address'];
-                      }
-                    }
-                  },
-                  child: AbsorbPointer(
-                    child: CustomTextField(
-                      controller: vm.addressController,
-                      hint: 'Chọn vị trí Garage trên bản đồ',
-                      suffixIcon: const Icon(
-                        Icons.location_on,
-                        color: Color(0xFF4FC3F7),
-                      ),
-                    ),
-                  ),
-                ),
-                CustomTextField(
-                  controller: vm.emailController,
-                  hint: 'Email (không bắt buộc)',
-                  keyboardType: TextInputType.emailAddress,
                 ),
 
                 // Password Section
@@ -123,7 +80,6 @@ class UserRegisterScreen extends ConsumerWidget {
                 ),
 
                 // Vehicle Type Section
-                const SizedBox(height: 24),
                 _buildSectionHeader('Thông tin phương tiện'),
                 Column(
                   children: [

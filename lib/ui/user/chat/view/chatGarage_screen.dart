@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatGarage_vm.dart';
 
@@ -24,10 +25,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatProvider(widget.chatId).notifier).markAsRead();
+      ref.read(chatBoxProvider(widget.chatId).notifier).markAsRead();
     });
 
-    ref.listenManual(chatProvider(widget.chatId), (prev, next) {
+    ref.listenManual(chatBoxProvider(widget.chatId), (prev, next) {
       if (prev == null) return;
       if (prev.messages.length != next.messages.length) {
         _scrollToBottom();
@@ -61,7 +62,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
-    notifier.sendMessage(text);
+    notifier.sendTextMessage(text);
     _textController.clear();
 
     Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
@@ -69,33 +70,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(chatProvider(widget.chatId));
-    final chatNotifier = ref.read(chatProvider(widget.chatId).notifier);
+    final chatState = ref.watch(chatBoxProvider(widget.chatId));
+    final chatNotifier =
+    ref.read(chatBoxProvider(widget.chatId).notifier);
 
     return Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: _buildAppBar(chatState.chat),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(56, 56, 224, 1),
-                Color.fromRGBO(46, 144, 183, 1),
-              ],
-            ),
+      backgroundColor: Colors.transparent,
+      appBar: _buildAppBar(chatState.chat),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromRGBO(56, 56, 224, 1),
+              Color.fromRGBO(46, 144, 183, 1),
+            ],
           ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Expanded(child: _buildMessages(chatState, chatNotifier)),
-                _buildInput(chatNotifier),
-              ],
-            ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(child: _buildMessages(chatState, chatNotifier)),
+              _buildInput(chatNotifier),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
-  // APP BAR
 
   PreferredSizeWidget _buildAppBar(ChatModel? chat) {
     return AppBar(
@@ -109,27 +111,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       title: chat == null
           ? const SizedBox.shrink()
           : Row(
-              children: [
-                _buildAvatar(chat),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    chat.garageName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
+        children: [
+          _buildAvatar(chat),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              chat.garageName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.call, color: Color(0xFF3B82F6)),
-          onPressed: () {},
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -148,16 +144,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
       child: !img.startsWith('http')
           ? Center(
-              child: Text(
-                img.isNotEmpty ? img[0].toUpperCase() : '?',
-                style: const TextStyle(color: Colors.white),
-              ),
-            )
+        child: Text(
+          img.isNotEmpty ? img[0].toUpperCase() : '?',
+          style: const TextStyle(color: Colors.white),
+        ),
+      )
           : null,
     );
   }
 
-  // message
 
   Widget _buildMessages(ChatState state, ChatNotifier notifier) {
     if (state.isLoading) {
@@ -190,15 +185,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       itemCount: state.messages.length,
       itemBuilder: (context, index) {
         final msg = state.messages[index];
-        final isMe = msg.senderId == notifier.currentUserId;
+        final isMe = msg.senderId == notifier.userId;
 
-        bool showDate = false;
-        if (index == 0) {
-          showDate = true;
-        } else {
-          final prev = state.messages[index - 1];
-          showDate = !_isSameDay(prev.createdAt, msg.createdAt);
-        }
+        bool showDate = index == 0 ||
+            !_isSameDay(
+              state.messages[index - 1].createdAt,
+              msg.createdAt,
+            );
 
         return Column(
           children: [
@@ -211,28 +204,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   bool _isSameDay(DateTime d1, DateTime d2) {
-    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
+    return d1.year == d2.year &&
+        d1.month == d2.month &&
+        d1.day == d2.day;
   }
-
-  Widget _buildDateSeparator(DateTime date) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Center(
-        child: Text(
-          '${date.day.toString().padLeft(2, '0')}/'
-          '${date.month.toString().padLeft(2, '0')}/'
-          '${date.year}',
-          style: const TextStyle(
-            color: Color(0xFF34CAE8),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // input
 
   Widget _buildInput(ChatNotifier notifier) {
     return Container(
@@ -254,7 +229,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   hintText: 'Aa',
                   hintStyle: TextStyle(color: Color(0xFF475569)),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                 ),
                 onSubmitted: (_) => _sendMessage(notifier),
               ),

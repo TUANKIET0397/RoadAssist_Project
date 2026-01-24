@@ -17,7 +17,7 @@ class DateDivider extends StatelessWidget {
           _formatDate(date),
           style: const TextStyle(
             fontSize: 13,
-            color: Color(0xFF94a3b8),
+            color: Colors.white70,
             fontWeight: FontWeight.w500,
           ),
         ),

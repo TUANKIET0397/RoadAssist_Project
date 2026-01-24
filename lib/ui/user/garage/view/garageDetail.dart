@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
@@ -8,28 +9,42 @@ import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart
 import 'package:road_assist/ui/user/garage/view/review_screen.dart';
 
 class GarageDetailScreen extends ConsumerStatefulWidget {
-  final GarageModel garage;
-
-  const GarageDetailScreen({Key? key, required this.garage}) : super(key: key);
+  const GarageDetailScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<GarageDetailScreen> createState() => _GarageDetailScreenState();
+  ConsumerState<GarageDetailScreen> createState() =>
+      _GarageDetailScreenState();
 }
 
 class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-      () => ref
-          .read(garageDetailProvider.notifier)
-          .watchGarageReviews(widget.garage.id),
-    );
+    Future.microtask(() {
+      final selectedGarage = ref.read(selectedGarageProvider);
+      if (selectedGarage != null) {
+        ref
+            .read(garageDetailProvider.notifier)
+            .watchGarageReviews(selectedGarage.id);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final garage = ref.watch(selectedGarageProvider);
     final state = ref.watch(garageDetailProvider);
+
+    if (garage == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text(
+            'Không có garage nào',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
 
     return Container(
       decoration: const BoxDecoration(
@@ -42,25 +57,24 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
       ),
       child: Column(
         children: [
-          _buildHeader(),
+          _buildHeader(garage),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 110),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  _buildMainImage(state),
+                  _buildMainImage(garage, state),
                   const SizedBox(height: 20),
-                  _buildVehicleTypes(),
+                  _buildVehicleTypes(garage),
                   const SizedBox(height: 20),
-                  _buildAddressActions(),
+                  _buildAddressActions(garage),
                   const SizedBox(height: 20),
-                  _buildServices(),
+                  _buildServices(garage),
                   const SizedBox(height: 20),
                   _buildReviews(state),
                   const SizedBox(height: 20),
-                  _buildBottomButtons(),
+                  _buildBottomButtons(garage),
                 ],
               ),
             ),
@@ -70,11 +84,11 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(GarageModel garage) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top, // chiếm luôn phần status bar
+        top: MediaQuery.of(context).padding.top,
         left: 16,
         right: 16,
         bottom: 4,
@@ -85,12 +99,12 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              ref.read(selectedGarageProvider.notifier).state = null;
+              context.pop();
             },
           ),
           Expanded(
             child: Text(
-              widget.garage.name,
+              garage.name,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: Colors.white,
@@ -101,8 +115,8 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           ),
           IconButton(
             icon: Icon(
-              widget.garage.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: widget.garage.isFavorite ? Colors.red : Colors.white,
+              garage.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: garage.isFavorite ? Colors.red : Colors.white,
             ),
             onPressed: () {},
           ),
@@ -111,7 +125,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildMainImage(GarageDetailState state) {
+  Widget _buildMainImage(GarageModel garage, GarageDetailState state) {
     return Container(
       height: 230,
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -119,7 +133,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         borderRadius: BorderRadius.circular(28),
         image: DecorationImage(
           image: NetworkImage(
-            widget.garage.bgimgUrl ??
+            garage.bgimgUrl ??
                 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800',
           ),
           fit: BoxFit.cover,
@@ -142,15 +156,15 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
               const Spacer(),
               Row(
                 children: [
-                  _buildAvatar(),
+                  _buildAvatar(garage),
                   const SizedBox(width: 12),
-                  _buildNameRating(state),
-                  _buildDistance(),
+                  _buildNameRating(garage, state),
+                  _buildDistance(garage),
                 ],
               ),
               const SizedBox(height: 14),
               const Divider(color: Colors.white24),
-              _buildStatusTime(),
+              _buildStatusTime(garage),
             ],
           ),
         ),
@@ -158,7 +172,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(GarageModel garage) {
     return Container(
       width: 80,
       height: 80,
@@ -166,7 +180,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         borderRadius: BorderRadius.circular(14),
         image: DecorationImage(
           image: NetworkImage(
-            widget.garage.imageUrl ??
+            garage.imageUrl ??
                 'https://images.unsplash.com/photo-1625231334168-35067f8853ed?w=200',
           ),
           fit: BoxFit.cover,
@@ -175,7 +189,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildNameRating(GarageDetailState state) {
+  Widget _buildNameRating(GarageModel garage, GarageDetailState state) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.only(left: 8.0),
@@ -183,7 +197,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.garage.name,
+              garage.name,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
@@ -195,7 +209,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
               children: [
                 ...List.generate(
                   5,
-                  (index) => Icon(
+                      (index) => Icon(
                     Icons.star,
                     color: index < state.averageRating
                         ? Colors.amber
@@ -220,8 +234,8 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildDistance() {
-    if (widget.garage.distance == null) return const SizedBox();
+  Widget _buildDistance(GarageModel garage) {
+    if (garage.distance == null) return const SizedBox();
 
     return Row(
       children: [
@@ -232,14 +246,14 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         ),
         const SizedBox(width: 4),
         Text(
-          '${widget.garage.distance!.toStringAsFixed(1)} km',
+          '${garage.distance!.toStringAsFixed(1)} km',
           style: const TextStyle(color: Color(0xFF2FB8FF), fontSize: 16),
         ),
       ],
     );
   }
 
-  Widget _buildStatusTime() {
+  Widget _buildStatusTime(GarageModel garage) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -248,13 +262,13 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             Icon(
               Icons.circle,
               size: 8,
-              color: widget.garage.isActive
+              color: garage.isActive
                   ? Colors.greenAccent
                   : Colors.redAccent,
             ),
             const SizedBox(width: 6),
             Text(
-              widget.garage.isActive ? 'Đang mở cửa' : 'Đã đóng cửa',
+              garage.isActive ? 'Đang mở cửa' : 'Đã đóng cửa',
               style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ],
@@ -264,7 +278,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             const Icon(Icons.access_time, size: 16, color: Colors.white24),
             const SizedBox(width: 6),
             Text(
-              '${widget.garage.openTime} - ${widget.garage.closeTime}',
+              '${garage.openTime} - ${garage.closeTime}',
               style: const TextStyle(color: Colors.white24, fontSize: 14),
             ),
           ],
@@ -273,7 +287,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildVehicleTypes() {
+  Widget _buildVehicleTypes(GarageModel garage) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -291,7 +305,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.garage.vehicleTypes
+            children: garage.vehicleTypes
                 .map((e) => _buildChip(e))
                 .toList(),
           ),
@@ -315,7 +329,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildAddressActions() {
+  Widget _buildAddressActions(GarageModel garage) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -333,7 +347,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    widget.garage.address,
+                    garage.address,
                     style: const TextStyle(color: Colors.white, fontSize: 13),
                   ),
                 ),
@@ -356,7 +370,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                 child: _buildOutlinedButton(
                   'Chỉ Đường',
                   Icons.navigation,
-                  () {},
+                      () {},
                 ),
               ),
               const SizedBox(width: 12),
@@ -364,7 +378,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                 child: _buildOutlinedButton(
                   'Gọi Garage',
                   Icons.phone_in_talk,
-                  () {},
+                      () {},
                 ),
               ),
             ],
@@ -375,10 +389,10 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
   }
 
   Widget _buildOutlinedButton(
-    String label,
-    IconData icon,
-    VoidCallback onPressed,
-  ) {
+      String label,
+      IconData icon,
+      VoidCallback onPressed,
+      ) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
@@ -395,7 +409,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     );
   }
 
-  Widget _buildServices() {
+  Widget _buildServices(GarageModel garage) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -421,26 +435,26 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             child: Wrap(
               spacing: 12,
               runSpacing: 8,
-              children: widget.garage.issues
+              children: garage.issues
                   .map(
                     (s) => RichText(
-                      text: TextSpan(
-                        children: [
-                          const TextSpan(
-                            text: '• ',
-                            style: TextStyle(color: Colors.blue, fontSize: 18),
-                          ),
-                          TextSpan(
-                            text: s,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                  text: TextSpan(
+                    children: [
+                      const TextSpan(
+                        text: '• ',
+                        style: TextStyle(color: Colors.blue, fontSize: 18),
                       ),
-                    ),
-                  )
+                      TextSpan(
+                        text: s,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
                   .toList(),
             ),
           ),
@@ -460,109 +474,45 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         ),
         child: state.isLoading
             ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF34CAE8)),
-              )
+          child: CircularProgressIndicator(color: Color(0xFF34CAE8)),
+        )
             : state.reviews.isEmpty
             ? const Center(
-                child: Text(
-                  'Chưa có đánh giá nào',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
+          child: Text(
+            'Chưa có đánh giá nào',
+            style: TextStyle(color: Colors.grey),
+          ),
+        )
             : SizedBox(
-                height: 250,
-                child: ListView.builder(
-                  itemCount: state.reviews.length,
-                  itemBuilder: (context, index) {
-                    final r = state.reviews[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildReview(
-                        r['userName'] as String,
-                        (r['rating'] as num).toInt(),
-                        r['time'] as String,
-                        r['comment'] as String,
-                        r['userAvatar'] as String?,
-                      ),
-                    );
-                  },
+          height: 250,
+          child: ListView.builder(
+            itemCount: state.reviews.length,
+            itemBuilder: (context, index) {
+              final r = state.reviews[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildReview(
+                  r['userName'] as String,
+                  (r['rating'] as num).toInt(),
+                  r['time'] as String,
+                  r['comment'] as String,
+                  r['userAvatar'] as String?,
                 ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildBottomButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        GarageReviewView(garage: widget.garage),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.edit, size: 22),
-              label: const Text('Đánh giá', style: TextStyle(fontSize: 18)),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: const Color(0xFF001029),
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.blueGrey),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
+              );
+            },
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                final userId = ref.read(userIdProvider);
-                if (userId == null) return;
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatListScreen(
-                      garageId: widget.garage.id,
-                      garageName: widget.garage.name,
-                      garageImage: widget.garage.imageUrl,
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.wechat_outlined, size: 22),
-              label: const Text('Chat', style: TextStyle(fontSize: 18)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF34CAE8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildReview(
-    String name,
-    int stars,
-    String time,
-    String comment,
-    String? avatarUrl,
-  ) {
+      String name,
+      int stars,
+      String time,
+      String comment,
+      String? avatarUrl,
+      ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -573,7 +523,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
             backgroundImage: avatarUrl != null
                 ? NetworkImage(avatarUrl)
                 : const AssetImage('assets/images/default_avatar.png')
-                      as ImageProvider,
+            as ImageProvider,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -594,7 +544,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                     Row(
                       children: List.generate(
                         5,
-                        (index) => Icon(
+                            (index) => Icon(
                           index < stars ? Icons.star : Icons.star_border,
                           color: Colors.amber,
                           size: 13,
@@ -619,6 +569,68 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                 ),
                 const SizedBox(height: 20),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButtons(GarageModel garage) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GarageReviewView(garage: garage),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.edit, size: 22),
+              label: const Text('Đánh giá', style: TextStyle(fontSize: 18)),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: const Color(0xFF001029),
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.blueGrey),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: ElevatedButton.icon(
+              onPressed: () {
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatListScreen(
+                      garageId: garage.id,
+                      garageName: garage.name,
+                      garageImage: garage.imageUrl,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.wechat_outlined, size: 22),
+              label: const Text('Chat', style: TextStyle(fontSize: 18)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF34CAE8),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
             ),
           ),
         ],

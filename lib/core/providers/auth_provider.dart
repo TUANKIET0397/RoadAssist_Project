@@ -20,6 +20,10 @@ final userIdProvider = Provider<String?>((ref) {
   return ref.watch(authStateProvider).userId;
 });
 
+final userRoleProvider = Provider<UserRole?>((ref) {
+  return ref.watch(authStateProvider).role;
+});
+
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
   StreamSubscription<User?>? _sub;

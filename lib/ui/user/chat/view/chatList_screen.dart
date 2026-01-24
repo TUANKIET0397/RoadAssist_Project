@@ -73,7 +73,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final chatStream = ref.watch(chatStreamProvider(userId));
+    final chatStream = ref.watch(chatListProvider);
 
     return Container(
       decoration: const BoxDecoration(
@@ -179,9 +179,10 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
           imageUrl: chat.garageImage,
           unreadCount: unreadCount,
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ChatScreen(chatId: chat.id)),
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => ChatScreen(chatId: chat.id),
+              ),
             );
           },
         );

@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/data/models/garage_model.dart';
+import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
 
 /// State của garage
 class GarageState {
   final bool isLoading;
   final List<GarageModel> garages;
   final String? error;
+
 
   GarageState({
     required this.isLoading,
@@ -132,3 +134,16 @@ StateNotifierProvider<GarageNotifier, GarageState>((ref) {
     ref.read(locationServiceProvider),
   );
 });
+
+final garageDetailProvider = StateNotifierProvider.family<
+    GarageDetailNotifier,
+    GarageDetailState,
+    String>(
+      (ref, garageId) {
+    final notifier = GarageDetailNotifier();
+    notifier.watchGarageReviews(garageId);
+    return notifier;
+  },
+);
+
+

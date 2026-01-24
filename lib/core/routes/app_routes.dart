@@ -24,9 +24,10 @@ import 'package:road_assist/ui/user/home/view/home_screen.dart';
 import 'package:road_assist/ui/user/history/view/history_screen.dart';
 import 'package:road_assist/ui/user/account/view/account_screen.dart';
 
+import 'package:road_assist/ui/user/garage/view/garageDetail.dart';
+
 // ===== GARAGE UI =====
-//chat
-//review
+import 'package:road_assist/ui/garage/review/view/garage_reviews_screen.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 //history
 import 'package:road_assist/ui/garage/account/view/garage_account_screen.dart';
@@ -107,6 +108,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RoutePaths.userGarage,
             builder: (_, __) => const GarageListScreen(),
+            routes: [
+              GoRoute(path: 'detail', builder: (_, __) => const GarageDetailScreen()),
+            ],
           ),
           GoRoute(
             path: RoutePaths.userHistory,
@@ -133,14 +137,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: RoutePaths.garageChat,
-            // builder: (_, __) => const GarageChatScreen()),
-            builder: (_, __) => Text('hello'),
+            builder: (_, __) => const ChatListScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageReview,
-            builder: (_, __) => Text('hello'),
 
-            // builder: (_, __) => const GarageReviewsScreen(),
+            builder: (_, __) => const GarageReviewsScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageHome,

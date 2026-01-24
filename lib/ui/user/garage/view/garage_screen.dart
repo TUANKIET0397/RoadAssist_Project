@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
+import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
 
 import '../viewmodel/garage_vm.dart';
+
+
 
 class GarageListScreen extends ConsumerStatefulWidget {
   const GarageListScreen({super.key});
@@ -13,6 +18,7 @@ class GarageListScreen extends ConsumerStatefulWidget {
 }
 
 class _GarageListScreenState extends ConsumerState<GarageListScreen> {
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +28,7 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(garageProvider);
+
 
     return Container(
       decoration: const BoxDecoration(
@@ -82,10 +89,9 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
             ),
           ),
 
-          // Body: phần list vẫn dùng SafeArea
           Expanded(
             child: SafeArea(
-              top: false, // header đã xử lý top
+              top: false,
               child: Builder(
                 builder: (_) {
                   if (state.isLoading)
@@ -123,9 +129,12 @@ class GarageCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
+    final ratingState = ref.watch(garageDetailProvider(garage.id));
+
+      return GestureDetector(
       onTap: () {
         ref.read(selectedGarageProvider.notifier).state = garage;
+        context.push('/user/garage/detail');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -194,9 +203,10 @@ class GarageCard extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      garage.rating != null
-                                          ? '${garage.rating!.toStringAsFixed(1)} · 220 Đánh giá'
-                                          : 'Chưa có đánh giá',
+                                      ratingState.totalReviews == 0
+                                          ? 'Chưa có đánh giá'
+                                          : '${ratingState.averageRating.toStringAsFixed(1)} · '
+                                          '${ratingState.totalReviews} Đánh giá',
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
@@ -348,7 +358,7 @@ class GarageCard extends ConsumerWidget {
 
             // Address
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Text(
@@ -359,7 +369,13 @@ class GarageCard extends ConsumerWidget {
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
-                    // TODO: Navigate to chat
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatListScreen(
+                        ),
+                      ),
+                    );
                   },
                   child: const Icon(
                     Icons.mark_unread_chat_alt,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
-import 'package:road_assist/ui/navigation/widgets/slanted_bottom_bar.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

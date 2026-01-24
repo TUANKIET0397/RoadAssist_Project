@@ -40,7 +40,7 @@ class MessageBubble extends StatelessWidget {
               _formatTime(message.createdAt),
               style: const TextStyle(
                 fontSize: 11,
-                color: Color(0xFF64748b),
+                color: Colors.white70,
               ),
             ),
           ],

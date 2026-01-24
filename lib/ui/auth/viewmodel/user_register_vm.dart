@@ -151,11 +151,6 @@ class UserRegisterViewModel extends ChangeNotifier {
     return true;
   }
 
-  bool _isValidPhone(String phone) {
-    // Vietnamese phone number: starts with 0, has 10-11 digits
-    return RegExp(r'^\d{9,10}$').hasMatch(phone);
-  }
-
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }

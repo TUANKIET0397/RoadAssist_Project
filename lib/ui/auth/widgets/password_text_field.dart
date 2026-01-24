@@ -11,7 +11,7 @@ class PasswordTextField extends StatefulWidget {
     required this.controller,
     required this.hint,
     this.validator,
-    this.textColor = Colors.white,
+    this.textColor = Colors.white70,
   });
 
   @override

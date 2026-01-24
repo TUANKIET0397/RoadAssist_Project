@@ -14,7 +14,7 @@ class PhoneTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const borderColor = Color(0xFF37B6E9);
-    const hintColor = Colors.white;
+    const hintColor = Colors.white70;
     const inputColor = Colors.white;
 
     return Container(
@@ -29,7 +29,7 @@ class PhoneTextField extends StatelessWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           Text(
             hint,
@@ -38,6 +38,7 @@ class PhoneTextField extends StatelessWidget {
               fontSize: 16.0,
             ),
           ),
+          const SizedBox(width: 10.0),
           Flexible(
             child: Row(
               mainAxisSize: MainAxisSize.min,

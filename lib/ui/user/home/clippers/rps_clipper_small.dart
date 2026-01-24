@@ -11,25 +11,30 @@ class RPSClipperSmall extends CustomClipper<Path> {
   Path getClip(Size s) {
     final p = Path();
 
-    /// TOP LEFT
-    p.moveTo(w(20, s), h(44, s));
-    p.cubicTo(w(20, s), h(30, s), w(32, s), h(22, s), w(48, s), h(22, s));
+    /// TOP LEFT - Bo tròn lớn như trong hình
+    p.moveTo(w(20, s), h(70, s));
+    p.cubicTo(w(20, s), h(35, s), w(35, s), h(20, s), w(70, s), h(20, s));
 
-    /// TOP RIGHT
-    p.lineTo(w(342, s), h(22, s));
-    p.cubicTo(w(358, s), h(22, s), w(370, s), h(30, s), w(370, s), h(44, s));
+    /// TOP RIGHT - Bo tròn nhẹ
+    p.lineTo(w(350, s), h(20, s));
+    p.cubicTo(w(365, s), h(24, s), w(370, s), h(28, s), w(370, s), h(40, s));
 
     /// RIGHT SIDE
-    p.lineTo(w(370, s), h(212, s));
+    p.lineTo(w(371, s), h(220, s));
 
-    /// BOTTOM RIGHT
-    p.cubicTo(w(370, s), h(228, s), w(350, s), h(238, s), w(330, s), h(240, s));
+    /// BOTTOM RIGHT - Cắt xiên
+    p.cubicTo(w(369, s), h(235, s), w(355, s), h(240, s), w(340, s), h(245, s));
 
-    /// BOTTOM
-    p.lineTo(w(60, s), h(255, s));
+    /// BOTTOM - Đường xiên
+    p.lineTo(w(73, s), h(269, s));
 
-    /// BOTTOM LEFT
-    p.cubicTo(w(40, s), h(258, s), w(20, s), h(244, s), w(20, s), h(228, s));
+    /// BOTTOM LEFT - Bo tròn VÀO TRONG
+    p.quadraticBezierTo(
+      w(36, s),
+      h(267, s), // Điểm control phía trong
+      w(21, s),
+      h(240, s), // Điểm kết thúc
+    );
 
     p.close();
     return p;

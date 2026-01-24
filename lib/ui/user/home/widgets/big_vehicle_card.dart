@@ -27,7 +27,7 @@ class BigVehicleCardContent extends ConsumerWidget {
             ),
           ),
           Positioned(
-            bottom: 14,
+            bottom: 15,
             left: 32,
             child: Transform.rotate(
               angle: -0.1,
@@ -35,7 +35,7 @@ class BigVehicleCardContent extends ConsumerWidget {
                 'Báo Cáo Sự Cố',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 26,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),

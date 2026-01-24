@@ -5,6 +5,7 @@ import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/home/models/vehicle_model.dart';
 import 'package:road_assist/ui/user/home/widgets/big_vehicle_card.dart';
 import 'package:road_assist/ui/user/home/widgets/feature_card.dart';
+import 'package:road_assist/ui/user/home/widgets/vehicle_favorite_grid.dart';
 import 'package:road_assist/ui/user/home/widgets/vehicle_grid_item.dart';
 import 'package:road_assist/ui/user/home/widgets/clipped_card.dart';
 import 'package:road_assist/ui/user/home/clippers/rps_clipper_big.dart';
@@ -28,7 +29,7 @@ class MainHome extends ConsumerWidget {
               child: Center(
                 child: ClippedCard(
                   width: width,
-                  heightFactor: 1.0,
+                  heightFactor: 1,
                   clipper: RPSClipperBig(),
                   child: const BigVehicleCardContent(recuerequest: null),
                 ),
@@ -83,36 +84,37 @@ class MainHome extends ConsumerWidget {
             'Phương tiện của bạn',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
 
         /// ================= GRID =================
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 0,
-              childAspectRatio: 0.8,
-            ),
-            itemCount: vehicleGridData.length,
-            itemBuilder: (context, index) {
-              final item = vehicleGridData[index];
-              return VehicleGridItem(
-                title: item.title,
-                subtitle1: item.subtitle1,
-                subtitle2: item.subtitle2,
-                image: item.image,
-              );
-            },
-          ),
-        ),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 16),
+        //   child: GridView.builder(
+        //     shrinkWrap: true,
+        //     physics: const NeverScrollableScrollPhysics(),
+        //     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        //       crossAxisCount: 2,
+        //       crossAxisSpacing: 6,
+        //       mainAxisSpacing: 0,
+        //       childAspectRatio: 0.8,
+        //     ),
+        //     itemCount: vehicleGridData.length,
+        //     itemBuilder: (context, index) {
+        //       final item = vehicleGridData[index];
+        //       return VehicleGridItem(
+        //         title: item.title,
+        //         subtitle1: item.subtitle1,
+        //         subtitle2: item.subtitle2,
+        //         image: item.image,
+        //       );
+        //     },
+        //   ),
+        // ),
+        VehicleFavoriteGrid(),
 
         /// ================= TITLE =================
         const Padding(
@@ -139,18 +141,19 @@ class MainHome extends ConsumerWidget {
               mainAxisSpacing: 0,
               childAspectRatio: 0.8,
             ),
-            itemCount: 6,
+            itemCount: 2,
             itemBuilder: (context, index) {
-              return const VehicleGridItem(
-                title: 'Xe Máy Các Loại',
-                subtitle1: 'Tay ga',
-                subtitle2: 'Bạn đã đăng ký',
-                image: 'assets/images/illustrations/XeTayGa.png',
+              return VehicleGridItem(
+                title: 'hello',
+                subtitle1: 'xin chao',
+                subtitle2: 'tnKiet',
+                image: 'assets/images/illustrations/XeContainer.png',
+                isFavorite: false,
+                onFavoriteTap: () {},
               );
             },
           ),
         ),
-
         const SizedBox(height: 24),
 
         Padding(
@@ -169,14 +172,14 @@ class MainHome extends ConsumerWidget {
                     CompletionPayload(
                       title: 'Hoàn thành cứu hộ',
                       subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
-                      vehicleImage: 'assets/images/illustrations/vehicle1.png',
+                      vehicleImage: 'assets/images/illustrations/vehicle.png',
                       vehicleName: 'Xe tay ga',
                       vehicleModel: 'Honda SH Mode 2025',
                       issue: 'Bể lốp, hư máy',
                       address: '15B Nguyễn Lương Bằng, P25, TP HCM',
                       completedTime: '19:00 08-01-2026',
                       garageName: 'Minh Thuan Motor',
-                      garageAvatar: 'assets/images/illustrations/vehicle1.png',
+                      garageAvatar: 'assets/images/illustrations/vehicle.png',
                     ),
                   );
 

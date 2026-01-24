@@ -5,6 +5,8 @@ import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
 
+import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
+
 import 'route_paths.dart';
 import 'route_redirect.dart';
 
@@ -26,6 +28,14 @@ import 'package:road_assist/ui/user/history/view/history_screen.dart';
 import 'package:road_assist/ui/user/account/view/account_screen.dart';
 
 // ===== GARAGE UI =====
+//chat
+//review
+import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
+//history
+import 'package:road_assist/ui/garage/account/view/garage_account_screen.dart';
+
+import 'package:road_assist/ui/garage/account/view/info_screen.dart';
+import 'package:road_assist/ui/garage/account/view/password_reset_sreen.dart';
 
 /// GoRouter provider
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -127,27 +137,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RoutePaths.garageChat,
             // builder: (_, __) => const GarageChatScreen()),
-            builder: (_, __) => Text('hello chat page of GARAGE'),
+            builder: (_, __) => Text('hello'),
           ),
           GoRoute(
             path: RoutePaths.garageReview,
-            // builder: (_, __) => const GarageReviewScreen(),
-            builder: (_, __) => Text('hello review page of GARAGE'),
+            builder: (_, __) => Text('hello'),
+
+            // builder: (_, __) => const GarageReviewsScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageHome,
-            // builder: (_, __) => const HomeScreen(),
-            builder: (_, __) => Text('hello home page of GARAGE'),
+            builder: (_, __) => Text('hello'),
+
+            // builder: (_, __) => const GarageHomeScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageHistory,
+            builder: (_, __) => Text('hello'),
+
             // builder: (_, __) => const GarageHistoryScreen(),
-            builder: (_, __) => Text('hello history page of GARAGE'),
           ),
           GoRoute(
             path: RoutePaths.garageAccount,
-            // builder: (_, __) => const GarageAccountScreen(),
-            builder: (_, __) => const AccountScreen(),
+            builder: (_, __) => const GarageAccountScreen(),
+            routes: [
+              GoRoute(path: 'info', builder: (_, __) => const InfoScreen()),
+              GoRoute(
+                path: 'passwordreset',
+                builder: (_, __) => const PasswordResetSreen(),
+              ),
+            ],
           ),
         ],
       ),

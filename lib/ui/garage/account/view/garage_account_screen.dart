@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/ui/garage/account/view/favorite_screen.dart';
-import 'package:road_assist/ui/garage/account/view/info_screen.dart';
-import 'package:road_assist/ui/garage/account/view/password_reset_sreen.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:road_assist/ui/garage/account/view/search_screen.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/garage/account/widgets/action_button.dart';
 import 'package:road_assist/ui/garage/account/widgets/vehicle_support_item.dart';
+import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
+import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 
 import '../widgets/garage_card.dart';
 
-class GarageScreen extends ConsumerWidget {
-  const GarageScreen({super.key});
+class GarageAccountScreen extends ConsumerWidget {
+  const GarageAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(garageProvider);
     final garage = state.savedGarage; // Dùng savedGarage cho hiển thị
     final colorScheme = Theme.of(context).colorScheme;
+    final vm = ref.read(accountVmProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -117,36 +119,21 @@ class GarageScreen extends ConsumerWidget {
                       icon: Icons.favorite,
                       label: 'Đánh Giá',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FavoriteScreen(),
-                          ),
-                        );
+                        context.go('/garage/review');
                       },
                     ),
                     ActionButton(
                       icon: Icons.info,
                       label: 'Thông tin Garage',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const InfoScreen(),
-                          ),
-                        );
+                        context.push('/garage/account/info');
                       },
                     ),
                     ActionButton(
                       icon: Icons.lock,
                       label: 'Đổi mật khẩu',
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PasswordResetSreen(),
-                          ),
-                        );
+                        context.push('/garage/account/passwordreset');
                       },
                     ),
                   ],
@@ -155,42 +142,7 @@ class GarageScreen extends ConsumerWidget {
                 const SizedBox(height: 50),
 
                 /// LOGOUT
-                Center(
-                  child: Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // TODO: Firebase logout
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromRGBO(75, 76, 237, 1),
-                          shadowColor: const Color.fromRGBO(55, 182, 233, 1),
-                          elevation: 8,
-
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 80,
-                            vertical: 18,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
-                          ),
-                        ),
-                        child: const Text(
-                          'Đăng Xuất',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Đổi thành User',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                LogoutButton(onTap: vm.logout),
               ],
             ),
           ),

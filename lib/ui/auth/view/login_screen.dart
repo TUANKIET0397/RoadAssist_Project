@@ -24,6 +24,19 @@ class LoginScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
+                Container(
+                  margin: EdgeInsets.only(right: 250),
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      context.go('/auth/role');
+                    },
+                    child: Text('Button'),
+                  ),
+                ),
                 const SizedBox(height: 60),
 
                 Image.asset(
@@ -100,9 +113,7 @@ class LoginScreen extends ConsumerWidget {
                         ? null
                         : () async {
                             final success = await viewModel.login(ref);
-                            if (success && context.mounted) {
-
-                            }
+                            if (success && context.mounted) {}
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D7EFF),

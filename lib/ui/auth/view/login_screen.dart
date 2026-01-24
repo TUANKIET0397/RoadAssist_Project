@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
-import 'package:road_assist/ui/navigation/view/main_screen.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -101,9 +99,9 @@ class LoginScreen extends ConsumerWidget {
                     onPressed: viewModel.isLoading
                         ? null
                         : () async {
-                            final success = await viewModel.login();
+                            final success = await viewModel.login(ref);
                             if (success && context.mounted) {
-                              context.go('/garage/home');
+
                             }
                           },
                     style: ElevatedButton.styleFrom(

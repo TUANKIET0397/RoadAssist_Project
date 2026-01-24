@@ -38,10 +38,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
     /// ===== REDIRECT (ủy quyền cho route_redirect) =====
     redirect: (context, state) {
+      debugPrint('➡️ location = ${state.uri}');
+      debugPrint('➡️ role = ${authState.role}');
       return RouteRedirect.handle(
         auth: authState,
-        // location: state.uri.path,
-        location: state.uri.toString(),
+        location: state.uri.path,
+        // location: state.uri.toString(),
       );
     },
 
@@ -116,12 +118,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(
-            path: 'chat',
+            path: RoutePaths.garageChat,
             // builder: (_, __) => const GarageChatScreen()),
             builder: (_, __) => Text('hello chat page of GARAGE'),
           ),
           GoRoute(
-            path: 'review',
+            path: RoutePaths.garageReview,
             // builder: (_, __) => const GarageReviewScreen(),
             builder: (_, __) => Text('hello review page of GARAGE'),
           ),
@@ -131,12 +133,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => Text('hello home page of GARAGE'),
           ),
           GoRoute(
-            path: 'history',
+            path: RoutePaths.garageHistory,
             // builder: (_, __) => const GarageHistoryScreen(),
             builder: (_, __) => Text('hello history page of GARAGE'),
           ),
           GoRoute(
-            path: 'account',
+            path: RoutePaths.garageAccount,
             // builder: (_, __) => const GarageAccountScreen(),
             builder: (_, __) => Text('hello account page of GARAGE'),
           ),

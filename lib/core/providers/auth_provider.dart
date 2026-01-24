@@ -28,7 +28,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _sub = ref.read(firebaseAuthProvider).authStateChanges().listen((user) {
       if (user == null) {
         state = const AuthState(isLoggedIn: false, isInitialized: true);
-        // } else if (user == 'garage') {
       } else {
         state = AuthState(
           isLoggedIn: true,

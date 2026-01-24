@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/routes/route_paths.dart';
 
@@ -15,6 +16,7 @@ class RouteRedirect {
 
     // 2️⃣ ĐÃ LOGIN mà vẫn vào auth
     if (isAuthRoute) {
+      debugPrint('2: isAuthRoute🔎');
       return auth.role == UserRole.customer
           ? RoutePaths.userHome
           : RoutePaths.garageHome;

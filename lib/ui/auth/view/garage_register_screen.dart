@@ -321,12 +321,6 @@ class GarageRegisterScreen extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // Navigator.pushReplacement(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (_) => const UserRegisterScreen(),
-                          //   ),
-                          // );
                           context.go('/auth/user/register');
                         },
                         child: const Text(

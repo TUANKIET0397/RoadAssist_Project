@@ -1,21 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
-/// =======================
-/// MODEL
-/// =======================
-
-class BottomNavItem {
-  final String icon;
-  final String label;
-  final String route;
-
-  const BottomNavItem({
-    required this.icon,
-    required this.label,
-    required this.route,
-  });
-}
+import 'package:road_assist/ui/navigation/widgets/bottom_nav_item.dart.dart';
 
 /// =======================
 /// BOTTOM BAR

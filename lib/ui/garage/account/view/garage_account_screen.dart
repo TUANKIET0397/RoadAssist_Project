@@ -49,102 +49,100 @@ class GarageAccountScreen extends ConsumerWidget {
         ],
         backgroundColor: colorScheme.surface,
       ),
-      body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(color: colorScheme.secondary),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
+      body: Container(
+        decoration: BoxDecoration(color: colorScheme.secondary),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 16),
 
-                /// GARAGE INFO CARD
-                GarageCard(garage: garage),
+              /// GARAGE INFO CARD
+              GarageCard(garage: garage),
 
-                const SizedBox(height: 18),
+              const SizedBox(height: 18),
 
-                /// VEHICLE SUPPORT
-                const Text(
-                  'Loại Phương Tiện Hỗ trợ',
-                  style: TextStyle(
-                    color: Color.fromRGBO(127, 199, 252, 1),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+              /// VEHICLE SUPPORT
+              const Text(
+                'Loại Phương Tiện Hỗ trợ',
+                style: TextStyle(
+                  color: Color.fromRGBO(127, 199, 252, 1),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
+              ),
 
-                const SizedBox(height: 18),
+              const SizedBox(height: 18),
 
-                ...garage.vehicleTypes.map(
-                  (vehicle) => VehicleSupportItem(
-                    name: vehicle,
-                    onAdd: () {
-                      // TODO: handle add vehicle
+              ...garage.vehicleTypes.map(
+                (vehicle) => VehicleSupportItem(
+                  name: vehicle,
+                  onAdd: () {
+                    // TODO: handle add vehicle
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              /// ACTIONS
+              const Text(
+                'Cứu hộ & hoạt động',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              Wrap(
+                spacing: 16,
+                runSpacing: 14,
+                children: [
+                  ActionButton(
+                    icon: Icons.search,
+                    label: 'Các cuộc cứu hộ',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SearchScreen(),
+                        ),
+                      );
                     },
                   ),
-                ),
-
-                const SizedBox(height: 18),
-
-                /// ACTIONS
-                const Text(
-                  'Cứu hộ & hoạt động',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                  ActionButton(
+                    icon: Icons.favorite,
+                    label: 'Đánh Giá',
+                    onTap: () {
+                      context.go('/garage/review');
+                    },
                   ),
-                ),
+                  ActionButton(
+                    icon: Icons.info,
+                    label: 'Thông tin Garage',
+                    onTap: () {
+                      context.push('/garage/account/info');
+                    },
+                  ),
+                  ActionButton(
+                    icon: Icons.lock,
+                    label: 'Đổi mật khẩu',
+                    onTap: () {
+                      context.push('/garage/account/passwordreset');
+                    },
+                  ),
+                ],
+              ),
 
-                const SizedBox(height: 18),
+              const SizedBox(height: 50),
 
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 14,
-                  children: [
-                    ActionButton(
-                      icon: Icons.search,
-                      label: 'Các cuộc cứu hộ',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SearchScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    ActionButton(
-                      icon: Icons.favorite,
-                      label: 'Đánh Giá',
-                      onTap: () {
-                        context.go('/garage/review');
-                      },
-                    ),
-                    ActionButton(
-                      icon: Icons.info,
-                      label: 'Thông tin Garage',
-                      onTap: () {
-                        context.push('/garage/account/info');
-                      },
-                    ),
-                    ActionButton(
-                      icon: Icons.lock,
-                      label: 'Đổi mật khẩu',
-                      onTap: () {
-                        context.push('/garage/account/passwordreset');
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 50),
-
-                /// LOGOUT
-                LogoutButton(onTap: vm.logout),
-              ],
-            ),
+              /// LOGOUT
+              LogoutButton(onTap: vm.logout),
+            ],
           ),
         ),
       ),

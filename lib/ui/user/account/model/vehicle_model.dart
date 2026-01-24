@@ -14,12 +14,12 @@ class Vehicle {
       Vehicle(
         name: 'Honda Vision nnnnnnnnnnnnnnnnnnn',
         description: 'Xe máy zzzzzzzzzzzzzzzzzzzzzzzzzz',
-        image: 'assets/images/illustrations/vehicle1.png',
+        image: 'assets/images/illustrations/vehicle.png',
       ),
       Vehicle(
         name: 'Toyota Vios',
         description: null,
-        image: 'assets/images/illustrations/vehicle2.png',
+        image: 'assets/images/illustrations/vehicle.png',
       ),
     ];
   }

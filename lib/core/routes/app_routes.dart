@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
@@ -147,9 +148,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             // builder: (_, __) => const GarageReviewsScreen(),
           ),
           GoRoute(
-            path: '/garage/home',
+            path: RoutePaths.garageHome,
             builder: (_, __) => const GarageHomeScreen(),
-
             // builder: (_, __) => const GarageHomeScreen(),
           ),
           GoRoute(

@@ -10,6 +10,7 @@ class GarageMainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: false,
       body: child,
       bottomNavigationBar: SlantedAnimatedBottomBar(
         items: garageBottomNavItems,

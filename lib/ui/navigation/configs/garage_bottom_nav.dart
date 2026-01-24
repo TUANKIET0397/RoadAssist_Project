@@ -1,4 +1,4 @@
-import 'package:road_assist/ui/navigation/widgets/slanted_animated_bottom_bar.dart';
+import 'package:road_assist/ui/navigation/widgets/bottom_nav_item.dart.dart';
 
 const garageBottomNavItems = [
   BottomNavItem(

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
-import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
+import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
 
 import 'route_paths.dart';
 import 'route_redirect.dart';
@@ -111,7 +111,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/rescue-request',
-            builder: (context, state) => const RescueRequestScreen(),
+            builder: (context, state) => const RescueScreenWrapper(),
           ),
         ],
       ),

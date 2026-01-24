@@ -80,7 +80,6 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
                 ),
               ),
       ),
-      // bottomNavigationBar: const SlantedAnimatedBottomBar(),
     );
   }
 

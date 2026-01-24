@@ -56,6 +56,7 @@ class RescueRequestRepository {
         'longitude': longitude,
         'imageUrl': imageUrl,
         'status': 'pending',
+        'progressStep': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -125,7 +126,145 @@ class RescueRequestRepository {
         cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // 2*R, R = 6371 km
   }
+
+
+  /// Accept rescue request (dành cho garage)
+  Future<bool> acceptRescueRequest({
+    required String requestId,
+    required String garageId,
+    required String garageName,
+  }) async {
+    try {
+      await _firestore.collection('rescue_requests').doc(requestId).update({
+        'status': 'accepted',
+        'progressStep': 1,
+        'garageId': garageId,
+        'garageName': garageName,
+        'acceptedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      print('Lỗi accept rescue request: $e');
+      return false;
+    }
+  }
+
+  /// 🧪 TESTING: Lấy TẤT CẢ pending requests (không filter khoảng cách)
+  Stream<List<RescueRequestModel>> getAllPendingRescueRequestsStream() {
+    return _firestore
+        .collection('rescue_requests')
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      print('🧪 getAllPendingRescueRequestsStream: ${snapshot.docs.length} pending requests');
+      return snapshot.docs
+          .map((doc) {
+            try {
+              return RescueRequestModel.fromMap(doc.id, doc.data());
+            } catch (e) {
+              print('Lỗi parse doc ${doc.id}: $e');
+              return null;
+            }
+          })
+          .whereType<RescueRequestModel>()
+          .toList();
+    });
+  }
+
+  /// Cancel rescue request (dành cho user)
+  Future<bool> cancelRescueRequest(String requestId) async {
+    try {
+      await _firestore.collection('rescue_requests').doc(requestId).update({
+        'status': 'cancelled',
+        'cancelledAt': FieldValue.serverTimestamp(),
+        'garageId': FieldValue.delete(),
+        'garageName': FieldValue.delete(),
+        'acceptedAt': FieldValue.delete(),
+      });
+      return true;
+    } catch (e) {
+      print('Lỗi cancel rescue request: $e');
+      return false;
+    }
+  }
+
+  /// Set rescue request to timed_out
+  Future<bool> setRescueRequestTimedOut(String requestId) async {
+    try {
+      await _firestore.collection('rescue_requests').doc(requestId).update({
+        'status': 'timed_out',
+      });
+      return true;
+    } catch (e) {
+      print('Lỗi set timed out: $e');
+      return false;
+    }
+  }
+
+  /// Stream một rescue request cụ thể
+  Stream<RescueRequestModel?> getRescueRequestStream(String requestId) {
+    return _firestore
+        .collection('rescue_requests')
+        .doc(requestId)
+        .snapshots()
+        .map((doc) {
+          if (doc.exists) {
+            return RescueRequestModel.fromMap(doc.id, doc.data()!);
+          }
+          return null;
+        });
+  }
+
+  /// Stream danh sách rescue requests pending của garage (gần vị trí) - LIMIT 50 để tránh lag
+  Stream<List<RescueRequestModel>> getPendingRescueRequestsStream({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 10.0,
+  }) {
+    return _firestore
+        .collection('rescue_requests')
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: true)
+        .limit(10) // ← OPTIMIZED: Giảm từ 50 xuống 20 để tránh lag
+        .snapshots()
+        .map((snapshot) {
+      print(' getPendingRescueRequestsStream: Tổng docs từ Firebase: ${snapshot.docs.length}');
+      print(' Garage location để filter: lat=$latitude, lng=$longitude, radius=$radiusKm km');
+      
+      final requests = snapshot.docs
+          .map((doc) {
+            try {
+              return RescueRequestModel.fromMap(doc.id, doc.data());
+            } catch (e) {
+              print(' Lỗi parse doc ${doc.id}: $e');
+              print(' Data: ${doc.data()}');
+              return null;
+            }
+          })
+          .whereType<RescueRequestModel>()
+          .where((req) {
+            // ← OPTIMIZED: Filter trước khi tính distance
+            final distance = _calculateDistance(
+              latitude,
+              longitude,
+              req.latitude,
+              req.longitude,
+            );
+            final isNear = distance <= radiusKm;
+            if (isNear) {
+              print(' Request ${req.id}: distance=$distance km, lat=${req.latitude}, lng=${req.longitude}');
+            }
+            return isNear;
+          })
+          .toList();
+      
+      print(' Kết quả cuối: ${requests.length} requests gần vị trí (< $radiusKm km)');
+      return requests;
+    });
+  }
 }
+
 
 /// Riverpod Providers
 final rescueRequestRepoProvider = Provider<RescueRequestRepository>((ref) {
@@ -147,3 +286,29 @@ final rescueNearbyProvider = FutureProvider.family
         radiusKm: loc['radius'] ?? 10.0,
       );
     });
+
+/// Stream rescue request cụ thể (dành cho user waiting)
+final currentRescueRequestProvider = StreamProvider.family
+    .autoDispose<RescueRequestModel?, String>((ref, requestId) {
+      final repo = ref.watch(rescueRequestRepoProvider);
+      return repo.getRescueRequestStream(requestId);
+    });
+
+/// Stream pending rescue requests gần vị trí (dành cho garage)
+final pendingRescueRequestsProvider = StreamProvider.family.autoDispose<
+    List<RescueRequestModel>,
+    Map<String, double>>((ref, location) {
+  final repo = ref.watch(rescueRequestRepoProvider);
+  return repo.getPendingRescueRequestsStream(
+    latitude: location['lat']!,
+    longitude: location['lng']!,
+    radiusKm: location['radius'] ?? 10.0,
+  );
+});
+
+/// 🧪 TESTING: Provider lấy TẤT CẢ pending requests (không filter khoảng cách)
+final allPendingRescueRequestsProvider = StreamProvider.autoDispose<
+    List<RescueRequestModel>>((ref) {
+  final repo = ref.watch(rescueRequestRepoProvider);
+  return repo.getAllPendingRescueRequestsStream();
+});

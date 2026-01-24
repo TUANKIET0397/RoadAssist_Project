@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
+import 'package:road_assist/core/auth/auth_state.dart';
+import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
+import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
+import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
+import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
 
 import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 
@@ -122,7 +128,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/rescue-request',
-            builder: (context, state) => const RescueRequestScreen(),
+            builder: (context, state) => const RescueScreenWrapper(),
           ),
         ],
       ),
@@ -136,22 +142,33 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(
+            //path: '/garage/chat',
+            // builder: (_, __) => const GarageChatScreen()),
             path: RoutePaths.garageChat,
             builder: (_, __) => const ChatListScreen(),
           ),
           GoRoute(
+            //path: '/garage/review',
             path: RoutePaths.garageReview,
 
             builder: (_, __) => const GarageReviewsScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageHome,
-            builder: (_, __) => Text('hello'),
-
+            builder: (_, __) => const GarageHomeScreen(),
             // builder: (_, __) => const GarageHomeScreen(),
           ),
           GoRoute(
-            path: RoutePaths.garageHistory,
+            path: '/garage/rescue-request-detail/:requestId',
+            builder: (context, state) {
+              final requestId = state.pathParameters['requestId'] ?? '';
+              return GarageRescueRequestDetailScreen(
+                rescueRequestId: requestId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/garage/history',
             builder: (_, __) => Text('hello'),
 
             // builder: (_, __) => const GarageHistoryScreen(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
     as vm;
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
@@ -61,9 +62,9 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Refresh chỉ rescue requests
-              if (USE_MOCK_DATA) {
-                ref.refresh(mockRescueRequestsProvider(locationMap));
+              // Refresh requests
+              if (DISABLE_DISTANCE_FILTER) {
+                ref.refresh(allPendingRescueRequestsProvider);
               } else {
                 ref.refresh(pendingRescueRequestsProvider(locationMap));
               }
@@ -155,8 +156,8 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        if (USE_MOCK_DATA) {
-          ref.refresh(mockRescueRequestsProvider(locationMap));
+        if (DISABLE_DISTANCE_FILTER) {
+          await ref.refresh(allPendingRescueRequestsProvider.future);
         } else {
           await ref.refresh(pendingRescueRequestsProvider(locationMap).future);
         }
@@ -172,9 +173,8 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
           return RescueRequestCard(
             request: request,
             onAccept: () {
-              Navigator.of(context).pushNamed(
-                'garage_rescue_request_detail',
-                arguments: request.id,
+              context.push(
+                '/garage/rescue-request-detail/${request.id}',
               );
             },
           );

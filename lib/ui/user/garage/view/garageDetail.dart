@@ -233,15 +233,11 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
         const SizedBox(width: 4),
         Text(
           '${widget.garage.distance!.toStringAsFixed(1)} km',
-          style: const TextStyle(
-            color: Color(0xFF2FB8FF),
-            fontSize: 16,
-          ),
+          style: const TextStyle(color: Color(0xFF2FB8FF), fontSize: 16),
         ),
       ],
     );
   }
-
 
   Widget _buildStatusTime() {
     return Row(
@@ -536,7 +532,6 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => ChatListScreen(
-                      userId: userId,
                       garageId: widget.garage.id,
                       garageName: widget.garage.name,
                       garageImage: widget.garage.imageUrl,

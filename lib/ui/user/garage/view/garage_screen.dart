@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
-import 'package:road_assist/ui/user/garage/viewmodel/garage_vm.dart';
+
+import '../viewmodel/garage_vm.dart';
 
 class GarageListScreen extends ConsumerStatefulWidget {
   const GarageListScreen({super.key});

@@ -3,22 +3,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 
 final garageRegisterVMProvider =
-ChangeNotifierProvider<GarageRegisterViewModel>(
-        (ref) => GarageRegisterViewModel());
+    ChangeNotifierProvider<GarageRegisterScreenModel>(
+      (ref) => GarageRegisterScreenModel(),
+    );
 
 /// VIEW MODEL
-class GarageRegisterViewModel extends ChangeNotifier {
-
+class GarageRegisterScreenModel extends ChangeNotifier {
   // Firebase
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
 
   bool isLoading = false;
   String? errorMessage;
@@ -29,8 +27,7 @@ class GarageRegisterViewModel extends ChangeNotifier {
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  bool  isAgree = false;
-
+  bool isAgree = false;
 
   double? latitude;
   double? longitude;
@@ -114,7 +111,6 @@ class GarageRegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-
   // MAP PICKER → GPS → ADDRESS
   Future<void> setLocationFromLatLng({
     required double lat,
@@ -124,8 +120,7 @@ class GarageRegisterViewModel extends ChangeNotifier {
     longitude = lng;
 
     try {
-      final addr =
-      await LocationService.getAddressFromLatLng(lat, lng);
+      final addr = await LocationService.getAddressFromLatLng(lat, lng);
       addressController.text = addr;
     } catch (e) {
       addressController.text = '$lat, $lng';
@@ -133,7 +128,6 @@ class GarageRegisterViewModel extends ChangeNotifier {
 
     notifyListeners();
   }
-
 
   // VALIDATION
   bool _validate() {
@@ -189,8 +183,6 @@ class GarageRegisterViewModel extends ChangeNotifier {
       return false;
     }
 
-
-
     errorMessage = null;
     return true;
   }
@@ -213,8 +205,7 @@ class GarageRegisterViewModel extends ChangeNotifier {
     try {
       final email = '${phoneController.text.trim()}@garage.roadassist.vn';
 
-      final userCredential =
-      await _auth.createUserWithEmailAndPassword(
+      final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: passwordController.text.trim(),
       );
@@ -228,15 +219,12 @@ class GarageRegisterViewModel extends ChangeNotifier {
         'taxCode': taxCodeController.text.trim(),
         'address': addressController.text.trim(),
         'phone': phoneController.text.trim(),
-        'location': {
-          'lat': latitude,
-          'lng': longitude,
-        },
+        'location': {'lat': latitude, 'lng': longitude},
         'operatingDays': selectedDays.toList(),
         'openTime':
-        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}',
+            '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}',
         'closeTime':
-        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
+            '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
         'issues': selectedServices.toList(),
         'vehicleTypes': selectedVehicleTypes,
         'images': "",
@@ -263,7 +251,6 @@ class GarageRegisterViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 
   // DISPOSE
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/auth/view/login_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/user_register_vm.dart';
 import 'package:road_assist/ui/auth/view/garage_register_screen.dart';
@@ -9,8 +10,8 @@ import 'package:road_assist/ui/auth/widgets/password_text_field.dart';
 import 'package:road_assist/ui/auth/widgets/phone_text_field.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 
-class UserRegisterView extends ConsumerWidget {
-  const UserRegisterView({super.key});
+class UserRegisterScreen extends ConsumerWidget {
+  const UserRegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -256,12 +257,7 @@ class UserRegisterView extends ConsumerWidget {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const GarageRegisterView(),
-                            ),
-                          );
+                          context.go('/auth/garage/register');
                         },
                         child: const Text(
                           'Đăng ký Garage',
@@ -281,12 +277,14 @@ class UserRegisterView extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                          );
+                          context.go('/auth/user/login');
+
+                          // Navigator.pushReplacement(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (_) => const LoginScreen(),
+                          //   ),
+                          // );
                         },
                         child: const Text(
                           'Đăng nhập',

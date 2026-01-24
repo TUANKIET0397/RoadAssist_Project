@@ -5,9 +5,10 @@ import 'package:road_assist/ui/user/account/model/account_action.dart';
 import 'package:road_assist/ui/user/account/model/vehicle_model.dart';
 import 'package:road_assist/ui/user/account/viewmodel/account_state.dart';
 
-final accountVmProvider = StateNotifierProvider<AccountViewModel, AccountState>(
-  (ref) => AccountViewModel(ref),
-);
+final accountVmProvider =
+    StateNotifierProvider.autoDispose<AccountViewModel, AccountState>(
+      (ref) => AccountViewModel(ref),
+    );
 
 class AccountViewModel extends StateNotifier<AccountState> {
   AccountViewModel(this.ref) : super(AccountState.initial());

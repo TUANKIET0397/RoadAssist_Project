@@ -7,7 +7,6 @@ import 'package:road_assist/ui/navigation/widgets/slanted_bottom_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class GarageReviewView extends ConsumerStatefulWidget {
   final GarageModel garage;
 
@@ -20,7 +19,6 @@ class GarageReviewView extends ConsumerStatefulWidget {
 class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
   int selectedRating = 5;
   final TextEditingController commentController = TextEditingController();
-
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +81,7 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
                 ),
               ),
       ),
-      bottomNavigationBar: const SlantedAnimatedBottomBar(popNavigator: true),
+      // bottomNavigationBar: const SlantedAnimatedBottomBar(),
     );
   }
 
@@ -331,7 +329,9 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
 
               if (authUser == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Bạn cần đăng nhập để đánh giá')),
+                  const SnackBar(
+                    content: Text('Bạn cần đăng nhập để đánh giá'),
+                  ),
                 );
                 return;
               }
@@ -343,21 +343,25 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
 
               if (!userDoc.exists) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Không tìm thấy thông tin người dùng')),
+                  const SnackBar(
+                    content: Text('Không tìm thấy thông tin người dùng'),
+                  ),
                 );
                 return;
               }
 
               final userData = userDoc.data()!;
 
-              ref.read(garageDetailProvider.notifier).submitReview(
-                garageId: widget.garage.id,
-                userId: authUser.uid,
-                userName: userData['name'] ?? 'Ẩn danh',
-                userAvatar: userData['avatar'],
-                rating: selectedRating,
-                comment: commentController.text.trim(),
-              );
+              ref
+                  .read(garageDetailProvider.notifier)
+                  .submitReview(
+                    garageId: widget.garage.id,
+                    userId: authUser.uid,
+                    userName: userData['name'] ?? 'Ẩn danh',
+                    userAvatar: userData['avatar'],
+                    rating: selectedRating,
+                    comment: commentController.text.trim(),
+                  );
 
               commentController.clear();
               setState(() => selectedRating = 5);
@@ -400,7 +404,6 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
     );
   }
 
-
   // Lấy UID
   Future<Map<String, dynamic>?> getCurrentUserProfile() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -416,4 +419,3 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
     return doc.data();
   }
 }
-

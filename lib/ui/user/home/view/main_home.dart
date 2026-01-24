@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
+import 'package:road_assist/ui/navigation/viewmodel/rescue_navigation_provider.dart';
 import 'package:road_assist/ui/user/rescue/view/completion_screen.dart';
 import 'package:road_assist/data/models/completion_payload.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/completion_vm.dart';
-import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
-import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
-import 'package:road_assist/ui/navigation/viewmodel/home_navigation_provider.dart';
 
 class MainHome extends ConsumerWidget {
   const MainHome({super.key});
@@ -359,10 +358,7 @@ class BigVehicleCardContent extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         ref.read(selectedRescueProvider.notifier).state = recuerequest;
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RescueRequestScreen()),
-        );
+        context.push('/rescue-request');
       },
       child: Stack(
         alignment: Alignment.topCenter,

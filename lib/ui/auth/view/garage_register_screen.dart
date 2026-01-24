@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/widgets/password_text_field.dart';
@@ -13,8 +14,8 @@ import 'package:road_assist/ui/auth/widgets/section_header.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/auth/view/garage_success_screen.dart';
 
-class GarageRegisterView extends ConsumerWidget {
-  const GarageRegisterView({super.key});
+class GarageRegisterScreen extends ConsumerWidget {
+  const GarageRegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -320,12 +321,13 @@ class GarageRegisterView extends ConsumerWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const UserRegisterView(),
-                            ),
-                          );
+                          // Navigator.pushReplacement(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (_) => const UserRegisterScreen(),
+                          //   ),
+                          // );
+                          context.go('/auth/user/register');
                         },
                         child: const Text(
                           'Người dùng',
@@ -347,7 +349,7 @@ class GarageRegisterView extends ConsumerWidget {
     );
   }
 
-  void _showSuccessDialog(BuildContext context, GarageRegisterViewModel vm) {
+  void _showSuccessDialog(BuildContext context, GarageRegisterScreenModel vm) {
     final garageModel = GarageModel(
       id: '',
       name: vm.nameController.text,

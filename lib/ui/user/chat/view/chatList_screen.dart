@@ -3,16 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
-  final String userId;
   final String? garageId;
   final String? garageName;
   final String? garageImage;
 
   const ChatListScreen({
     super.key,
-    required this.userId,
     this.garageId,
     this.garageName,
     this.garageImage,
@@ -23,6 +22,8 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  String? get _userId => ref.read(userIdProvider);
+
   @override
   void initState() {
     super.initState();
@@ -32,10 +33,15 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   }
 
   void _navigateToChat() async {
+    final userId = _userId;
+    if (userId == null) return;
+
     await Future.microtask(() {});
     try {
-      final chat = await ref.read(chatRepositoryProvider).getOrCreateChat(
-            userId: widget.userId,
+      final chat = await ref
+          .read(chatRepositoryProvider)
+          .getOrCreateChat(
+            userId: userId,
             garageId: widget.garageId!,
             garageName: widget.garageName ?? '',
             garageImage: widget.garageImage ?? '',
@@ -45,34 +51,29 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(
-            chatId: chat,
-          ),
-        ),
+        MaterialPageRoute(builder: (_) => ChatScreen(chatId: chat)),
       );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Không thể tạo phòng chat: ${e.toString()}'),
-          ),
-        );
-        Navigator.of(context).pop();
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể tạo phòng chat: ${e.toString()}')),
+      );
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.garageId != null) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+    final userId = _userId;
+    if (userId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final chatStream = ref.watch(chatStreamProvider(widget.userId));
+
+    if (widget.garageId != null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final chatStream = ref.watch(chatStreamProvider(userId));
 
     return Container(
       decoration: const BoxDecoration(
@@ -93,7 +94,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
               child: chatStream.when(
                 data: (chats) {
                   if (chats.isEmpty) return _buildEmptyState();
-                  return _buildChatList(context, ref, chats);
+                  return _buildChatList(context, ref, chats, userId);
                 },
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: Color(0xFF4A90E2)),
@@ -112,7 +113,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     );
   }
 
-  // HEADER
+  // ===== HEADER =====
 
   Widget _buildHeader(BuildContext context) {
     return Container(
@@ -156,19 +157,20 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     );
   }
 
-  //Chat List
+  // ===== CHAT LIST =====
 
   Widget _buildChatList(
     BuildContext context,
     WidgetRef ref,
     List<ChatModel> chats,
+    String userId,
   ) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(8, 16, 8, 120),
       itemCount: chats.length,
       itemBuilder: (context, index) {
         final chat = chats[index];
-        final unreadCount = chat.unread[widget.userId] ?? 0;
+        final unreadCount = chat.unread[userId] ?? 0;
 
         return ChatItem(
           name: chat.garageName,
@@ -176,9 +178,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
           time: formatTime(chat.lastMessageTime),
           imageUrl: chat.garageImage,
           unreadCount: unreadCount,
-          onTap: () async {
-            if (!context.mounted) return;
-
+          onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => ChatScreen(chatId: chat.id)),
@@ -189,7 +189,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     );
   }
 
-  //empty list
+  // ===== EMPTY STATE =====
 
   Widget _buildEmptyState() {
     return Center(
@@ -237,7 +237,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     );
   }
 
-  // time
+  // ===== TIME FORMAT =====
 
   String formatTime(DateTime time) {
     final diff = DateTime.now().difference(time);
@@ -250,7 +250,9 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   }
 }
 
-// chat item
+// =======================================================
+// ===================== CHAT ITEM ========================
+// =======================================================
 
 class ChatItem extends StatelessWidget {
   final String name;

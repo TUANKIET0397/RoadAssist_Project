@@ -1,1 +1,147 @@
-// app_routes.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
+import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
+
+import 'route_paths.dart';
+import 'route_redirect.dart';
+
+import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/ui/navigation/view/user_main_screen.dart';
+
+// ===== AUTH UI =====
+import 'package:road_assist/ui/auth/view/auth_role_screen.dart';
+import 'package:road_assist/ui/auth/view/login_screen.dart';
+import 'package:road_assist/ui/auth/view/user_register_screen.dart';
+
+import 'package:road_assist/ui/auth/view/garage_register_screen.dart';
+
+// ===== USER UI =====
+import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
+import 'package:road_assist/ui/user/garage/view/garage_screen.dart';
+import 'package:road_assist/ui/user/home/view/home_screen.dart';
+import 'package:road_assist/ui/user/history/view/history_screen.dart';
+import 'package:road_assist/ui/user/account/view/account_screen.dart';
+
+// ===== GARAGE UI =====
+
+/// GoRouter provider
+final goRouterProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authStateProvider);
+
+  return GoRouter(
+    debugLogDiagnostics: true,
+
+    /// App bắt đầu từ màn chọn role
+    initialLocation: RoutePaths.authRole,
+
+    /// ===== REDIRECT (ủy quyền cho route_redirect) =====
+    redirect: (context, state) {
+      return RouteRedirect.handle(
+        auth: authState,
+        // location: state.uri.path,
+        location: state.uri.toString(),
+      );
+    },
+
+    routes: [
+      // =================================================
+      // ================== AUTH FLOW ====================
+      // =================================================
+      GoRoute(
+        path: RoutePaths.authRole,
+        builder: (_, __) => const AuthRoleScreen(),
+      ),
+
+      GoRoute(
+        path: RoutePaths.userLogin,
+        builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.userRegister,
+        builder: (_, __) => const UserRegisterScreen(),
+      ),
+
+      GoRoute(
+        path: RoutePaths.garageLogin,
+        builder: (_, __) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.garageRegister,
+        builder: (_, __) => const GarageRegisterScreen(),
+      ),
+
+      // =================================================
+      // ================= USER FLOW =====================
+      // =================================================
+      ShellRoute(
+        builder: (_, __, child) {
+          return UserMainScreen(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: RoutePaths.userHome,
+            builder: (_, __) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: RoutePaths.userChat,
+            builder: (_, __) => const ChatListScreen(),
+          ),
+          GoRoute(
+            path: RoutePaths.userGarage,
+            builder: (_, __) => const GarageListScreen(),
+          ),
+          GoRoute(
+            path: RoutePaths.userHistory,
+            builder: (_, __) => const HistoryScreen(),
+          ),
+          GoRoute(
+            path: RoutePaths.userAccount,
+            builder: (_, __) => const AccountScreen(),
+          ),
+          GoRoute(
+            path: '/rescue-request',
+            builder: (context, state) => const RescueRequestScreen(),
+          ),
+        ],
+      ),
+
+      // =================================================
+      // ================= GARAGE FLOW ===================
+      // =================================================
+      ShellRoute(
+        builder: (_, __, child) {
+          return GarageMainScreen(child: child);
+        },
+        routes: [
+          GoRoute(
+            path: 'chat',
+            // builder: (_, __) => const GarageChatScreen()),
+            builder: (_, __) => Text('hello chat page of GARAGE'),
+          ),
+          GoRoute(
+            path: 'review',
+            // builder: (_, __) => const GarageReviewScreen(),
+            builder: (_, __) => Text('hello review page of GARAGE'),
+          ),
+          GoRoute(
+            path: RoutePaths.garageHome,
+            // builder: (_, __) => const HomeScreen(),
+            builder: (_, __) => Text('hello home page of GARAGE'),
+          ),
+          GoRoute(
+            path: 'history',
+            // builder: (_, __) => const GarageHistoryScreen(),
+            builder: (_, __) => Text('hello history page of GARAGE'),
+          ),
+          GoRoute(
+            path: 'account',
+            // builder: (_, __) => const GarageAccountScreen(),
+            builder: (_, __) => Text('hello account page of GARAGE'),
+          ),
+        ],
+      ),
+    ],
+  );
+});

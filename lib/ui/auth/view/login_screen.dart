@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/auth/view/user_register_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
-import 'package:road_assist/ui/user/home/view/home_screen.dart';
+import 'package:road_assist/ui/navigation/view/main_screen.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -102,12 +103,7 @@ class LoginScreen extends ConsumerWidget {
                         : () async {
                             final success = await viewModel.login();
                             if (success && context.mounted) {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const HomeScreen(),
-                                ),
-                              );
+                              context.go('/garage/home');
                             }
                           },
                     style: ElevatedButton.styleFrom(
@@ -188,12 +184,7 @@ class LoginScreen extends ConsumerWidget {
                       onTap: () async {
                         final user = await viewModel.loginWithGoogle();
                         if (user != null && context.mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const HomeScreen(),
-                            ),
-                          );
+                          // context.go('/home');
                         }
                       },
                       color: Colors.red,
@@ -234,12 +225,7 @@ class LoginScreen extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const UserRegisterView(),
-                          ),
-                        );
+                        context.go('/auth/user/register');
                       },
                       child: const Text(
                         'Đăng ký ngay',

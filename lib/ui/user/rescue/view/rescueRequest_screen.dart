@@ -9,7 +9,9 @@ import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 
 class RescueRequestScreen extends ConsumerStatefulWidget {
-  const RescueRequestScreen({super.key});
+  final void Function(String requestId) onNavigateToWaiting;
+
+  const RescueRequestScreen({super.key, required this.onNavigateToWaiting});
 
   @override
   ConsumerState<RescueRequestScreen> createState() =>
@@ -54,6 +56,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   }
 
   Future<void> _loadInitialLocation() async {
+    if (!mounted) return;
     setState(() {
       isLoadingLocation = true;
       currentAddress = 'Đang lấy vị trí...';
@@ -66,6 +69,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         position.longitude,
       );
 
+      if (!mounted) return;
       setState(() {
         currentLat = position.latitude;
         currentLng = position.longitude;
@@ -73,6 +77,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         isLoadingLocation = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         currentAddress = e.toString().replaceFirst('Exception: ', '');
         isLoadingLocation = false;
@@ -92,6 +97,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
 
     // if (selectedImages.length >= 1) return;
 
+    if (!mounted) return;
     setState(() {
       selectedImages
         ..clear()
@@ -213,17 +219,22 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     );
 
     if (id != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thành công!')));
-      setState(() {
-        selectedIssues.clear();
-        selectedImages.clear();
-      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thành công!')));
+        setState(() {
+          selectedIssues.clear();
+          selectedImages.clear();
+        });
+        widget.onNavigateToWaiting(id);
+      }
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thất bại!')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thất bại!')));
+      }
     }
   }
 
@@ -512,9 +523,11 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                       right: 6,
                                       child: GestureDetector(
                                         onTap: () {
-                                          setState(() {
-                                            selectedImages.removeAt(i);
-                                          });
+                                          if (mounted) {
+                                            setState(() {
+                                              selectedImages.removeAt(i);
+                                            });
+                                          }
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.all(4),

@@ -13,16 +13,12 @@ class RescueRequestModel {
   final double longitude;
   final String? imageUrl;
   final String status; // pending, accepted, completed, cancelled
-  final List<String> statusUpdates = [
-    'Garage đã nhận yêu cầu',
-    'Garage đang điều phối kỹ thuật',
-    'Garage sẽ liên hệ trong ít phút',
-  ];
   final DateTime createdAt;
   final String? garageId;
   final String? garageName;
   final DateTime? acceptedAt;
   final DateTime? completedAt;
+  final DateTime? cancelledAt;
 
   RescueRequestModel({
     required this.id,
@@ -41,33 +37,56 @@ class RescueRequestModel {
     this.garageId,
     this.garageName,
     this.acceptedAt,
-    this.completedAt, required List<String> statusUpdates,
+    this.completedAt,
+    this.cancelledAt,
   });
 
   factory RescueRequestModel.fromMap(String id, Map<String, dynamic> data) {
+
+    try {
+      // Parse createdAt with fallback
+      DateTime createdAt;
+      if (data['createdAt'] != null) {
+        if (data['createdAt'] is Timestamp) {
+          createdAt = (data['createdAt'] as Timestamp).toDate();
+        } else {
+          createdAt = DateTime.now();
+        }
+      } else {
+        createdAt = DateTime.now();
+      }
+
     return RescueRequestModel(
-      id: id,
-      userId: data['userId'] ?? '',
-      userName: data['userName'] ?? '',
-      userPhone: data['userPhone'] ?? '',
-      vehicleType: data['vehicleType'] ?? '',
-      vehicleModel: data['vehicleModel'] ?? '',
-      issues: List<String>.from(data['issues'] ?? []),
-      location: data['location'] ?? '',
-      latitude: (data['latitude'] ?? 0).toDouble(),
-      longitude: (data['longitude'] ?? 0).toDouble(),
-      imageUrl: data['imageUrl'],
-      status: data['status'] ?? 'pending',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      garageId: data['garageId'],
-      garageName: data['garageName'],
-      acceptedAt: data['acceptedAt'] != null
-          ? (data['acceptedAt'] as Timestamp).toDate()
-          : null,
-      completedAt: data['completedAt'] != null
-          ? (data['completedAt'] as Timestamp).toDate()
-          : null, statusUpdates: [],
-    );
+        id: id,
+        userId: data['userId'] ?? '',
+        userName: data['userName'] ?? '',
+        userPhone: data['userPhone'] ?? '',
+        vehicleType: data['vehicleType'] ?? '',
+        vehicleModel: data['vehicleModel'] ?? '',
+        issues: List<String>.from(data['issues'] ?? []),
+        location: data['location'] ?? '',
+        latitude: (data['latitude'] ?? 0).toDouble(),
+        longitude: (data['longitude'] ?? 0).toDouble(),
+        imageUrl: data['imageUrl'],
+        status: data['status'] ?? 'pending',
+        createdAt: createdAt,
+        garageId: data['garageId'],
+        garageName: data['garageName'],
+        acceptedAt: data['acceptedAt'] != null
+            ? (data['acceptedAt'] as Timestamp).toDate()
+            : null,
+        completedAt: data['completedAt'] != null
+            ? (data['completedAt'] as Timestamp).toDate()
+            : null,
+        cancelledAt: data['cancelledAt'] != null
+            ? (data['cancelledAt'] as Timestamp).toDate()
+            : null,
+      );
+    } catch (e) {
+      print(' Error parsing RescueRequestModel from $id: $e');
+      print(' Raw data: $data');
+      rethrow;
+    } 
   }
 
   Map<String, dynamic> toMap() {
@@ -87,8 +106,8 @@ class RescueRequestModel {
       'garageId': garageId,
       'garageName': garageName,
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
-      'completedAt':
-      completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
+      'cancelledAt': cancelledAt != null ? Timestamp.fromDate(cancelledAt!) : null,
     };
   }
 

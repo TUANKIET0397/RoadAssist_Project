@@ -4,6 +4,7 @@ import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
+import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
 
 class GarageRescueRequestDetailScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
@@ -42,9 +43,32 @@ class _GarageRescueRequestDetailScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã chấp nhận yêu cầu cứu hộ')),
         );
-        // Pop route để quay lại Dashboard
+        
+        // Lấy request data để chuyển qua màn hình cập nhật trạng thái
+        final rescueRequest = ref.read(currentRescueRequestProvider(widget.rescueRequestId));
+        
         if (mounted) {
-          Navigator.of(context).pop();
+          rescueRequest.when(
+            data: (request) { 
+              if (request != null && mounted) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => GarageRescueStatusUpdateScreen(
+                      rescueRequestId: widget.rescueRequestId,
+                      request: request,
+                    ),
+                  ),
+                );
+              }
+            },
+            loading: () {
+              // Đợi data load xong
+              Navigator.of(context).pop();
+            },
+            error: (error, st) {
+              Navigator.of(context).pop();
+            },
+          );
         }
       } else if (mounted) {
         ScaffoldMessenger.of(

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
+import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
+import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
 
-import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 
 import 'route_paths.dart';
 import 'route_redirect.dart';
@@ -135,30 +136,39 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           GoRoute(
-            path: RoutePaths.garageChat,
+            path: '/garage/chat',
             // builder: (_, __) => const GarageChatScreen()),
             builder: (_, __) => Text('hello'),
           ),
           GoRoute(
-            path: RoutePaths.garageReview,
+            path: '/garage/review',
             builder: (_, __) => Text('hello'),
 
             // builder: (_, __) => const GarageReviewsScreen(),
           ),
           GoRoute(
-            path: RoutePaths.garageHome,
-            builder: (_, __) => Text('hello'),
+            path: '/garage/home',
+            builder: (_, __) => const GarageHomeScreen(),
 
             // builder: (_, __) => const GarageHomeScreen(),
           ),
           GoRoute(
-            path: RoutePaths.garageHistory,
+            path: '/garage/rescue-request-detail/:requestId',
+            builder: (context, state) {
+              final requestId = state.pathParameters['requestId'] ?? '';
+              return GarageRescueRequestDetailScreen(
+                rescueRequestId: requestId,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/garage/history',
             builder: (_, __) => Text('hello'),
 
             // builder: (_, __) => const GarageHistoryScreen(),
           ),
           GoRoute(
-            path: RoutePaths.garageAccount,
+            path: '/garage/account',
             builder: (_, __) => const GarageAccountScreen(),
             routes: [
               GoRoute(path: 'info', builder: (_, __) => const InfoScreen()),

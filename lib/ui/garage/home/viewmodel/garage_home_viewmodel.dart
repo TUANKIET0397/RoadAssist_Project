@@ -8,10 +8,13 @@ Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
   }
 /// Toggle để switch giữa real và mock data
-const bool USE_MOCK_DATA = true; // ← Change thành true để dùng mock data
+const bool USE_MOCK_DATA = false; // ← Change thành true để dùng mock data
 
 /// Toggle để test UI khi không có rescue requests
 const bool USE_EMPTY_MOCK_DATA = false; // ← Change thành true để test empty state
+
+/// 🧪 TESTING: Tạm thời lấy TẤT CẢ pending requests (không filter khoảng cách)
+const bool DISABLE_DISTANCE_FILTER = true; // ← Change thành false để bật filter khoảng cách lại
 
 /// Provider chọn list requests theo mode (mock hoặc real)
 final rescueRequestsProvider = FutureProvider.family.autoDispose<
@@ -19,6 +22,14 @@ final rescueRequestsProvider = FutureProvider.family.autoDispose<
     Map<String, double>>((ref, locationMap) async {
   if (USE_MOCK_DATA) {
     return ref.watch(mockRescueRequestsProvider(locationMap));
+  } else if (DISABLE_DISTANCE_FILTER) {
+    // 🧪 TESTING: Lấy tất cả pending requests không filter khoảng cách
+    final asyncValue = ref.watch(allPendingRescueRequestsProvider);
+    return asyncValue.when(
+      data: (data) => data,
+      loading: () => throw Exception('Loading...'),
+      error: (error, stack) => throw Exception(error),
+    );
   } else {
     final asyncValue = ref.watch(pendingRescueRequestsProvider(locationMap));
     return asyncValue.when(
@@ -60,6 +71,7 @@ final mockRescueRequestsProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
     RescueRequestModel(
       id: 'mock_2',
@@ -80,6 +92,7 @@ final mockRescueRequestsProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
     RescueRequestModel(
       id: 'mock_3',
@@ -100,6 +113,7 @@ final mockRescueRequestsProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
   ];
 
@@ -132,6 +146,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
     'mock_2': RescueRequestModel(
       id: 'mock_2',
@@ -152,6 +167,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
     'mock_3': RescueRequestModel(
       id: 'mock_3',
@@ -172,6 +188,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family.autoDispose<
       acceptedAt: null,
       completedAt: null,
       cancelledAt: null,
+      progressStep: 0,
     ),
   };
 

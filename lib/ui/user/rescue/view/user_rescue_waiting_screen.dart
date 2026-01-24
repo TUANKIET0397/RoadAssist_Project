@@ -257,8 +257,8 @@ class _UserRescueWaitingScreenState
                                     horizontal: 12,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade900.withOpacity(
-                                      0.5,
+                                    color: Colors.blue.shade900.withValues(
+                                      alpha: 0.5,
                                     ),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(

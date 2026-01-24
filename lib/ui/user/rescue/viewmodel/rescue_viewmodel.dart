@@ -56,6 +56,7 @@ class RescueRequestRepository {
         'longitude': longitude,
         'imageUrl': imageUrl,
         'status': 'pending',
+        'progressStep': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -127,7 +128,7 @@ class RescueRequestRepository {
   }
 
 
-/// Accept rescue request (dành cho garage)
+  /// Accept rescue request (dành cho garage)
   Future<bool> acceptRescueRequest({
     required String requestId,
     required String garageId,
@@ -136,6 +137,7 @@ class RescueRequestRepository {
     try {
       await _firestore.collection('rescue_requests').doc(requestId).update({
         'status': 'accepted',
+        'progressStep': 1,
         'garageId': garageId,
         'garageName': garageName,
         'acceptedAt': FieldValue.serverTimestamp(),
@@ -145,6 +147,29 @@ class RescueRequestRepository {
       print('Lỗi accept rescue request: $e');
       return false;
     }
+  }
+
+  /// 🧪 TESTING: Lấy TẤT CẢ pending requests (không filter khoảng cách)
+  Stream<List<RescueRequestModel>> getAllPendingRescueRequestsStream() {
+    return _firestore
+        .collection('rescue_requests')
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      print('🧪 getAllPendingRescueRequestsStream: ${snapshot.docs.length} pending requests');
+      return snapshot.docs
+          .map((doc) {
+            try {
+              return RescueRequestModel.fromMap(doc.id, doc.data());
+            } catch (e) {
+              print('Lỗi parse doc ${doc.id}: $e');
+              return null;
+            }
+          })
+          .whereType<RescueRequestModel>()
+          .toList();
+    });
   }
 
   /// Cancel rescue request (dành cho user)
@@ -279,4 +304,11 @@ final pendingRescueRequestsProvider = StreamProvider.family.autoDispose<
     longitude: location['lng']!,
     radiusKm: location['radius'] ?? 10.0,
   );
+});
+
+/// 🧪 TESTING: Provider lấy TẤT CẢ pending requests (không filter khoảng cách)
+final allPendingRescueRequestsProvider = StreamProvider.autoDispose<
+    List<RescueRequestModel>>((ref) {
+  final repo = ref.watch(rescueRequestRepoProvider);
+  return repo.getAllPendingRescueRequestsStream();
 });

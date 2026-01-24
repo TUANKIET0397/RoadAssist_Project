@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_waiting_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_success_screen.dart';
@@ -18,6 +19,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
   String? currentRequestId;
   String? garageId;
   String? garageName;
+  RescueRequestModel? _currentRequestData;
 
   void _navigateToWaiting(String requestId) {
     setState(() {
@@ -67,6 +69,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
           garageId: garageId,
           garageName: garageName,
           onBack: _backToRequest,
+          request: _currentRequestData!,
         );
       case 'rescue_no_garage':
         return ng_screen.UserRescueNoGarageScreen(

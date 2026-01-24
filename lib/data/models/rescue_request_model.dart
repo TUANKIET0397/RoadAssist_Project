@@ -13,12 +13,16 @@ class RescueRequestModel {
   final double longitude;
   final String? imageUrl;
   final String status; // pending, accepted, completed, cancelled
+  final int progressStep; // 0: pending, 1: arrived, 2: repairing, 3: completed
   final DateTime createdAt;
   final String? garageId;
   final String? garageName;
+  final String? garagePhone;
   final DateTime? acceptedAt;
   final DateTime? completedAt;
   final DateTime? cancelledAt;
+  final DateTime? arrivedAt;
+  final DateTime? repairingStartedAt;
 
   RescueRequestModel({
     required this.id,
@@ -33,12 +37,16 @@ class RescueRequestModel {
     required this.longitude,
     this.imageUrl,
     required this.status,
+    required this.progressStep,
     required this.createdAt,
     this.garageId,
     this.garageName,
+    this.garagePhone,
     this.acceptedAt,
     this.completedAt,
     this.cancelledAt,
+    this.arrivedAt,
+    this.repairingStartedAt,
   });
 
   factory RescueRequestModel.fromMap(String id, Map<String, dynamic> data) {
@@ -69,9 +77,11 @@ class RescueRequestModel {
         longitude: (data['longitude'] ?? 0).toDouble(),
         imageUrl: data['imageUrl'],
         status: data['status'] ?? 'pending',
+        progressStep: data['progressStep'] ?? 0,
         createdAt: createdAt,
         garageId: data['garageId'],
         garageName: data['garageName'],
+        garagePhone: data['garagePhone'],
         acceptedAt: data['acceptedAt'] != null
             ? (data['acceptedAt'] as Timestamp).toDate()
             : null,
@@ -80,6 +90,12 @@ class RescueRequestModel {
             : null,
         cancelledAt: data['cancelledAt'] != null
             ? (data['cancelledAt'] as Timestamp).toDate()
+            : null,
+        arrivedAt: data['arrivedAt'] != null
+            ? (data['arrivedAt'] as Timestamp).toDate()
+            : null,
+        repairingStartedAt: data['repairingStartedAt'] != null
+            ? (data['repairingStartedAt'] as Timestamp).toDate()
             : null,
       );
     } catch (e) {
@@ -102,12 +118,16 @@ class RescueRequestModel {
       'longitude': longitude,
       'imageUrl': imageUrl,
       'status': status,
+      'progressStep': progressStep,
       'createdAt': Timestamp.fromDate(createdAt),
       'garageId': garageId,
       'garageName': garageName,
+      'garagePhone': garagePhone,
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
       'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'cancelledAt': cancelledAt != null ? Timestamp.fromDate(cancelledAt!) : null,
+      'arrivedAt': arrivedAt != null ? Timestamp.fromDate(arrivedAt!) : null,
+      'repairingStartedAt': repairingStartedAt != null ? Timestamp.fromDate(repairingStartedAt!) : null,
     };
   }
 

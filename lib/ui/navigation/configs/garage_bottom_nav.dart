@@ -14,7 +14,7 @@ const garageBottomNavItems = [
   BottomNavItem(
     icon: 'assets/images/icons/bicycle.png',
     label: 'Trang chủ',
-    route: '/garage/history',
+    route: '/garage/home',
   ),
   BottomNavItem(
     icon: 'assets/images/icons/doc.png',

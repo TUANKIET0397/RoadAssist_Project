@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
-    as vm;
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
 import 'package:road_assist/ui/garage/home/widgets/rescue_request_card.dart';
-import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 
 class GarageHomeScreen extends ConsumerStatefulWidget {
   final Function(String)? onSelectRequest;
@@ -47,12 +44,10 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
       'radius': 10.0,
     };
 
-    // Dùng mock provider nếu USE_MOCK_DATA = true
-    // MockProvider trả về synchronous List, không cần .when()
-    final requestList = USE_MOCK_DATA
-        ? ref.watch(mockRescueRequestsProvider(locationMap))
-        : ref.watch(pendingRescueRequestsProvider(locationMap)).valueOrNull ??
-              [];
+    // 🧪 TESTING: Dùng allPendingRescueRequestsProvider (không filter khoảng cách)
+    final requestData = DISABLE_DISTANCE_FILTER
+        ? ref.watch(allPendingRescueRequestsProvider)
+        : ref.watch(pendingRescueRequestsProvider(locationMap));
 
     return Scaffold(
       appBar: AppBar(
@@ -80,43 +75,23 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Stack(
-          children: [
-            USE_MOCK_DATA
-                ? _buildListView(context, ref, requestList, locationMap)
-                : ref
-                      .watch(pendingRescueRequestsProvider(locationMap))
-                      .when(
-                        data: (list) {
-                          print(
-                            'Loaded ${list.length} rescue requests (real data)',
-                          );
-                          return _buildListView(
-                            context,
-                            ref,
-                            list,
-                            locationMap,
-                          );
-                        },
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(color: Colors.blue),
-                        ),
-                        error: (error, st) {
-                          print(' Error: $error');
-                          return Center(
-                            child: Text(
-                              'Lỗi: $error',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          );
-                        },
-                      ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: LogoutButton(onTap: vm.logout),
-            ),
-          ],
+        child: requestData.when(
+          data: (list) {
+            print('✅ Loaded ${list.length} rescue requests');
+            return _buildListView(context, ref, list, locationMap);
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.blue),
+          ),
+          error: (error, st) {
+            print(' Error: $error');
+            return Center(
+              child: Text(
+                'Lỗi: $error',
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -173,9 +148,7 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
           return RescueRequestCard(
             request: request,
             onAccept: () {
-              context.push(
-                '/garage/rescue-request-detail/${request.id}',
-              );
+              context.push('/garage/rescue-request-detail/${request.id}');
             },
           );
         },

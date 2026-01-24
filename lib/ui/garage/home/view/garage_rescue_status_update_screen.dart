@@ -2,25 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/data/datasources/remote/rescue_service.dart';
-import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 
 // Provider để watch rescue request real-time
 final currentGarageRescueRequestProvider =
     StreamProvider.family<RescueRequestModel?, String>((ref, rescueRequestId) {
-  final rescueService = RescueService();
-  return rescueService
-      .watchRescueRequest(rescueRequestId)
-      .asyncMap((data) {
-    if (data == null) return null;
-    return RescueRequestModel.fromMap(rescueRequestId, data);
-  });
-});
+      final rescueService = RescueService();
+      return rescueService.watchRescueRequest(rescueRequestId).asyncMap((data) {
+        if (data == null) return null;
+        return RescueRequestModel.fromMap(rescueRequestId, data);
+      });
+    });
 
 // Provider để quản lý update trạng thái
 final garageUpdateRescueProvider =
     StateNotifierProvider<GarageUpdateNotifier, AsyncValue<void>>((ref) {
-  return GarageUpdateNotifier();
-});
+      return GarageUpdateNotifier();
+    });
 
 class GarageUpdateNotifier extends StateNotifier<AsyncValue<void>> {
   GarageUpdateNotifier() : super(const AsyncValue.data(null));
@@ -53,7 +50,9 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch real-time updates
-    final requestStream = ref.watch(currentGarageRescueRequestProvider(rescueRequestId));
+    final requestStream = ref.watch(
+      currentGarageRescueRequestProvider(rescueRequestId),
+    );
 
     return requestStream.when(
       data: (request) {
@@ -112,7 +111,9 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                                 height: 60,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.lightBlueAccent.withOpacity(0.2),
+                                  color: Colors.lightBlueAccent.withOpacity(
+                                    0.2,
+                                  ),
                                 ),
                                 child: const Icon(
                                   Icons.person,
@@ -214,8 +215,8 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                             children: request.issues
                                 .map(
                                   (issue) => Chip(
-                                    backgroundColor:
-                                        Colors.blueAccent.withOpacity(0.2),
+                                    backgroundColor: Colors.blueAccent
+                                        .withOpacity(0.2),
                                     label: Text(
                                       issue,
                                       style: const TextStyle(
@@ -383,7 +384,9 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                           Text(
                             steps[i]['title'] as String,
                             style: TextStyle(
-                              color: request.progressStep >= (steps[i]['step'] as int)
+                              color:
+                                  request.progressStep >=
+                                      (steps[i]['step'] as int)
                                   ? Colors.white
                                   : Colors.grey.shade400,
                               fontWeight: FontWeight.bold,
@@ -470,13 +473,13 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              
+
               try {
                 // Update progressStep
                 await ref
                     .read(garageUpdateRescueProvider.notifier)
                     .updateRescueProgress(rescueRequestId, step);
-                
+
                 // Show success message
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

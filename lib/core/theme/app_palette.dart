@@ -17,4 +17,11 @@ class AppPalette {
 
   static const red = Color.fromRGBO(249, 64, 90, 1);
   static const green = Color.fromRGBO(60, 214, 158, 1);
+
+  // Background
+
+  static const bgColors = <Color>[
+    Color(0xFF080617),
+    Color(0xFF2B217D),
+  ];
 }

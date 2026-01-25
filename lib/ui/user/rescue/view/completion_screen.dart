@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../viewmodel/completion_vm.dart';
-import '../widgets/completion_actions.dart';
 import '../widgets/completion_header.dart';
 import '../widgets/completion_info_card.dart';
 import '../widgets/completion_rating_card.dart';
+import 'package:road_assist/ui/shared/widgets/view_history_button.dart';
 
 class CompletionScreen extends ConsumerWidget {
   const CompletionScreen({super.key});
@@ -51,10 +52,9 @@ class CompletionScreen extends ConsumerWidget {
                 avatar: payload.garageAvatar,
               ),
               const SizedBox(height: 12),
-              CompletionActions(
-                onViewHistory: () {
-                  // TODO: navigate history
-                  print('history');
+              ViewHistoryButton(
+                onPressed: () {
+                  context.pushReplacement('/user/history');
                 },
               ),
               const SizedBox(height: 12),

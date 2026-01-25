@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/completion_payload.dart';
+import 'package:road_assist/data/models/garage_completion_payload.dart';
 
-class CompletionInfoCard extends StatelessWidget {
-  final CompletionPayload data;
+class GarageCompletionInfoCard extends StatelessWidget {
+  final GarageCompletionPayload data;
 
-  const CompletionInfoCard({super.key, required this.data});
+  const GarageCompletionInfoCard({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -25,29 +25,31 @@ class CompletionInfoCard extends StatelessWidget {
             children: [
               Image.asset(data.vehicleImage, width: 129),
               const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    data.vehicleName,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w400,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      maxLines: 1,
+                      data.vehicleName,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    maxLines: 1,
-                    data.vehicleModel,
-                    style: const TextStyle(
-                      color: Color.fromRGBO(113, 126, 154, 1),
-                      fontSize: 15,
+                    const SizedBox(height: 4),
+                    Text(
+                      maxLines: 1,
+                      data.vehicleModel,
+                      style: const TextStyle(
+                        color: Color.fromRGBO(113, 126, 154, 1),
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -63,6 +65,18 @@ class CompletionInfoCard extends StatelessWidget {
             'Hoàn thành lúc ' + data.completedTime,
             Colors.cyanAccent,
           ),
+          const Divider(color: Colors.white24, height: 26),
+          Text(
+            'Thông tin khách hàng',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _infoRow(Icons.person, data.userName, Colors.cyanAccent),
+          _infoRow(Icons.phone, data.userPhone, Colors.cyanAccent),
         ],
       ),
     );
@@ -90,14 +104,3 @@ class CompletionInfoCard extends StatelessWidget {
     );
   }
 }
-
-// Widget _EditText(String text) {
-//   return Text(
-//     text,
-//     style: TextStyle(
-//       color: Color.fromRGBO(52, 202, 232, 1),
-//       fontSize: 16,
-//       fontWeight: FontWeight.w600,
-//     ),
-//   );
-// }

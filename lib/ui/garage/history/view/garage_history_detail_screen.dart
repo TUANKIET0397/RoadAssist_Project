@@ -2,24 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
-import 'package:road_assist/ui/user/history/model/history_item.dart';
+import 'package:road_assist/ui/garage/history/model/garage_history_item.dart';
 import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
 import 'package:road_assist/ui/shared/widgets/view_history_button.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 
-class HistoryDetailScreen extends ConsumerStatefulWidget {
-  final HistoryItem historyItem;
+class GarageHistoryDetailScreen extends ConsumerStatefulWidget {
+  final GarageHistoryItem historyItem;
 
-  const HistoryDetailScreen({super.key, required this.historyItem});
+  const GarageHistoryDetailScreen({
+    super.key,
+    required this.historyItem,
+  });
 
   @override
-  ConsumerState<HistoryDetailScreen> createState() =>
-      _HistoryDetailScreenState();
+  ConsumerState<GarageHistoryDetailScreen> createState() =>
+      _GarageHistoryDetailScreenState();
 }
 
-class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
+class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.historyItem.rescueRequestId == null) {
@@ -122,18 +125,21 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
                 _buildStatusRow(request),
                 _buildInfoRow('Loại xe', request.vehicleType),
                 _buildInfoRow('Mẫu xe', request.vehicleModel),
-                _buildInfoRow('Các vấn đề', request.issues.join(', ')),
+                _buildInfoRow(
+                  'Các vấn đề',
+                  request.issues.join(', '),
+                ),
               ],
             ),
 
             const SizedBox(height: 16),
 
-            // Garage info
+            // User info (thay vì garage info)
             _buildSection(
-              title: 'Thông tin garage',
+              title: 'Thông tin người dùng',
               children: [
-                _buildInfoRow('Tên garage', request.name ?? 'N/A'),
-                _buildInfoRow('SĐT', request.garagePhone ?? 'N/A'),
+                _buildInfoRow('Tên khách hàng', request.userName),
+                _buildInfoRow('SĐT', request.userPhone),
               ],
             ),
 
@@ -153,55 +159,26 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // Timeline progress
-            RescueProgressTimeline(request: request, showBorder: true),
+            RescueProgressTimeline(
+              request: request,
+              showBorder: true,
+            ),
             
             const SizedBox(height: 20),
             
-            // Contact garage button
-            if (request.garageId != null)
-              ViewHistoryButton(
-                text: 'Liên hệ với garage',
-                icon: Icons.chat,
-                onPressed: () => _contactGarage(context, ref, request),
-              ),
-
-            const SizedBox(height: 200),
-
+            // Contact user button
+            ViewHistoryButton(
+              text: 'Liên hệ với người dùng',
+              icon: Icons.chat,
+              onPressed: () => _contactUser(context, ref, request),
+            ),
+            
+            // Timeline
+           const SizedBox(height: 200),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _contactGarage(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
-    if (request.garageId == null) return;
-    
-    try {
-      final userId = ref.read(userIdProvider);
-      if (userId == null) return;
-      
-      final chatRepo = ref.read(chatRepositoryProvider);
-      final chatId = await chatRepo.getOrCreateChat(
-        userId: userId,
-        garageId: request.garageId!,
-      );
-      
-      if (context.mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(chatId: chatId),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi kết nối: $e')),
-        );
-      }
-    }
   }
 
   Widget _buildSection({
@@ -230,6 +207,34 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _contactUser(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    try {
+      final garageId = ref.read(userIdProvider); // Current garage ID
+      if (garageId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: request.userId,
+        garageId: garageId,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildStatusRow(RescueRequestModel request) {
@@ -264,7 +269,10 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 18),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+            ),
           ),
           const Spacer(),
           Expanded(
@@ -274,7 +282,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
               textAlign: TextAlign.end,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),

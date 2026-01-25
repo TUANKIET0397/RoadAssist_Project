@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/data/datasources/remote/rescue_service.dart';
+import 'package:road_assist/ui/garage/home/viewmodel/garage_completion_vm.dart';
+import 'package:road_assist/data/models/garage_completion_payload.dart';
+import 'package:road_assist/ui/garage/home/view/garage_completion_screen.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 
 // Provider để watch rescue request real-time
 final currentGarageRescueRequestProvider =
@@ -47,6 +54,34 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
     required RescueRequestModel request,
   }) : initialRequest = request;
 
+  static Future<void> _contactUser(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    try {
+      final garageId = ref.read(userIdProvider); // Current garage ID
+      if (garageId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: request.userId,
+        garageId: garageId,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch real-time updates
@@ -64,15 +99,29 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
         }
 
         // Kiểm tra nếu hoàn thành hết (progressStep = 4)
-        if (request.progressStep >= 4) {
+        if (request.progressStep >= 4 && request.status == 'completed') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pop();
-            // TODO: Navigate to history screen
-            // Navigator.of(context).push(
-            //   MaterialPageRoute(
-            //     builder: (context) => GarageRescueHistoryScreen(),
-            //   ),
-            // );
+            final payload = GarageCompletionPayload(
+              title: 'Hoàn thành cứu hộ',
+              subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
+              vehicleImage: kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
+              vehicleName: request.vehicleType,
+              vehicleModel: request.vehicleModel,
+              issue: request.issues.join(', '),
+              address: request.location,
+              completedTime:
+                  '${request.completedAt!.hour}:${request.completedAt!.minute.toString().padLeft(2, '0')} ${request.completedAt!.day}/${request.completedAt!.month}/${request.completedAt!.year}',
+              userName: request.userName,
+              userPhone: request.userPhone,
+            );
+
+            ref.read(garageCompletionProvider.notifier).setCompletion(payload);
+
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const GarageCompletionScreen(),
+              ),
+            );
           });
         }
 
@@ -243,17 +292,27 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 52,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigate to chat screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.lightBlueAccent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => _contactUser(context, ref, request),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.lightBlueAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text('Chat với khách hàng'),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(onPressed: (){}, child: const Text('Gọi khách hàng')),
+                            ],
                           ),
-                        ),
-                        child: const Text('Chat với khách hàng'),
+                          const SizedBox(height: 12),
+                          ElevatedButton(onPressed: (){}, child: const Text('Xem vị trí khách hàng')),
+                        ],
                       ),
                     ),
                   ],

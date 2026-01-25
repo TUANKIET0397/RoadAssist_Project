@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/ui/user/history/viewmodel/history_vm.dart';
-import 'package:road_assist/ui/user/history/widgets/history_card.dart';
-import 'package:road_assist/ui/user/history/widgets/history_filter_tabs.dart';
+import 'package:road_assist/ui/garage/history/viewmodel/garage_history_vm.dart';
+import 'package:road_assist/ui/garage/history/widgets/garage_history_card.dart';
+import 'package:road_assist/ui/garage/history/widgets/garage_history_filter_tabs.dart';
 
-class HistoryScreen extends ConsumerWidget {
-  const HistoryScreen({super.key});
+class GarageHistoryScreen extends ConsumerWidget {
+  const GarageHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final listAsync = ref.watch(HistoryListProvider);
+    final listAsync = ref.watch(GarageHistoryListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +37,7 @@ class HistoryScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               children: [
                 const SizedBox(height: 16),
-                const HistoryFilterTabs(),
+                const GarageHistoryFilterTabs(),
                 const SizedBox(height: 20),
                 if (list.isEmpty)
                   const Center(
@@ -53,7 +53,7 @@ class HistoryScreen extends ConsumerWidget {
                     ),
                   )
                 else ...[
-                  ...list.map((e) => HistoryCard(item: e)),
+                  ...list.map((e) => GarageHistoryCard(item: e)),
                 ],
                 
 

@@ -39,13 +39,14 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(garageProvider);
-    final garage = state.savedGarage;
+    final garage = state.savedGarage; // Dùng savedGarage cho hiển thị
     final colorScheme = Theme.of(context).colorScheme;
+    // final vm = ref.read(accountVmProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Trang Garage',
+          'Trang Garage ',
           style: TextStyle(
             color: colorScheme.onSurface,
             fontSize: 20,
@@ -366,6 +367,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 50),
 
               /// LOGOUT

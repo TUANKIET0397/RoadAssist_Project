@@ -29,8 +29,6 @@ final chatListProvider = StreamProvider<List<ChatModel>>((ref) {
   );
 });
 
-
-
 /// REPOSITORY
 
 class ChatRepository {
@@ -38,8 +36,6 @@ class ChatRepository {
   final Ref _ref;
 
   ChatRepository(this._ref);
-
-
 
   Stream<List<ChatModel>> getChatListByRole({
     required String userId,
@@ -61,25 +57,31 @@ class ChatRepository {
     );
   }
 
-  /// Get or create Chat
-
+  /// Get or create Chat - FIXED VERSION
   Future<String> getOrCreateChat({
     required String userId,
     required String garageId,
   }) async {
+    print('🔍 Checking chat for userId: $userId, garageId: $garageId');
+
     final existing = await _firestore
         .collection('chats')
-        .where('members', arrayContainsAny: [userId, garageId])
-        .limit(1)
+        .where('members', arrayContains: userId) // Chứa userId
         .get();
 
-    if (existing.docs.isNotEmpty) {
-      final chat = ChatModel.fromMap(existing.docs.first.id, existing.docs.first.data());
-      final members = chat.members;
-      if(members.contains(userId) && members.contains(garageId) && members.length == 2){
-        return existing.docs.first.id;
+
+    for (var doc in existing.docs) {
+      final data = doc.data();
+      final members = List<String>.from(data['members'] ?? []);
+
+
+      if (members.length == 2 &&
+          members.contains(userId) &&
+          members.contains(garageId)) {
+        return doc.id;
       }
     }
+
 
     final userDoc = await _firestore.collection('users').doc(userId).get();
     final garageDoc = await _firestore.collection('garages').doc(garageId).get();
@@ -88,7 +90,7 @@ class ChatRepository {
       'members': [userId, garageId],
       'memberInfo': {
         userId: {
-          'role': 'custommer',
+          'role': 'customer',
           'name': userDoc.data()?['name'] ?? 'User',
           'avatar': userDoc.data()?['image'] ?? ''
         },
@@ -103,7 +105,6 @@ class ChatRepository {
       'updatedAt': FieldValue.serverTimestamp(),
       'createdAt': FieldValue.serverTimestamp(),
     });
-
     return chatRef.id;
   }
 

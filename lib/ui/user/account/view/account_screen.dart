@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
     as outViewModel;
@@ -108,7 +109,7 @@ class AccountScreen extends ConsumerWidget {
                           title: 'Garage yêu thích',
                           icon: Icons.favorite_border,
                           onTap: () {
-                            // mở favorite garage
+                            context.push('/user/garage/favourite');
                           },
                         ),
                         ActionItem(

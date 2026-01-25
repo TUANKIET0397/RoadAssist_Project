@@ -186,7 +186,7 @@ class AuthRoleScreen extends ConsumerWidget {
                           child: ElevatedButton(
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF4D67),
+                              backgroundColor: Color.fromRGBO(249, 64, 90, 0.39),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -198,7 +198,7 @@ class AuthRoleScreen extends ConsumerWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.phone, size: 20),
-                                SizedBox(width: 8),
+                                SizedBox(width: 4),
                                 Text(
                                   'Gọi Ngay',
                                   style: TextStyle(
@@ -307,8 +307,8 @@ class _RoleButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 100,
-        height: 100,
+        width: 130,
+        height: 130,
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : const Color(0xFF2a3d50),
           shape: BoxShape.circle,
@@ -325,15 +325,15 @@ class _RoleButton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(width: 50, height: 50, child: icon),
+            SizedBox(width: 60, height: 60, child: icon),
             const SizedBox(height: 4),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isSelected ? const Color(0xFF0DD7FF) : Colors.white70,
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],

@@ -177,11 +177,6 @@ class GarageRegisterScreenModel extends ChangeNotifier {
       return false;
     }
 
-    if (openTime == null || closeTime == null) {
-      errorMessage = 'Chưa chọn giờ hoạt động';
-      return false;
-    }
-
     if (selectedServices.isEmpty) {
       errorMessage = 'Chưa chọn dịch vụ';
       return false;

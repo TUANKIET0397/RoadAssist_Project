@@ -21,12 +21,14 @@ import 'package:road_assist/ui/auth/view/garage_register_screen.dart';
 
 // ===== USER UI =====
 import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
-import 'package:road_assist/ui/user/garage/view/garage_screen.dart';
+import 'package:road_assist/ui/user/garage/view/garage_list_screen.dart';
 import 'package:road_assist/ui/user/home/view/home_screen.dart';
 import 'package:road_assist/ui/user/history/view/history_screen.dart';
 import 'package:road_assist/ui/user/account/view/account_screen.dart';
 
 import 'package:road_assist/ui/user/garage/view/garageDetail.dart';
+import 'package:road_assist/ui/user/garage/widget/garage_favourite_screen.dart';
+
 
 // ===== GARAGE UI =====
 import 'package:road_assist/ui/garage/review/view/garage_reviews_screen.dart';
@@ -113,6 +115,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'detail',
                 builder: (_, __) => const GarageDetailScreen(),
+              ),
+              GoRoute(
+                path: 'favourite',
+                builder: (_, __) => const GarageFavouriteScreen(),
               ),
             ],
           ),

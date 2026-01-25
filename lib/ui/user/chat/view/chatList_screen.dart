@@ -26,14 +26,14 @@ class ChatListScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1a1f3a),
+          backgroundColor: Color.fromRGBO(37, 44, 59, 1),
           elevation: 0,
           title: const Text(
             'Danh sách Chat',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
             ),
           ),
           actions: [

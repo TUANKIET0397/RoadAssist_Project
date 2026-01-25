@@ -424,10 +424,12 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                 ),
                               );
 
-                          if (result != null) {
-                            print(result.latitude);
-                            print(result.longitude);
-                            print(result.address);
+                          if (result != null && mounted) {
+                            setState(() {
+                              currentLat = result.latitude;
+                              currentLng = result.longitude;
+                              currentAddress = result.address;
+                            });
                           }
                         },
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
+import 'package:road_assist/ui/map/location_pick_result.dart';
 
 class MapPickScreen extends StatefulWidget {
   final double? initialLat;
@@ -61,15 +62,18 @@ class _MapPickScreenState extends State<MapPickScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chọn vị trí Garage'),
+        title: const Text('Chọn vị trí'),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context, {
-                'lat': selectedLatLng!.latitude,
-                'lng': selectedLatLng!.longitude,
-                'address': address,
-              });
+              Navigator.pop(
+                context,
+                LocationPickResult(
+                  latitude: selectedLatLng!.latitude,
+                  longitude: selectedLatLng!.longitude,
+                  address: address,
+                ),
+              );
             },
             child: const Text(
               'Xong',

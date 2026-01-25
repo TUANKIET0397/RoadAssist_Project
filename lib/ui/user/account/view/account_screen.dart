@@ -2,29 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
-    as vm;
+    as outViewModel;
+
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/action_grid.dart';
+import 'package:road_assist/ui/user/account/widgets/action_item.dart';
 import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 import 'package:road_assist/ui/user/account/widgets/profile_card.dart';
 import 'package:road_assist/ui/user/account/widgets/vehicle_section.dart';
 
 import '../model/vehicle_model.dart';
-
-const List<String> kUserVehicleTypes = [
-  'Xe máy',
-  'Xe Bốn bánh',
-  'Ô tô',
-  'Xe tải',
-];
-
-const Map<String, String> kVehicleImages = {
-  'Xe máy': 'assets/images/illustrations/motorbike.png',
-  'Xe Bốn bánh': 'assets/images/illustrations/car4.png',
-  'Ô tô': 'assets/images/illustrations/car.png',
-  'Xe tải': 'assets/images/illustrations/truck.png',
-};
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
@@ -92,25 +81,60 @@ class AccountScreen extends ConsumerWidget {
                       _openAddVehicleBottomSheet(context, ref, vehicles),
                 ),
 
-                // const SizedBox(height: 20),
-                // ActionGrid(actions: vm.actions, onTap: vm.onActionTap),
+                const SizedBox(height: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Cứu hộ & hoạt động',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    //dùng lại với garage
+                    ActionGrid(
+                      children: [
+                        ActionItem(
+                          title: 'Các cuộc cứu hộ',
+                          icon: Icons.search,
+                          onTap: () {
+                            // đi tới rescue
+                          },
+                        ),
+                        ActionItem(
+                          title: 'Garage yêu thích',
+                          icon: Icons.favorite_border,
+                          onTap: () {
+                            // mở favorite garage
+                          },
+                        ),
+                        ActionItem(
+                          title: 'Thông tin cá nhân',
+                          icon: Icons.person_outline,
+                          onTap: () {
+                            // profile
+                          },
+                        ),
+                        ActionItem(
+                          title: 'Đổi mật khẩu',
+                          icon: Icons.lock_outline,
+                          onTap: () {
+                            // change password
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
-                LogoutButton(onTap: vm.logout),
+                LogoutButton(onTap: outViewModel.logout),
               ],
             ),
           ),
         );
-
-        // return
-        // Column(
-        //   crossAxisAlignment: CrossAxisAlignment.start,
-        //   children: [
-        //     Text('Tên: ${user.name}'),
-        //     Text('SĐT: ${user.phone}'),
-        //     Text('Địa chỉ: ${user.address}'),
-        //     Text('Loại xe: ${user.vehicleTypes.join(', ')}'),
-        //   ],
-        // );
       },
     );
   }

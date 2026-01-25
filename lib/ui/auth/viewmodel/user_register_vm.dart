@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 final userRegisterVMProvider = ChangeNotifierProvider<UserRegisterViewModel>(
   (ref) => UserRegisterViewModel(),
@@ -33,10 +34,14 @@ class UserRegisterViewModel extends ChangeNotifier {
 
   // Vehicle Types
   final List<String> allVehicleTypes = [
-    'Xe Bốn bánh',
-    'Xe máy',
+    'Xe Số',
+    'Xe Tay ga',
+    'Xe Điện',
     'Ô tô',
-    'Xe tải',
+    'Xe Bus',
+    'Xe Container',
+    'Xe Tải',
+    'Xe Ba Gác',
   ];
   final List<String> selectedVehicleTypes = [];
 
@@ -164,7 +169,9 @@ class UserRegisterViewModel extends ChangeNotifier {
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
         'address': addressController.text.trim(),
-        'vehicleTypes': selectedVehicleTypes,
+        'vehicles': selectedVehicleTypes
+            .map((type) => {'type': type, 'description': null})
+            .toList(),
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
         'role': 'customer',

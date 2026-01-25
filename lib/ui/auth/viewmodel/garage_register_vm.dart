@@ -119,15 +119,20 @@ class GarageRegisterScreenModel extends ChangeNotifier {
   Future<void> setLocationFromLatLng({
     required double lat,
     required double lng,
+    String? address,
   }) async {
     latitude = lat;
     longitude = lng;
 
-    try {
-      final addr = await LocationService.getAddressFromLatLng(lat, lng);
-      addressController.text = addr;
-    } catch (e) {
-      addressController.text = '$lat, $lng';
+    if (address != null && address.isNotEmpty) {
+      addressController.text = address;
+    } else {
+      try {
+        addressController.text =
+        await LocationService.getAddressFromLatLng(lat, lng);
+      } catch (_) {
+        addressController.text = '$lat, $lng';
+      }
     }
 
     notifyListeners();

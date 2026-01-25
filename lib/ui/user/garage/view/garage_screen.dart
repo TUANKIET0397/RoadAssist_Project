@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
 
 import '../viewmodel/garage_vm.dart';
-
-
 
 class GarageListScreen extends ConsumerStatefulWidget {
   const GarageListScreen({super.key});
@@ -18,17 +15,33 @@ class GarageListScreen extends ConsumerStatefulWidget {
 }
 
 class _GarageListScreenState extends ConsumerState<GarageListScreen> {
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(garageProvider.notifier).fetchGarages());
+
+    Future.microtask(
+          () => ref.read(garageProvider.notifier).fetchGarages(),
+    );
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        ref.read(garageProvider.notifier).loadMore();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(garageProvider);
-
 
     return Container(
       decoration: const BoxDecoration(
@@ -92,26 +105,32 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
           Expanded(
             child: SafeArea(
               top: false,
-              child: Builder(
-                builder: (_) {
-                  if (state.isLoading)
-                    return const Center(child: CircularProgressIndicator());
-                  if (state.garages.isEmpty)
-                    return const Center(
-                      child: Text(
-                        'Không có garage nào',
-                        style: TextStyle(color: Colors.white),
+              child: state.isLoading && state.garages.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : state.garages.isEmpty
+                  ? const Center(
+                child: Text(
+                  'Không có garage nào',
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+                  : ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+                itemCount: state.garages.length +
+                    (state.isLoadingMore ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= state.garages.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: CircularProgressIndicator(),
                       ),
                     );
+                  }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-                    itemCount: state.garages.length,
-                    itemBuilder: (context, index) {
-                      final garage = state.garages[index];
-                      return GarageCard(garage: garage);
-                    },
-                  );
+                  final garage = state.garages[index];
+                  return GarageCard(garage: garage);
                 },
               ),
             ),
@@ -131,7 +150,7 @@ class GarageCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ratingState = ref.watch(garageDetailProvider(garage.id));
 
-      return GestureDetector(
+    return GestureDetector(
       onTap: () {
         ref.read(selectedGarageProvider.notifier).state = garage;
         context.push('/user/garage/detail');
@@ -227,10 +246,10 @@ class GarageCard extends ConsumerWidget {
                                   await ref
                                       .read(garageProvider.notifier)
                                       .toggleFavorite(
-                                        userId:
-                                            'currentUserId', // TODO: set actual userId
-                                        garage: garage,
-                                      );
+                                    userId:
+                                    'currentUserId', // TODO: set actual userId
+                                    garage: garage,
+                                  );
                                 },
                                 child: Icon(
                                   garage.isFavorite
@@ -372,8 +391,7 @@ class GarageCard extends ConsumerWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChatListScreen(
-                        ),
+                        builder: (context) => ChatListScreen(),
                       ),
                     );
                   },

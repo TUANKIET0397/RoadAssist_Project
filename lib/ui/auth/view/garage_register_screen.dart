@@ -10,6 +10,7 @@ import 'package:road_assist/ui/auth/widgets/time_picker_field.dart';
 import 'package:road_assist/ui/auth/widgets/service_chip.dart';
 import 'package:road_assist/ui/auth/widgets/vehicle_type_item.dart';
 import 'package:road_assist/ui/auth/widgets/section_header.dart';
+import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/auth/view/garage_success_screen.dart';
 
@@ -72,7 +73,7 @@ class GarageRegisterScreen extends ConsumerWidget {
                 ),
                 GestureDetector(
                   onTap: () async {
-                    final result = await Navigator.push(
+                    final result = await Navigator.push<LocationPickResult>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => MapPickScreen(
@@ -82,17 +83,12 @@ class GarageRegisterScreen extends ConsumerWidget {
                       ),
                     );
 
-                    if (result != null && result is Map<String, dynamic>) {
-                      // Cập nhật lat, lng qua ViewModel
+                    if (result != null) {
                       await vmNotifier.setLocationFromLatLng(
-                        lat: result['lat'],
-                        lng: result['lng'],
+                        lat: result.latitude,
+                        lng: result.longitude,
+                        address: result.address,
                       );
-
-                      // Cập nhật address trực tiếp vào controller
-                      if (result['address'] != null) {
-                        vm.addressController.text = result['address'];
-                      }
                     }
                   },
                   child: AbsorbPointer(

@@ -2,24 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
-import 'package:road_assist/ui/user/history/model/history_item.dart';
-import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
+import 'package:road_assist/ui/garage/history/model/garage_history_item.dart';
 import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
 
-class HistoryDetailScreen extends ConsumerStatefulWidget {
-  final HistoryItem historyItem;
+class GarageHistoryDetailScreen extends ConsumerStatefulWidget {
+  final GarageHistoryItem historyItem;
 
-  const HistoryDetailScreen({
+  const GarageHistoryDetailScreen({
     super.key,
     required this.historyItem,
   });
 
   @override
-  ConsumerState<HistoryDetailScreen> createState() =>
-      _HistoryDetailScreenState();
+  ConsumerState<GarageHistoryDetailScreen> createState() =>
+      _GarageHistoryDetailScreenState();
 }
 
-class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
+class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.historyItem.rescueRequestId == null) {
@@ -121,7 +120,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFF19253B),
+                color: const Color(0xFF001029),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +184,9 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
 
             const SizedBox(height: 20),
 
-            
+            // Timeline progress
+           
+
             const SizedBox(height: 16),
 
             // Vehicle info
@@ -203,12 +204,12 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // Garage info
+            // User info (thay vì garage info)
             _buildSection(
-              title: 'Thông tin garage',
+              title: 'Thông tin người dùng',
               children: [
-                _buildInfoRow('Tên garage', request.name ?? 'N/A'),
-                _buildInfoRow('SĐT', request.garagePhone ?? 'N/A'),
+                _buildInfoRow('Tên khách hàng', request.userName),
+                _buildInfoRow('SĐT', request.userPhone),
               ],
             ),
 
@@ -228,12 +229,12 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
 
             const SizedBox(height: 16),
 
-            // Timeline progress
             RescueProgressTimeline(
               request: request,
               showBorder: true,
             ),
-
+            // Timeline
+           
           ],
         ),
       ),
@@ -248,7 +249,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: const Color(0xFF19253B),
+        color: const Color(0xFF001029),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +258,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
             title,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -278,7 +279,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
             label,
             style: const TextStyle(
               color: Colors.white70,
-              fontSize: 14,
+              fontSize: 16,
             ),
           ),
           const Spacer(),
@@ -289,7 +290,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
               textAlign: TextAlign.end,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),

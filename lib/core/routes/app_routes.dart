@@ -5,9 +5,11 @@ import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
+import 'package:road_assist/ui/user/rescue/view/completion_screen.dart';
 
 import 'route_paths.dart';
 import 'route_redirect.dart';
+import 'navigation_observer.dart';
 
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/ui/navigation/view/user_main_screen.dart';
@@ -31,6 +33,8 @@ import 'package:road_assist/ui/user/garage/view/garageDetail.dart';
 // ===== GARAGE UI =====
 import 'package:road_assist/ui/garage/review/view/garage_reviews_screen.dart';
 //history
+import 'package:road_assist/ui/garage/history/view/garage_history_screen.dart';
+import 'package:road_assist/ui/garage/home/view/garage_completion_screen.dart';
 import 'package:road_assist/ui/garage/account/view/garage_account_screen.dart';
 
 import 'package:road_assist/ui/garage/account/view/info_screen.dart';
@@ -42,6 +46,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     debugLogDiagnostics: true,
+    
+    /// 🎯 Centralized navbar visibility control through observer
+    observers: [
+      NavigationObserver(),
+    ],
 
     /// App bắt đầu từ màn chọn role
     initialLocation: RoutePaths.authRole,
@@ -124,11 +133,36 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: RoutePaths.userAccount,
             builder: (_, __) => const AccountScreen(),
           ),
-          GoRoute(
-            path: '/rescue-request',
-            builder: (context, state) => const RescueScreenWrapper(),
-          ),
         ],
+      ),
+
+      // =================================================
+      // ============= RESCUE FLOW (STANDALONE) ==========
+      // =================================================
+      GoRoute(
+        path: '/rescue-request',
+        builder: (context, state) => const RescueScreenWrapper(),
+      ),
+      GoRoute(
+        path: '/user/completion',
+        builder: (_, __) => const CompletionScreen(),
+      ),
+      
+      // =================================================
+      // =========== GARAGE RESCUE (STANDALONE) ==========
+      // =================================================
+      GoRoute(
+        path: '/garage/rescue-request-detail/:requestId',
+        builder: (context, state) {
+          final requestId = state.pathParameters['requestId'] ?? '';
+          return GarageRescueRequestDetailScreen(
+            rescueRequestId: requestId,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/garage/completion',
+        builder: (_, __) => const GarageCompletionScreen(),
       ),
 
       // =================================================
@@ -154,22 +188,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RoutePaths.garageHome,
             builder: (_, __) => const GarageHomeScreen(),
-            // builder: (_, __) => const GarageHomeScreen(),
-          ),
-          GoRoute(
-            path: '/garage/rescue-request-detail/:requestId',
-            builder: (context, state) {
-              final requestId = state.pathParameters['requestId'] ?? '';
-              return GarageRescueRequestDetailScreen(
-                rescueRequestId: requestId,
-              );
-            },
           ),
           GoRoute(
             path: '/garage/history',
-            builder: (_, __) => Text('hello'),
-
-            // builder: (_, __) => const GarageHistoryScreen(),
+            builder: (_, __) => const GarageHistoryScreen(),
           ),
           GoRoute(
             path: RoutePaths.garageAccount,

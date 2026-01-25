@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../viewmodel/completion_vm.dart';
-import '../widgets/completion_actions.dart';
-import '../widgets/completion_header.dart';
-import '../widgets/completion_info_card.dart';
-import '../widgets/completion_rating_card.dart';
+import '../viewmodel/garage_completion_vm.dart';
+import '../widgets/garage_completion_header.dart';
+import '../widgets/garage_completion_info_card.dart';
+import '../widgets/garage_completion_actions.dart';
 
-class CompletionScreen extends ConsumerWidget {
-  const CompletionScreen({super.key});
+class GarageCompletionScreen extends ConsumerWidget {
+  const GarageCompletionScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final payload = ref.watch(completionProvider);
+    final payload = ref.watch(garageCompletionProvider);
 
     if (payload == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -31,30 +30,15 @@ class CompletionScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
-              CompletionHeader(
+              GarageCompletionHeader(
                 title: payload.title,
                 subtitle: payload.subtitle,
               ),
-              CompletionInfoCard(data: payload),
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 2),
-                child: Text(
-                  'Đánh giá',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              CompletionRatingCard(
-                garageName: payload.garageName,
-                avatar: payload.garageAvatar,
-              ),
+              GarageCompletionInfoCard(data: payload),
               const SizedBox(height: 12),
-              CompletionActions(
+              GarageCompletionActions(
                 onViewHistory: () {
-                  context.pushReplacement('/user/history');
+                  context.go('/garage/history');
                 },
               ),
               const SizedBox(height: 12),

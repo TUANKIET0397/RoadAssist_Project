@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/navigation/configs/user_bottom_nav.dart';
 import 'package:road_assist/ui/navigation/widgets/slanted_animated_bottom_bar.dart';
+import 'package:road_assist/core/providers/navigation_provider.dart';
 
-class UserMainScreen extends StatelessWidget {
+class UserMainScreen extends ConsumerWidget {
   final Widget child;
 
   const UserMainScreen({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showNavigation = ref.watch(navigationVisibilityProvider);
+
     return Scaffold(
-      extendBody: false,
+      extendBody: true,
       body: child,
-      bottomNavigationBar: SlantedAnimatedBottomBar(
-        items: userBottomNavItems,
-        defaultIndex: 2,
-      ),
+      bottomNavigationBar: showNavigation
+          ? SlantedAnimatedBottomBar(
+              items: userBottomNavItems,
+              defaultIndex: 2,
+            )
+          : null,
     );
   }
 }

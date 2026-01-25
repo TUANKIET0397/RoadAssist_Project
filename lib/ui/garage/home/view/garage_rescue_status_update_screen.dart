@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/data/datasources/remote/rescue_service.dart';
+import 'package:road_assist/ui/garage/home/viewmodel/garage_completion_vm.dart';
+import 'package:road_assist/data/models/garage_completion_payload.dart';
+import 'package:road_assist/ui/garage/home/view/garage_completion_screen.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 // Provider để watch rescue request real-time
 final currentGarageRescueRequestProvider =
@@ -64,15 +68,29 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
         }
 
         // Kiểm tra nếu hoàn thành hết (progressStep = 4)
-        if (request.progressStep >= 4) {
+        if (request.progressStep >= 4 && request.status == 'completed') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pop();
-            // TODO: Navigate to history screen
-            // Navigator.of(context).push(
-            //   MaterialPageRoute(
-            //     builder: (context) => GarageRescueHistoryScreen(),
-            //   ),
-            // );
+            final payload = GarageCompletionPayload(
+              title: 'Hoàn thành cứu hộ',
+              subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
+              vehicleImage: kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
+              vehicleName: request.vehicleType,
+              vehicleModel: request.vehicleModel,
+              issue: request.issues.join(', '),
+              address: request.location,
+              completedTime:
+                  '${request.completedAt!.hour}:${request.completedAt!.minute.toString().padLeft(2, '0')} ${request.completedAt!.day}/${request.completedAt!.month}/${request.completedAt!.year}',
+              userName: request.userName,
+              userPhone: request.userPhone,
+            );
+
+            ref.read(garageCompletionProvider.notifier).setCompletion(payload);
+
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const GarageCompletionScreen(),
+              ),
+            );
           });
         }
 

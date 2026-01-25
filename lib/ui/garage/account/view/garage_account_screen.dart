@@ -6,6 +6,7 @@ import 'package:road_assist/ui/garage/account/view/search_screen.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/garage/account/widgets/action_button.dart';
 import 'package:road_assist/ui/garage/account/widgets/vehicle_support_item.dart';
+import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart' as vm;
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 
@@ -141,7 +142,7 @@ class GarageAccountScreen extends ConsumerWidget {
               const SizedBox(height: 50),
 
               /// LOGOUT
-              // LogoutButton(onTap: vm.logout),
+              LogoutButton(onTap: vm.logout),
             ],
           ),
         ),

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:road_assist/ui/user/history/model/history_item.dart';
-import 'package:road_assist/ui/user/history/view/history_detail_screen.dart';
-import 'history_status_badge.dart';
+import 'package:road_assist/ui/garage/history/model/garage_history_item.dart';
+import 'package:road_assist/ui/garage/history/view/garage_history_detail_screen.dart';
+import 'garage_history_status_badge.dart';
 
-class HistoryCard extends StatelessWidget {
-  final HistoryItem item;
+class GarageHistoryCard extends StatelessWidget {
+  final GarageHistoryItem item;
 
-  const HistoryCard({super.key, required this.item});
+  const GarageHistoryCard({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class HistoryCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => HistoryDetailScreen(historyItem: item),
+            builder: (context) => GarageHistoryDetailScreen(historyItem: item),
           ),
         );
       },
@@ -55,11 +55,10 @@ class HistoryCard extends StatelessWidget {
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      HistoryStatusBadge(status: item.status),
                     ],
                   ),
                 ),
+                GarageHistoryStatusBadge(status: item.status),
               ],
             ),
             const Divider(color: Colors.white24),

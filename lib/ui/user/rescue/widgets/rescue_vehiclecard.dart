@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 
 class RescueVehicleCard extends ConsumerWidget {
@@ -36,9 +37,9 @@ class RescueVehicleCard extends ConsumerWidget {
           Row(
             children: [
               Image.asset(
-                'assets/images/icons/bicycle.png',
+                kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
                 width: 96,
-                height: 72,
+                fit: BoxFit.contain,
               ),
               const SizedBox(width: 12),
               Expanded(

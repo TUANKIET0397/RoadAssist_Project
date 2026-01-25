@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
@@ -25,17 +26,25 @@ class _GarageRescueRequestDetailScreenState
     extends ConsumerState<GarageRescueRequestDetailScreen> {
   bool isAccepting = false;
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> _acceptRequest() async {
     setState(() => isAccepting = true);
 
     try {
       final userId = ref.read(userIdProvider);
-      // Lấy garage name từ stream provider
-      final garageNameAsync = ref.read(currentGarageNameProvider);
-      final garageName = garageNameAsync.whenData((name) => name ?? 'Garage').maybeWhen(
-            data: (name) => name,
-            orElse: () => 'Garage',
-          );
+      print('[GARAGE ACCEPT] Starting accept with userId: $userId');
+      
+      // Lấy full garage info (name + phone) từ FutureProvider
+      final garageInfo = await ref.read(currentGarageInfoFutureProvider.future);
+      print('[GARAGE ACCEPT] Raw garageInfo from provider: $garageInfo');
+      
+      final garageName = garageInfo?['name'] ?? 'Garage';
+      final garagePhone = garageInfo?['phone'] ?? 'N/A';
+      print('[GARAGE ACCEPT] Extracted - garageName: $garageName, garagePhone: $garagePhone');
       
       final repo = ref.read(rescueRequestRepoProvider);
 
@@ -43,6 +52,7 @@ class _GarageRescueRequestDetailScreenState
         requestId: widget.rescueRequestId,
         garageId: userId ?? 'unknown_garage',
         garageName: garageName,
+        garagePhone: garagePhone,
       );
 
       if (success && mounted) {
@@ -239,7 +249,11 @@ class _GarageRescueRequestDetailScreenState
               ],
             ),
           ),
-          Image.asset('assets/images/icons/transport.png', width: 48),
+          Image.asset(
+            kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
+            width: 70,
+            fit: BoxFit.contain,
+          ),
         ],
       ),
     );

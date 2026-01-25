@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
+import 'package:road_assist/ui/user/account/view/edit_profile_screen.dart';
+import 'package:road_assist/ui/user/account/view/password_reset_user_sreen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
 
 import 'route_paths.dart';
@@ -34,7 +36,7 @@ import 'package:road_assist/ui/garage/review/view/garage_reviews_screen.dart';
 import 'package:road_assist/ui/garage/account/view/garage_account_screen.dart';
 
 import 'package:road_assist/ui/garage/account/view/info_screen.dart';
-import 'package:road_assist/ui/garage/account/view/password_reset_sreen.dart';
+import 'package:road_assist/ui/garage/account/view/password_reset_customer_sreen.dart';
 
 /// GoRouter provider
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -123,6 +125,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: RoutePaths.userAccount,
             builder: (_, __) => const AccountScreen(),
+            routes: [
+              GoRoute(
+                path: 'resetPassword',
+                builder: (_, __) => const PasswordResetUserSreen(),
+              ),
+              GoRoute(
+                path: 'changeInfo',
+                builder: (_, __) => const EditProfileScreen(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/rescue-request',

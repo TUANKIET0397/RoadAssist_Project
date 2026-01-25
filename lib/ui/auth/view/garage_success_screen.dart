@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/auth/viewmodel/garage_success_vm.dart';
@@ -107,7 +108,7 @@ class GarageSuccessView extends ConsumerWidget {
                     onPressed: state.isLoading
                         ? null
                         : () {
-                            // TODO: Navigate to Garage's Homepage
+                            context.go('/garage/home');
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF007DFA),
@@ -144,7 +145,7 @@ class GarageSuccessView extends ConsumerWidget {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      //TODO: Navigate to Update Garage Info Screen
+                      context.go('/garage/account');
                     },
                     child: Text(
                       'Cập nhật thông tin Garage',

@@ -6,12 +6,14 @@ class VehicleSection extends StatelessWidget {
   final List<Vehicle> vehicles;
   final void Function(Vehicle) onEdit;
   final void Function(Vehicle) onRemove;
+  final VoidCallback onAdd; // ✅ thêm
 
   const VehicleSection({
     super.key,
     required this.vehicles,
     required this.onEdit,
     required this.onRemove,
+    required this.onAdd, // ✅ thêm
   });
 
   @override
@@ -20,6 +22,14 @@ class VehicleSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 18),
+        if (vehicles.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              'Chưa có phương tiện nào',
+              style: TextStyle(color: Colors.white54, fontSize: 14),
+            ),
+          ),
         ...vehicles.map(
           (v) => Padding(
             padding: const EdgeInsets.only(bottom: 14),
@@ -32,9 +42,7 @@ class VehicleSection extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         InkWell(
-          onTap: () {
-            print('press');
-          },
+          onTap: onAdd,
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             margin: EdgeInsets.symmetric(horizontal: 74),

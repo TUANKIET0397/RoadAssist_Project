@@ -51,16 +51,16 @@ class VehicleItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          vehicle.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        // Text(
+                        //   vehicle.name,
+                        //   maxLines: 1,
+                        //   overflow: TextOverflow.ellipsis,
+                        //   style: const TextStyle(
+                        //     color: Colors.white,
+                        //     fontSize: 18,
+                        //     fontWeight: FontWeight.w600,
+                        //   ),
+                        // ),
                         Text(
                           vehicle.description ?? 'Thêm mô tả ...',
                           maxLines: 1,
@@ -100,12 +100,12 @@ class VehicleItem extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
-            top: -18,
-            bottom: 2,
-            left: 2,
-            child: Image.asset(vehicle.image, width: 120, height: 120),
-          ),
+          // Positioned(
+          //   top: -18,
+          //   bottom: 2,
+          //   left: 2,
+          //   child: Image.asset(vehicle.image, width: 120, height: 120),
+          // ),
         ],
       ),
     );

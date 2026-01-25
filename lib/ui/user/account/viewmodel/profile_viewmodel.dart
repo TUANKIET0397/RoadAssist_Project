@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/data/models/user.dart';
+import 'package:road_assist/data/models/user_input.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   late User _profile;

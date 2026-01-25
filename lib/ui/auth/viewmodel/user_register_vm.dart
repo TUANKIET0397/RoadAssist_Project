@@ -4,11 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 
-
-
-final userRegisterVMProvider =
-ChangeNotifierProvider<UserRegisterViewModel>(
-      (ref) => UserRegisterViewModel(),
+final userRegisterVMProvider = ChangeNotifierProvider<UserRegisterViewModel>(
+  (ref) => UserRegisterViewModel(),
 );
 
 /// USER REGISTER VIEW MODEL
@@ -91,8 +88,7 @@ class UserRegisterViewModel extends ChangeNotifier {
     longitude = lng;
 
     try {
-      final addr =
-      await LocationService.getAddressFromLatLng(lat, lng);
+      final addr = await LocationService.getAddressFromLatLng(lat, lng);
       addressController.text = addr;
     } catch (e) {
       addressController.text = '$lat, $lng';
@@ -108,8 +104,6 @@ class UserRegisterViewModel extends ChangeNotifier {
       errorMessage = 'Vui lòng nhập họ và tên';
       return false;
     }
-
-
 
     // Email validation (optional but must be valid if provided)
     if (emailController.text.trim().isNotEmpty &&
@@ -168,12 +162,13 @@ class UserRegisterViewModel extends ChangeNotifier {
 
     try {
       // Create user with Firebase Auth
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: emailController.text.trim().isEmpty
-            ? '${phoneController.text.trim()}@roadassist.com'
-            : emailController.text.trim(),
-        password: passwordController.text,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: emailController.text.trim().isEmpty
+                ? '${phoneController.text.trim()}@roadassist.com'
+                : emailController.text.trim(),
+            password: passwordController.text,
+          );
 
       final userId = userCredential.user!.uid;
 
@@ -184,7 +179,10 @@ class UserRegisterViewModel extends ChangeNotifier {
         'phone': phoneController.text.trim(),
         'address': addressController.text.trim(),
         'email': emailController.text.trim(),
-        'vehicleTypes': selectedVehicleTypes,
+        // 'vehicles': selectedVehicleTypes,
+        'vehicles': selectedVehicleTypes
+            .map((type) => {'type': type, 'description': null})
+            .toList(),
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
         'role': 'customer',

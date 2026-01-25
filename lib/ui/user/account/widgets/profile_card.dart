@@ -35,8 +35,7 @@ class ProfileCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   image: DecorationImage(
                     image: AssetImage(
-                      user.avatar ??
-                          'assets/images/illustrations/avatarDefault.png',
+                      'assets/images/illustrations/avatarDefault.png',
                     ),
                     fit: BoxFit.contain,
                   ),

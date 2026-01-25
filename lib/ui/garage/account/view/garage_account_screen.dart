@@ -143,6 +143,7 @@ class GarageAccountScreen extends ConsumerWidget {
 
               /// LOGOUT
               LogoutButton(onTap: vm.logout),
+              LogoutButton(onTap: vm.logout),
             ],
           ),
         ),

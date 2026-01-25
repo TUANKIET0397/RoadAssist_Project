@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
     as outViewModel;
@@ -32,9 +33,6 @@ class AccountScreen extends ConsumerWidget {
 
         final vehicles = user.vehicles;
 
-        //         final vehicles = (user.vehicles ?? [])
-        // .map((e) => Vehicle.fromMap(e))
-        // .toList();
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -108,21 +106,21 @@ class AccountScreen extends ConsumerWidget {
                           title: 'Garage yêu thích',
                           icon: Icons.favorite_border,
                           onTap: () {
-                            // mở favorite garage
+                            context.push('/user/garage/favourite');
                           },
                         ),
                         ActionItem(
                           title: 'Thông tin cá nhân',
                           icon: Icons.person_outline,
                           onTap: () {
-                            // profile
+                            context.push('/user/account/changeInfo');
                           },
                         ),
                         ActionItem(
                           title: 'Đổi mật khẩu',
                           icon: Icons.lock_outline,
                           onTap: () {
-                            // change password
+                            context.push('/user/account/resetPassword');
                           },
                         ),
                       ],

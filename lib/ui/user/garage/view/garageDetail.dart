@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
@@ -51,10 +52,9 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color.fromRGBO(56, 56, 224, 1),
-            Color.fromRGBO(46, 144, 183, 1),
-          ],
+          colors: AppPalette.bgColors,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
       child: Column(
@@ -118,7 +118,7 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           IconButton(
             icon: Icon(
               garage.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: garage.isFavorite ? Colors.red : Colors.white,
+              color: garage.isFavorite ? Color(0xFF34C8E8) : Colors.white,
             ),
             onPressed: () {},
           ),

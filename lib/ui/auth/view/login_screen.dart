@@ -28,6 +28,13 @@ class LoginScreen extends ConsumerWidget {
                 Container(
                   margin: EdgeInsets.only(right: 250),
                   padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: AppPalette.bgColors,
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
                   child: InkWell(
                     onTap: () {
                       context.go('/auth/role');

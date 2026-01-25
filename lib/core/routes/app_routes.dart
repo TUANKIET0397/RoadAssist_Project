@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
-import 'package:road_assist/core/auth/auth_state.dart';
-import 'package:road_assist/ui/garage/home/view/garage_home_screen.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_request_detail_screen.dart';
 import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/rescue_screen_wrapper.dart';
-
-import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 
 import 'route_paths.dart';
 import 'route_redirect.dart';
@@ -34,7 +30,6 @@ import 'package:road_assist/ui/user/garage/view/garageDetail.dart';
 
 // ===== GARAGE UI =====
 import 'package:road_assist/ui/garage/review/view/garage_reviews_screen.dart';
-import 'package:road_assist/ui/navigation/view/garage_main_screen.dart';
 //history
 import 'package:road_assist/ui/garage/account/view/garage_account_screen.dart';
 
@@ -115,7 +110,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: RoutePaths.userGarage,
             builder: (_, __) => const GarageListScreen(),
             routes: [
-              GoRoute(path: 'detail', builder: (_, __) => const GarageDetailScreen()),
+              GoRoute(
+                path: 'detail',
+                builder: (_, __) => const GarageDetailScreen(),
+              ),
             ],
           ),
           GoRoute(

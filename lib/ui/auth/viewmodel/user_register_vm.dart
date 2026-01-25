@@ -4,11 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 
-
-
-final userRegisterVMProvider =
-ChangeNotifierProvider<UserRegisterViewModel>(
-      (ref) => UserRegisterViewModel(),
+final userRegisterVMProvider = ChangeNotifierProvider<UserRegisterViewModel>(
+  (ref) => UserRegisterViewModel(),
 );
 
 /// USER REGISTER VIEW MODEL
@@ -90,8 +87,7 @@ class UserRegisterViewModel extends ChangeNotifier {
     longitude = lng;
 
     try {
-      final addr =
-      await LocationService.getAddressFromLatLng(lat, lng);
+      final addr = await LocationService.getAddressFromLatLng(lat, lng);
       addressController.text = addr;
     } catch (e) {
       addressController.text = '$lat, $lng';
@@ -107,8 +103,6 @@ class UserRegisterViewModel extends ChangeNotifier {
       errorMessage = 'Vui lòng nhập họ và tên';
       return false;
     }
-
-
 
     // Password validation
     if (passwordController.text.isEmpty) {
@@ -143,7 +137,6 @@ class UserRegisterViewModel extends ChangeNotifier {
     return true;
   }
 
-
   // Register User
   Future<bool> registerUser() async {
     if (!_validate()) {
@@ -157,10 +150,11 @@ class UserRegisterViewModel extends ChangeNotifier {
 
     try {
       // Create user with Firebase Auth
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: '${phoneController.text.trim()}@roadassist.com',
-        password: passwordController.text,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: '${phoneController.text.trim()}@roadassist.com',
+            password: passwordController.text,
+          );
 
       final userId = userCredential.user!.uid;
 

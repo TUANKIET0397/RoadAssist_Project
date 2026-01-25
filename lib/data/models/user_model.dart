@@ -9,6 +9,7 @@ class UserModel {
   final List<Vehicle> vehicles;
   final bool isActive;
   final String role;
+  final String? birthDate;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     required this.vehicles,
     required this.isActive,
     required this.role,
+    this.birthDate,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -45,6 +47,7 @@ class UserModel {
       }).toList(),
       isActive: json['isActive'] ?? false,
       role: json['role'] ?? '',
+      birthDate: json['birthDate'],
     );
   }
 

@@ -33,9 +33,6 @@ class AccountScreen extends ConsumerWidget {
 
         final vehicles = user.vehicles;
 
-        //         final vehicles = (user.vehicles ?? [])
-        // .map((e) => Vehicle.fromMap(e))
-        // .toList();
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -116,14 +113,14 @@ class AccountScreen extends ConsumerWidget {
                           title: 'Thông tin cá nhân',
                           icon: Icons.person_outline,
                           onTap: () {
-                            // profile
+                            context.push('/user/account/changeInfo');
                           },
                         ),
                         ActionItem(
                           title: 'Đổi mật khẩu',
                           icon: Icons.lock_outline,
                           onTap: () {
-                            // change password
+                            context.push('/user/account/resetPassword');
                           },
                         ),
                       ],

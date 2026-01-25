@@ -27,8 +27,7 @@ class ReviewListItem extends ConsumerWidget {
               radius: 22,
               backgroundImage: review.userAvatar != null
                   ? NetworkImage(review.userAvatar!)
-                  : const AssetImage('assets/images/default_avatar.png')
-              as ImageProvider,
+                  : const AssetImage('assets/images/illustrations/avatarDefault.png')
             ),
             const SizedBox(width: 12),
 
@@ -39,6 +38,7 @@ class ReviewListItem extends ConsumerWidget {
                 children: [
                   /// HEADER
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         review.userName,
@@ -48,12 +48,12 @@ class ReviewListItem extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      const Icon(
-                        Icons.star,
-                        size: 14,
-                        color: Colors.amber,
+                      Row(
+                        children: const [
+                          Icon(Icons.star, size: 14, color: Colors.amber),
+                          SizedBox(width: 4),
+                        ],
                       ),
-                      const SizedBox(width: 4),
                       Text(
                         review.rating.toStringAsFixed(1),
                         style: const TextStyle(

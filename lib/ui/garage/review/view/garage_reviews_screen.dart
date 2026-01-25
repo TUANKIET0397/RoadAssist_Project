@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 
 import 'package:road_assist/data/models/review_model.dart';
 import 'package:road_assist/ui/garage/review/viewmodel/review_vm.dart';
@@ -49,12 +50,9 @@ class _GarageReviewsScreenState
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color.fromRGBO(56, 56, 224, 1),
-            Color.fromRGBO(46, 144, 183, 1),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: AppPalette.bgColors,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
       child: Scaffold(
@@ -90,7 +88,7 @@ class _GarageReviewsScreenState
 
             /// LIST
             Expanded(
-              child: ListView.builder(
+              child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: state.reviews.length,
                 itemBuilder: (context, index) {
@@ -102,29 +100,14 @@ class _GarageReviewsScreenState
                       final auth = ref.read(authStateProvider);
                       if (!auth.isLoggedIn || auth.userId == null) return;
 
-                      final chatRepo =
-                      ref.read(chatRepositoryProvider);
+                      final chatRepo = ref.read(chatRepositoryProvider);
 
                       final garageId = auth.userId!;
                       final userId = review.userId;
 
-                      final garageDoc = await FirebaseFirestore
-                          .instance
-                          .collection('garages')
-                          .doc(garageId)
-                          .get();
-
-                      final garageName =
-                          garageDoc.data()?['name'] ?? 'Garage';
-                      final garageImage =
-                          garageDoc.data()?['image'] ?? '';
-
-                      final chatId =
-                      await chatRepo.getOrCreateChat(
+                      final chatId = await chatRepo.getOrCreateChat(
                         userId: userId,
                         garageId: garageId,
-                        garageName: garageName,
-                        garageImage: garageImage,
                       );
 
                       if (!context.mounted) return;
@@ -137,6 +120,7 @@ class _GarageReviewsScreenState
                     },
                   );
                 },
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
               ),
             ),
           ],

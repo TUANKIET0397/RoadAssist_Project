@@ -1,382 +1,231 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/data/models/chat_model.dart';
-import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
-import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 
-class ChatListScreen extends ConsumerStatefulWidget {
-  final String? garageId;
-  final String? garageName;
-  final String? garageImage;
-
-  const ChatListScreen({
-    super.key,
-    this.garageId,
-    this.garageName,
-    this.garageImage,
-  });
+class ChatListScreen extends ConsumerWidget {
+  const ChatListScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
-}
-
-class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  String? get _userId => ref.read(userIdProvider);
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.garageId != null) {
-      _navigateToChat();
-    }
-  }
-
-  void _navigateToChat() async {
-    final userId = _userId;
-    if (userId == null) return;
-
-    await Future.microtask(() {});
-    try {
-      final chat = await ref
-          .read(chatRepositoryProvider)
-          .getOrCreateChat(
-            userId: userId,
-            garageId: widget.garageId!,
-            garageName: widget.garageName ?? '',
-            garageImage: widget.garageImage ?? '',
-          );
-
-      if (!mounted) return;
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => ChatScreen(chatId: chat)),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể tạo phòng chat: ${e.toString()}')),
-      );
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userId = _userId;
-    if (userId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (widget.garageId != null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final chatStream = ref.watch(chatListProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chatList = ref.watch(chatListProvider);
+    final currentUserId = ref.watch(userIdProvider);
 
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color.fromRGBO(56, 56, 224, 1),
-            Color.fromRGBO(46, 144, 183, 1),
-          ],
+          colors: AppPalette.bgColors,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
       ),
-      child: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: SafeArea(
-              top: false,
-              bottom: false,
-              child: chatStream.when(
-                data: (chats) {
-                  if (chats.isEmpty) return _buildEmptyState();
-                  return _buildChatList(context, ref, chats, userId);
-                },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF4A90E2)),
-                ),
-                error: (err, _) => Center(
-                  child: Text(
-                    'Lỗi: $err',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===== HEADER =====
-
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top,
-        left: 16,
-        right: 16,
-        bottom: 8,
-      ),
-      decoration: const BoxDecoration(color: Color.fromRGBO(37, 44, 59, 1)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Chat garage',
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF1a1f3a),
+          elevation: 0,
+          title: const Text(
+            'Danh sách Chat',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          actions: [
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3b82f6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.search, color: Colors.white),
+                onPressed: () {},
               ),
             ),
-            child: IconButton(
-              icon: const Icon(Icons.search, color: Colors.white, size: 16),
-              onPressed: () {},
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===== CHAT LIST =====
-
-  Widget _buildChatList(
-    BuildContext context,
-    WidgetRef ref,
-    List<ChatModel> chats,
-    String userId,
-  ) {
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(8, 16, 8, 120),
-      itemCount: chats.length,
-      itemBuilder: (context, index) {
-        final chat = chats[index];
-        final unreadCount = chat.unread[userId] ?? 0;
-
-        return ChatItem(
-          name: chat.garageName,
-          message: chat.lastMessage,
-          time: formatTime(chat.lastMessageTime),
-          imageUrl: chat.garageImage,
-          unreadCount: unreadCount,
-          onTap: () {
-            Navigator.of(context, rootNavigator: true).push(
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(chatId: chat.id),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // ===== EMPTY STATE =====
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/illustrations/nochat.png',
-            width: 300,
-            height: 300,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 24),
-          RichText(
-            textAlign: TextAlign.center,
-            text: const TextSpan(
-              style: TextStyle(fontSize: 18, color: Colors.white, height: 1.5),
-              children: [
-                TextSpan(text: 'Bạn chưa có cuộc trò chuyện nào '),
-                TextSpan(
-                  text: 'với Garage',
-                  style: TextStyle(
-                    color: Color(0xFF37B6E9),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 48),
-            child: Text(
-              'Khi gửi yêu cầu cứu hộ, bạn có thể trò chuyện trực tiếp với Garage',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===== TIME FORMAT =====
-
-  String formatTime(DateTime time) {
-    final diff = DateTime.now().difference(time);
-
-    if (diff.inMinutes < 1) return 'Vừa xong';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} phút';
-    if (diff.inHours < 24) return '${diff.inHours} giờ';
-    if (diff.inDays < 7) return '${diff.inDays} ngày';
-    return '${time.day}/${time.month}/${time.year}';
-  }
-}
-
-// =======================================================
-// ===================== CHAT ITEM ========================
-// =======================================================
-
-class ChatItem extends StatelessWidget {
-  final String name;
-  final String message;
-  final String time;
-  final String imageUrl;
-  final int unreadCount;
-  final VoidCallback onTap;
-
-  const ChatItem({
-    super.key,
-    required this.name,
-    required this.message,
-    required this.time,
-    required this.imageUrl,
-    required this.unreadCount,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF34495E).withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: const Color(0xFF4A90E2).withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            _buildAvatar(),
-            const SizedBox(width: 12),
-            _buildContent(),
           ],
         ),
-      ),
-    );
-  }
+        body: chatList.when(
+          data: (chats) {
+            if (chats.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/images/illustrations/nochat.png',
+                      width: 280,
+                      height: 200,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 24),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: const TextSpan(
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        children: [
+                          TextSpan(text: 'Bạn chưa có cuộc trò chuyện nào '),
+                          TextSpan(
+                            text: 'với Garage',
+                            style: TextStyle(
+                              color: Color(0xFF37B6E9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Subtitle text
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Text(
+                        'Khi gửi yêu cầu cứu hộ bạn, bạn có thể trò chuyện trực tiếp với Garage',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                final otherParticipant = chat.getOtherParticipant(currentUserId!);
+                final avatarUrl = otherParticipant?.avatar ?? '';
 
-  Widget _buildAvatar() {
-    return Stack(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: NetworkImage(imageUrl),
-              fit: BoxFit.cover,
+                // Format time ago
+                String timeAgo;
+                if (chat.updatedAt != null) {
+                  final dateTime = (chat.updatedAt as dynamic).toDate() as DateTime;
+                  timeAgo = timeago.format(
+                    dateTime,
+                    locale: 'en_short',
+                    allowFromNow: true,
+                  );
+                }
+
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1e2538),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(context, rootNavigator: true).push(
+                          MaterialPageRoute(
+                            builder: (_) => ChatScreen(chatId: chat.chatId),
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                width: 58,
+                                height: 58,
+                                child: avatarUrl.isNotEmpty
+                                    ? Image.network(
+                                  avatarUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Image.asset(
+                                      'assets/images/illustrations/avatarDefault.png',
+                                      fit: BoxFit.cover,
+                                    );
+                                  },
+                                )
+                                    : Image.asset(
+                                  'assets/images/illustrations/avatarDefault.png',
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Name and message
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    otherParticipant?.name ?? 'Unknown',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    chat.lastMessage.isNotEmpty
+                                        ? chat.lastMessage
+                                        : 'Chưa có tin nhắn',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 14,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Time ago
+                            Text(
+                              timeAgo,
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF3b82f6),
+            ),
+          ),
+          error: (error, stack) => Center(
+            child: Text(
+              'Lỗi: $error',
+              style: const TextStyle(color: Colors.white70),
             ),
           ),
         ),
-        if (unreadCount > 0)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-              child: Center(
-                child: Text(
-                  unreadCount > 99 ? '99+' : unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildContent() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: unreadCount > 0
-                        ? FontWeight.bold
-                        : FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                time,
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: unreadCount > 0 ? Colors.white : Colors.grey[300],
-              fontSize: 14,
-            ),
-          ),
-        ],
       ),
     );
   }

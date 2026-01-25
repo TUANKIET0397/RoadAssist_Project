@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
-import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
 import 'package:road_assist/ui/user/garage/view/review_screen.dart';
+
+import 'package:road_assist/core/providers/auth_provider.dart';
 
 class GarageDetailScreen extends ConsumerStatefulWidget {
   const GarageDetailScreen({Key? key}) : super(key: key);
@@ -608,18 +610,26 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
+                final auth = ref.read(authStateProvider);
+                if (!auth.isLoggedIn || auth.userId == null) return;
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatListScreen(
-                      garageId: garage.id,
-                      garageName: garage.name,
-                      garageImage: garage.imageUrl,
-                    ),
-                  ),
+                final chatRepo = ref.read(chatRepositoryProvider);
+                final userId = auth.userId!;
+                final garageId = garage.id;
+
+                final chatId = await chatRepo.getOrCreateChat(
+                  userId: userId,
+                  garageId: garageId,
                 );
+
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(chatId: chatId),
+                ),
+              );
               },
               icon: const Icon(Icons.wechat_outlined, size: 22),
               label: const Text('Chat', style: TextStyle(fontSize: 18)),

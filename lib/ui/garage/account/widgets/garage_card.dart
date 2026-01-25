@@ -10,7 +10,6 @@ class GarageCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 210,
-      // padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: const [

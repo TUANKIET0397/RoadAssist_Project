@@ -217,8 +217,6 @@ class GarageRegisterScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
-                const SizedBox(height: 24),
-
                 // Terms and Conditions
                 Row(
                   children: [

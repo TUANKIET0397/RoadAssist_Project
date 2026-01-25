@@ -33,7 +33,7 @@ class GarageTextField extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(vertical: 5, horizontal: 12),
           decoration: BoxDecoration(
-            color: Color(0xFF0F1C2E),
+            color: Color(0xFF19253B),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.cyanAccent),
           ),

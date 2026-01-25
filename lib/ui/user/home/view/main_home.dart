@@ -16,66 +16,66 @@ class MainHome extends ConsumerWidget {
     return ListView(
       children: [
         /// 🧪 DEBUG BUTTON - Test success screen
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: () {
-              // Mock rescue request
-              final mockRequest = RescueRequestModel(
-                id: '123',
-                userId: 'user_test',
-                userName: 'Nguyễn Văn A',
-                userPhone: '0901234567',
-                vehicleType: 'Xe tay ga',
-                vehicleModel: 'Honda SH Mode 2025',
-                issues: ['Hết xăng', 'Bể lốp'],
-                location: 'Đường Nguyễn Hữu Cảnh, Q1, HCM',
-                latitude: 37.4219983,
-                longitude: -122.084,
-                imageUrl: null,
-                status: 'accepted',
-                createdAt: DateTime.now(),
-                garageId: 'garage_123',
-                garageName: 'Garage Minh Thuận',
-                acceptedAt: DateTime.now(),
-                completedAt: null,
-                cancelledAt: null, progressStep: 1,
-              );
+        // Padding(
+        //   padding: const EdgeInsets.all(16),
+        //   child: ElevatedButton(
+        //     onPressed: () {
+        //       // Mock rescue request
+        //     //   final mockRequest = RescueRequestModel(
+        //     //     id: '123',
+        //     //     userId: 'user_test',
+        //     //     userName: 'Nguyễn Văn A',
+        //     //     userPhone: '0901234567',
+        //     //     vehicleType: 'Xe tay ga',
+        //     //     vehicleModel: 'Honda SH Mode 2025',
+        //     //     issues: ['Hết xăng', 'Bể lốp'],
+        //     //     location: 'Đường Nguyễn Hữu Cảnh, Q1, HCM',
+        //     //     latitude: 37.4219983,
+        //     //     longitude: -122.084,
+        //     //     imageUrl: null,
+        //     //     status: 'accepted',
+        //     //     createdAt: DateTime.now(),
+        //     //     garageId: 'garage_123',
+        //     //     garageName: 'Garage Minh Thuận',
+        //     //     acceptedAt: DateTime.now(),
+        //     //     completedAt: null,
+        //     //     cancelledAt: null, progressStep: 1,
+        //     //   );
 
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => UserRescueSuccessScreen(
-                    // Truyền biến mockRequest vào đây
-                    rescueRequestId: mockRequest.id,
-                    // Xử lý nút back
-                    onBack: () => Navigator.of(context).pop(), request: mockRequest,
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('🧪 DEBUG: Xem Success Screen'),
-          ),
-        ),
+        //     //   Navigator.of(context).push(
+        //     //     MaterialPageRoute(
+        //     //       builder: (context) => UserRescueSuccessScreen(
+        //     //         // Truyền biến mockRequest vào đây
+        //     //         rescueRequestId: mockRequest.id,
+        //     //         // Xử lý nút back
+        //     //         onBack: () => Navigator.of(context).pop(), request: mockRequest,
+        //     //       ),
+        //     //     ),
+        //     //   );
+        //      },
+        //     style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+        //     child: const Text('🧪 DEBUG: Xem Success Screen'),
+        //   ),
+        // ),
 
-        /// ================= BIG CARD =================
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
+        // /// ================= BIG CARD =================
+        // LayoutBuilder(
+        //   builder: (context, constraints) {
+        //     final width = constraints.maxWidth;
 
-            return Transform.translate(
-              offset: const Offset(0, -35),
-              child: Center(
-                child: ClippedCard(
-                  width: width,
-                  heightFactor: 1.0,
-                  clipper: RPSClipperBig(),
-                  child: const BigVehicleCardContent(recuerequest: null),
-                ),
-              ),
-            );
-          },
-        ),
+        //     return Transform.translate(
+        //       offset: const Offset(0, -35),
+        //       child: Center(
+        //         child: ClippedCard(
+        //           width: width,
+        //           heightFactor: 1.0,
+        //           clipper: RPSClipperBig(),
+        //           child: const BigVehicleCardContent(recuerequest: null),
+        //         ),
+        //       ),
+        //     );
+        //   },
+        // ),
 
         /// ================= FEATURE ICONS =================
         LayoutBuilder(

@@ -25,7 +25,6 @@ class UserRegisterViewModel extends ChangeNotifier {
   final nameController = TextEditingController();
   final phoneController = TextEditingController();
   final addressController = TextEditingController();
-  final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
@@ -105,13 +104,6 @@ class UserRegisterViewModel extends ChangeNotifier {
       return false;
     }
 
-    // Email validation (optional but must be valid if provided)
-    if (emailController.text.trim().isNotEmpty &&
-        !_isValidEmail(emailController.text.trim())) {
-      errorMessage = 'Email không hợp lệ';
-      return false;
-    }
-
     // Password validation
     if (passwordController.text.isEmpty) {
       errorMessage = 'Vui lòng nhập mật khẩu';
@@ -145,10 +137,6 @@ class UserRegisterViewModel extends ChangeNotifier {
     return true;
   }
 
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
-
   // Register User
   Future<bool> registerUser() async {
     if (!_validate()) {
@@ -164,9 +152,7 @@ class UserRegisterViewModel extends ChangeNotifier {
       // Create user with Firebase Auth
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(
-            email: emailController.text.trim().isEmpty
-                ? '${phoneController.text.trim()}@roadassist.com'
-                : emailController.text.trim(),
+            email: '${phoneController.text.trim()}@roadassist.com',
             password: passwordController.text,
           );
 
@@ -178,11 +164,7 @@ class UserRegisterViewModel extends ChangeNotifier {
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
         'address': addressController.text.trim(),
-        'email': emailController.text.trim(),
-        // 'vehicles': selectedVehicleTypes,
-        'vehicles': selectedVehicleTypes
-            .map((type) => {'type': type, 'description': null})
-            .toList(),
+        'vehicleTypes': selectedVehicleTypes,
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
         'role': 'customer',
@@ -213,7 +195,6 @@ class UserRegisterViewModel extends ChangeNotifier {
     nameController.dispose();
     phoneController.dispose();
     addressController.dispose();
-    emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();

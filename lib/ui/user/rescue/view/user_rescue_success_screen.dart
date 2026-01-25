@@ -9,22 +9,22 @@ class UserRescueSuccessScreen extends ConsumerWidget {
   final String? garageId;
   final String? garageName;
   final Function() onBack;
-  final RescueRequestModel? request;
+  //final RescueRequestModel? request;
 
   const UserRescueSuccessScreen({
     super.key,
     required this.rescueRequestId,
     this.garageId,
     this.garageName,
-    required this.onBack, this.request,
+    required this.onBack, //this.request,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (request != null) {
+    //if (request != null) {
       // Use the provided request data
-      return _buildSuccessContent(context, ref, request!);
-    }
+     // return _buildSuccessContent(context, ref, request!);
+    //}
 
 
     final rescueRequest = ref.watch(
@@ -225,7 +225,17 @@ class UserRescueSuccessScreen extends ConsumerWidget {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UserRescueTrackingScreen(
+                                rescueRequestId: request.id,
+                                garageId: request.garageId,
+                              ),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.lightBlueAccent,
                           shape: RoundedRectangleBorder(
@@ -233,17 +243,6 @@ class UserRescueSuccessScreen extends ConsumerWidget {
                           ),
                         ),
                         child: const Text('Theo dõi trạng thái cứu hộ'),
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    /// Secondary button
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text(
-                        'Chat với garage',
-                        style: TextStyle(color: Colors.lightBlueAccent),
                       ),
                     ),
                   ],

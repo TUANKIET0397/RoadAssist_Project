@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
@@ -32,6 +33,8 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
   Widget build(BuildContext context) {
     // Fixed location (mock) - KHÔNG trigger rebuild
     final location = (lat: 37.4219983, lng: -122.084);
+    final colorScheme = Theme.of(context).colorScheme;
+
 
     print(
       ' Building garage home with location: ${location.lat}, ${location.lng}',
@@ -68,9 +71,9 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1e3a8a), Color(0xFF0f172a)],
+            colors: AppPalette.bgColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

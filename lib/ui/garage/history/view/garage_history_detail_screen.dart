@@ -4,6 +4,10 @@ import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/garage/history/model/garage_history_item.dart';
 import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
+import 'package:road_assist/ui/shared/widgets/view_history_button.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
 class GarageHistoryDetailScreen extends ConsumerStatefulWidget {
   final GarageHistoryItem historyItem;
@@ -114,85 +118,11 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header với status
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFF001029),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Trạng thái',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: request.status == 'completed'
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                        ),
-                        child: Text(
-                          request.status == 'completed'
-                              ? '✓ Hoàn thành'
-                              : '✕ Đã hủy',
-                          style: TextStyle(
-                            color: request.status == 'completed'
-                                ? Colors.green
-                                : Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    request.vehicleModel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    request.vehicleType,
-                    style: TextStyle(
-                      color: Colors.blue.shade200,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Timeline progress
-           
-
-            const SizedBox(height: 16),
-
             // Vehicle info
             _buildSection(
               title: 'Thông tin phương tiện',
               children: [
+                _buildStatusRow(request),
                 _buildInfoRow('Loại xe', request.vehicleType),
                 _buildInfoRow('Mẫu xe', request.vehicleModel),
                 _buildInfoRow(
@@ -233,8 +163,18 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
               request: request,
               showBorder: true,
             ),
+            
+            const SizedBox(height: 20),
+            
+            // Contact user button
+            ViewHistoryButton(
+              text: 'Liên hệ với người dùng',
+              icon: Icons.chat,
+              onPressed: () => _contactUser(context, ref, request),
+            ),
+            
             // Timeline
-           
+           const SizedBox(height: 200),
           ],
         ),
       ),
@@ -264,6 +204,58 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
           ),
           const SizedBox(height: 12),
           ...children,
+        ],
+      ),
+    );
+  }
+
+  Future<void> _contactUser(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    try {
+      final garageId = ref.read(userIdProvider); // Current garage ID
+      if (garageId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: request.userId,
+        garageId: garageId,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildStatusRow(RescueRequestModel request) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Trạng thái',
+            style: TextStyle(color: Colors.white70, fontSize: 18),
+          ),
+          const Spacer(),
+          Text(
+            request.status == 'completed' ? '✓ Hoàn thành' : '✕ Đã hủy',
+            style: TextStyle(
+              color: request.status == 'completed' ? Colors.green : Colors.red,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );

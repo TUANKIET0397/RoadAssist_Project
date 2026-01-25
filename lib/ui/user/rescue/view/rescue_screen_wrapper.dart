@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_waiting_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_success_screen.dart';

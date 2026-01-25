@@ -52,8 +52,11 @@ class HistoryScreen extends ConsumerWidget {
                       ),
                     ),
                   )
-                else
+                else ...[
                   ...list.map((e) => HistoryCard(item: e)),
+                ],
+                
+
                 const SizedBox(height: 100),
               ],
             );

@@ -6,6 +6,9 @@ import 'package:road_assist/ui/garage/home/viewmodel/garage_completion_vm.dart';
 import 'package:road_assist/data/models/garage_completion_payload.dart';
 import 'package:road_assist/ui/garage/home/view/garage_completion_screen.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 
 // Provider để watch rescue request real-time
 final currentGarageRescueRequestProvider =
@@ -50,6 +53,34 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
     required this.rescueRequestId,
     required RescueRequestModel request,
   }) : initialRequest = request;
+
+  static Future<void> _contactUser(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    try {
+      final garageId = ref.read(userIdProvider); // Current garage ID
+      if (garageId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: request.userId,
+        garageId: garageId,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -261,17 +292,27 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 52,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Navigate to chat screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.lightBlueAccent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => _contactUser(context, ref, request),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.lightBlueAccent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text('Chat với khách hàng'),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(onPressed: (){}, child: const Text('Gọi khách hàng')),
+                            ],
                           ),
-                        ),
-                        child: const Text('Chat với khách hàng'),
+                          const SizedBox(height: 12),
+                          ElevatedButton(onPressed: (){}, child: const Text('Xem vị trí khách hàng')),
+                        ],
                       ),
                     ),
                   ],

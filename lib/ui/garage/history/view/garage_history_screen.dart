@@ -52,8 +52,11 @@ class GarageHistoryScreen extends ConsumerWidget {
                       ),
                     ),
                   )
-                else
+                else ...[
                   ...list.map((e) => GarageHistoryCard(item: e)),
+                ],
+                
+
                 const SizedBox(height: 100),
               ],
             );

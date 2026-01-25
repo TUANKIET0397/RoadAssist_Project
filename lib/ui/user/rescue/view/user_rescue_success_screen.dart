@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/data/models/rescue_request_model.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_vehiclecard.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_status_checklist.dart';
@@ -9,8 +13,8 @@ import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/completion_vm.dart';
 import 'package:road_assist/data/models/completion_payload.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_tracking_screen.dart';
-import 'package:road_assist/ui/user/rescue/view/completion_screen.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_cancel_button.dart';
+
 
 class UserRescueSuccessScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
@@ -45,28 +49,57 @@ class _UserRescueSuccessScreenState
 
     try {
       final repo = ref.read(rescueRequestRepoProvider);
-      final success =
-          await repo.cancelRescueRequest(widget.rescueRequestId);
+      final success = await repo.cancelRescueRequest(widget.rescueRequestId);
 
       if (success && mounted) {
         widget.onBack();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã hủy yêu cầu cứu hộ')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã hủy yêu cầu cứu hộ')));
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi khi hủy yêu cầu')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Lỗi khi hủy yêu cầu')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
       }
     } finally {
       if (mounted) {
         setState(() => _isCancelling = false);
+      }
+    }
+  }
+
+  Future<void> _contactGarage(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    if (request.garageId == null) return;
+    
+    try {
+      final userId = ref.read(userIdProvider);
+      if (userId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: userId,
+        garageId: request.garageId!,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
       }
     }
   }
@@ -90,7 +123,9 @@ class _UserRescueSuccessScreenState
               final payload = CompletionPayload(
                 title: 'Hoàn thành cứu hộ',
                 subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
-                vehicleImage: kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
+                vehicleImage:
+                    kVehicleImages[request.vehicleType] ??
+                    'assets/images/illustrations/vehicle.png',
                 vehicleName: request.vehicleType,
                 vehicleModel: request.vehicleModel,
                 issue: request.issues.join(', '),
@@ -212,6 +247,23 @@ class _UserRescueSuccessScreenState
                           onConfirmCancel: _isCancelling
                               ? () {}
                               : _handleCancelRequest,
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () => _contactGarage(context, ref, request),
+                          child: const Text('Chat với garage'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color.fromARGB(
+                              255,
+                              0,
+                              255,
+                              225,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
 
                         const SizedBox(height: 24),

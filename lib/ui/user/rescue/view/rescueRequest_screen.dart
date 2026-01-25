@@ -135,15 +135,14 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                     final vehicle = vehicles[index];
                     return ListTile(
                       leading: Container(
-                        width: 48,
-                        height: 48,
+                        width: 70,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           image: DecorationImage(
                             image: AssetImage(
                               kVehicleImages[vehicle.type] ?? 'assets/images/illustrations/vehicle.png',
                             ),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),
@@ -351,7 +350,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                               child: Row(
                                 children: [
                                   Container(
-                                    width: 60,
+                                    width: 90,
                                     height: 60,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
@@ -359,7 +358,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                         image: AssetImage(
                                           kVehicleImages[currentVehicle.type] ?? 'assets/images/illustrations/vehicle.png',
                                         ),
-                                        fit: BoxFit.cover,
+                                        fit: BoxFit.contain,
                                       ),
                                     ),
                                   ),

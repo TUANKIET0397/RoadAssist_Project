@@ -48,10 +48,14 @@ class GarageRegisterScreenModel extends ChangeNotifier {
   final Set<String> selectedServices = {};
 
   final List<String> allVehicleTypes = [
-    'Xe Bốn bánh',
-    'Xe máy',
+    'Xe Số',
+    'Xe Tay ga',
+    'Xe Điện',
     'Ô tô',
-    'Xe tải',
+    'Xe Bus',
+    'Xe Container',
+    'Xe Tải',
+    'Xe Ba Gác',
   ];
   final List<String> selectedVehicleTypes = [];
 

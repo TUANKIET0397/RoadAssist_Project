@@ -16,7 +16,7 @@ class RescueRequestModel {
   final int progressStep; // 0: pending, 1: arrived, 2: repairing, 3: completed
   final DateTime createdAt;
   final String? garageId;
-  final String? garageName;
+  final String? name;
   final String? garagePhone;
   final DateTime? acceptedAt;
   final DateTime? completedAt;
@@ -40,7 +40,7 @@ class RescueRequestModel {
     required this.progressStep,
     required this.createdAt,
     this.garageId,
-    this.garageName,
+    this.name,
     this.garagePhone,
     this.acceptedAt,
     this.completedAt,
@@ -80,7 +80,7 @@ class RescueRequestModel {
         progressStep: data['progressStep'] ?? 0,
         createdAt: createdAt,
         garageId: data['garageId'],
-        garageName: data['garageName'],
+        name: data['name'],
         garagePhone: data['garagePhone'],
         acceptedAt: data['acceptedAt'] != null
             ? (data['acceptedAt'] as Timestamp).toDate()
@@ -121,7 +121,7 @@ class RescueRequestModel {
       'progressStep': progressStep,
       'createdAt': Timestamp.fromDate(createdAt),
       'garageId': garageId,
-      'garageName': garageName,
+      'name': name,
       'garagePhone': garagePhone,
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
       'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
+import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
-import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
 
 class GarageRescueRequestDetailScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
@@ -30,13 +30,19 @@ class _GarageRescueRequestDetailScreenState
 
     try {
       final userId = ref.read(userIdProvider);
+      // Lấy garage name từ stream provider
+      final garageNameAsync = ref.read(currentGarageNameProvider);
+      final garageName = garageNameAsync.whenData((name) => name ?? 'Garage').maybeWhen(
+            data: (name) => name,
+            orElse: () => 'Garage',
+          );
+      
       final repo = ref.read(rescueRequestRepoProvider);
 
       final success = await repo.acceptRescueRequest(
         requestId: widget.rescueRequestId,
         garageId: userId ?? 'unknown_garage',
-        garageName:
-            'Garage của bạn', // Bạn cần lấy tên garage từ provider/model
+        garageName: garageName,
       );
 
       if (success && mounted) {

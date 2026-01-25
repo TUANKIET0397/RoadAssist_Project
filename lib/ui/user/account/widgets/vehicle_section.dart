@@ -31,12 +31,24 @@ class VehicleSection extends StatelessWidget {
             ),
           ),
         ...vehicles.map(
-          (v) => Padding(
-            padding: const EdgeInsets.only(bottom: 14),
-            child: VehicleItem(
-              vehicle: v,
-              onEdit: () => onEdit(v),
-              onDelete: () => onRemove(v),
+          (v) => AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.2),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: FadeTransition(opacity: animation, child: child),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: VehicleItem(
+                vehicle: v,
+                onEdit: () => onEdit(v),
+                onDelete: () => onRemove(v),
+              ),
             ),
           ),
         ),

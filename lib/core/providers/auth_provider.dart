@@ -24,6 +24,24 @@ final userRoleProvider = Provider<UserRole?>((ref) {
   return ref.watch(authStateProvider).role;
 });
 
+/// Provider để lấy tên garage hiện tại (cho garage user) - realtime
+final currentGarageNameProvider = StreamProvider<String?>((ref) {
+  final userId = ref.watch(userIdProvider);
+  if (userId == null) return Stream.value(null);
+
+  final firestore = ref.watch(firestoreProvider);
+  return firestore
+      .collection('garages')
+      .doc(userId)
+      .snapshots()
+      .map((doc) {
+        if (doc.exists) {
+          return doc.data()?['name'] as String?;
+        }
+        return null;
+      });
+});
+
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
   StreamSubscription<User?>? _sub;

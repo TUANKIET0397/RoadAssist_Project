@@ -75,7 +75,7 @@ final mockRescueRequestsProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -96,7 +96,7 @@ final mockRescueRequestsProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 10)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -117,7 +117,7 @@ final mockRescueRequestsProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -149,7 +149,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -170,7 +170,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 10)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -191,7 +191,7 @@ final mockCurrentRescueRequestProvider = StateProvider.family
           status: 'pending',
           createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
           garageId: null,
-          garageName: null,
+          name: null,
           acceptedAt: null,
           completedAt: null,
           cancelledAt: null,
@@ -201,3 +201,4 @@ final mockCurrentRescueRequestProvider = StateProvider.family
 
       return mockRequests[requestId];
     });
+  

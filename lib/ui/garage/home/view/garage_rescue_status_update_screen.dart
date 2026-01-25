@@ -98,17 +98,18 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade900.withOpacity(0.5),
+                        color: Color(0xFF19253B),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // ===== USER INFO =====
                           Row(
                             children: [
                               Container(
-                                width: 60,
-                                height: 60,
+                                width: 62,
+                                height: 62,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Colors.lightBlueAccent.withOpacity(
@@ -131,101 +132,76 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                                        fontSize: 20,
                                       ),
                                     ),
-                                    Text(
-                                      request.userPhone,
-                                      style: TextStyle(
-                                        color: Colors.blue.shade200,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            request.location,
-                            style: TextStyle(
-                              color: Colors.blue.shade200,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Vehicle info
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Thông tin xe',
-                            style: TextStyle(
-                              color: Colors.blue.shade200,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.two_wheeler,
-                                color: Colors.lightBlueAccent,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      request.vehicleType,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      request.vehicleModel,
-                                      style: TextStyle(
-                                        color: Colors.blue.shade200,
-                                        fontSize: 12,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          request.userPhone,
+                                          style: TextStyle(
+                                            color: Colors.blue.shade200,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Icon(
+                                          Icons.call,
+                                          size: 16,
+                                          color: const Color.fromARGB(
+                                            255,
+                                            0,
+                                            171,
+                                            20,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: request.issues
-                                .map(
-                                  (issue) => Chip(
-                                    backgroundColor: Colors.blueAccent
-                                        .withOpacity(0.2),
-                                    label: Text(
-                                      issue,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                          // ===== DIVIDER (tách 2 section) =====
+                          Divider(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            thickness: 1,
+                          ),
+
+                          // ===== VEHICLE INFO =====
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: request.vehicleType,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
                                   ),
-                                )
-                                .toList(),
+                                ),
+                                TextSpan(
+                                  text: ' (${request.vehicleModel})',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.6),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Text(
+                            '${request.issues.join(', ')}.',
+                            style: TextStyle(
+                              color: Colors.blueGrey.shade200,
+                              fontSize: 14,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -333,84 +309,90 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Trạng thái cứu hộ',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 16),
         for (int i = 0; i < steps.length; i++)
-          Column(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: request.progressStep >= (steps[i]['step'] as int)
-                      ? (steps[i]['color'] as Color).withOpacity(0.3)
-                      : Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: request.progressStep >= (steps[i]['step'] as int)
-                        ? (steps[i]['color'] as Color)
-                        : Colors.grey.shade700,
-                    width: 2,
+              // TIMELINE
+              Column(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: request.progressStep >= (steps[i]['step'] as int)
+                          ? Colors.greenAccent
+                          : Colors.blueAccent,
+                      boxShadow: [
+                        if (request.progressStep >= (steps[i]['step'] as int))
+                          BoxShadow(
+                            color: Colors.greenAccent.withValues(alpha: 0.8),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                      ],
+                    ),
+                    child: Icon(
+                      steps[i]['icon'] as IconData,
+                      color: Colors.black,
+                    ),
+                  ),
+                  if (i < steps.length - 1)
+                    Container(
+                      width: 2,
+                      height: 40,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.4),
+                            width: 1,
+                            style: BorderStyle.solid,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+
+              const SizedBox(width: 12),
+
+              // CONTENT
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.shade900.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        steps[i]['title'] as String,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getStepTime(request, steps[i]['step'] as int),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: request.progressStep >= (steps[i]['step'] as int)
-                            ? (steps[i]['color'] as Color)
-                            : Colors.grey.shade700,
-                      ),
-                      child: Icon(
-                        steps[i]['icon'] as IconData,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            steps[i]['title'] as String,
-                            style: TextStyle(
-                              color:
-                                  request.progressStep >=
-                                      (steps[i]['step'] as int)
-                                  ? Colors.white
-                                  : Colors.grey.shade400,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          if (request.progressStep >= (steps[i]['step'] as int))
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                '✓ ${_getStepTime(request, steps[i]['step'] as int)}',
-                                style: TextStyle(
-                                  color: steps[i]['color'] as Color,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
               ),
-              if (i < steps.length - 1) const SizedBox(height: 12),
             ],
           ),
       ],
@@ -438,18 +420,14 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
 
     if (dateTime == null) return '';
 
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    // Format thời gian thực (HH:ss)
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    final date = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
 
-    if (difference.inMinutes < 1) {
-      return 'Vừa xong';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} phút trước';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} giờ trước';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
+    return '$date/$month lúc $hour:$minute:$second';
   }
 
   void _updateProgressStep(BuildContext context, WidgetRef ref, int step) {

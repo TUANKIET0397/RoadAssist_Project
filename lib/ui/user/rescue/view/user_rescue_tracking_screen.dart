@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 
 class UserRescueTrackingScreen extends ConsumerWidget {
   final String rescueRequestId;
@@ -43,157 +44,18 @@ class UserRescueTrackingScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Garage info card
-                    if (request.garageName != null)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade900.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.lightBlueAccent.withOpacity(0.2),
-                                  ),
-                                  child: const Icon(
-                                    Icons.store,
-                                    color: Colors.lightBlueAccent,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        request.garageName ?? 'Garage',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      if (request.garagePhone != null)
-                                        Text(
-                                          request.garagePhone ?? '',
-                                          style: TextStyle(
-                                            color: Colors.blue.shade200,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    const SizedBox(height: 24),
+                    Image.asset(  
+                      'assets/images/illustrations/calendar_state.png',
+                      height: 130,
+                      width: 130,
+                    ),
+                   
+                    const SizedBox(height: 10),
 
                     // Progress steps
                     _buildProgressSteps(request),
 
-                    const SizedBox(height: 32),
-
-                    // Vehicle info
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Thông tin xe',
-                            style: TextStyle(
-                              color: Colors.blue.shade200,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.two_wheeler,
-                                color: Colors.lightBlueAccent,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      request.vehicleType,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      request.vehicleModel,
-                                      style: TextStyle(
-                                        color: Colors.blue.shade200,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Location
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Vị trí của bạn',
-                            style: TextStyle(color: Colors.blue.shade200),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: Colors.lightBlueAccent,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  request.location,
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 15),
 
                     // Chat button
                     SizedBox(
@@ -234,94 +96,129 @@ class UserRescueTrackingScreen extends ConsumerWidget {
         'step': 1,
         'title': 'Garage đã nhận cứu hộ',
         'icon': Icons.check_circle,
-        'completed': request.progressStep >= 1,
       },
       {
         'step': 2,
         'title': 'Garage đã đến nơi của bạn',
         'icon': Icons.location_on,
-        'completed': request.progressStep >= 2,
       },
       {
         'step': 3,
         'title': 'Tiến hành sửa chữa',
         'icon': Icons.build,
-        'completed': request.progressStep >= 3,
       },
       {
         'step': 4,
         'title': 'Hoàn thành cứu hộ',
         'icon': Icons.done_all,
-        'completed': request.progressStep >= 4,
       },
     ];
 
-    return Column(
-      children: [
-        for (int i = 0; i < steps.length; i++)
-          Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 50,
-                    height: 50,
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xFF001029),
+        borderRadius: BorderRadius.circular(16),
+        border: GradientBoxBorder(
+          gradient: LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: [ Color(0xFF3CD69E), Color(0xFFFC5C72)],
+          ),
+          width: 3,
+        ),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < steps.length; i++)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // TIMELINE
+                Column(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: request.progressStep >= (steps[i]['step'] as int)
+                            ? Colors.greenAccent
+                            : Colors.blueAccent,
+                        boxShadow: [
+                          if (request.progressStep >= (steps[i]['step'] as int))
+                            BoxShadow(
+                              color: Colors.greenAccent.withValues(alpha: 0.8),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                        ],
+                      ),
+                      child: Icon(
+                        steps[i]['icon'] as IconData,
+                        color: Colors.black,
+                      ),
+                    ),
+                    if (i < steps.length - 1)
+                      Container(
+                        width: 2,
+                        height: 25,
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              width: 1,
+                              style: BorderStyle.solid,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+      
+                const SizedBox(width: 8),
+      
+                // CONTENT
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: steps[i]['completed'] as bool
-                          ? Colors.lightBlueAccent
-                          : Colors.grey.shade700,
+                      color: const Color.fromARGB(0, 38, 50, 56).withValues(alpha: 0),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Icon(
-                      steps[i]['icon'] as IconData,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           steps[i]['title'] as String,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getStepTime(request, steps[i]['step'] as int),
                           style: TextStyle(
-                            color: steps[i]['completed'] as bool
-                                ? Colors.white
-                                : Colors.grey.shade400,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 14,
                           ),
                         ),
-                        if (steps[i]['completed'] as bool) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            _getStepTime(request, steps[i]['step'] as int),
-                            style: TextStyle(
-                              color: Colors.blue.shade200,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ),
-                ],
-              ),
-              if (i < steps.length - 1)
-                Padding(
-                  padding: const EdgeInsets.only(left: 25, top: 8, bottom: 8),
-                  child: Container(
-                    width: 2,
-                    height: 30,
-                    color: steps[i + 1]['completed'] as bool
-                        ? Colors.lightBlueAccent
-                        : Colors.grey.shade700,
-                  ),
                 ),
-            ],
-          ),
-      ],
+              ],
+            ),
+        ],
+      ),
     );
   }
 

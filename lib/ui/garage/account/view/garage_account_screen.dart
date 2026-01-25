@@ -19,7 +19,7 @@ class GarageAccountScreen extends ConsumerWidget {
     final state = ref.watch(garageProvider);
     final garage = state.savedGarage; // Dùng savedGarage cho hiển thị
     final colorScheme = Theme.of(context).colorScheme;
-    final vm = ref.read(accountVmProvider.notifier);
+    // final vm = ref.read(accountVmProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -141,7 +141,7 @@ class GarageAccountScreen extends ConsumerWidget {
               const SizedBox(height: 50),
 
               /// LOGOUT
-              LogoutButton(onTap: vm.logout),
+              // LogoutButton(onTap: vm.logout),
             ],
           ),
         ),

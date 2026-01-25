@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatGarage_vm.dart';
@@ -76,14 +78,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(chatState.chat),
+      appBar: _buildAppBar(chatState.chat, ref.watch(userIdProvider)),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(56, 56, 224, 1),
-              Color.fromRGBO(46, 144, 183, 1),
-            ],
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
@@ -99,7 +100,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
 
-  PreferredSizeWidget _buildAppBar(ChatModel? chat) {
+  PreferredSizeWidget _buildAppBar(ChatModel? chat, String? currentUserId) {
+    final otherParticipant = chat?.getOtherParticipant(currentUserId!);
+
     return AppBar(
       backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
       elevation: 0,
@@ -112,11 +115,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ? const SizedBox.shrink()
           : Row(
         children: [
-          _buildAvatar(chat),
+          _buildAvatar(otherParticipant),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              chat.garageName,
+              otherParticipant?.name ?? 'Unknown',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 16,
@@ -129,8 +132,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildAvatar(ChatModel chat) {
-    final img = chat.garageImage;
+  Widget _buildAvatar(Participant? participant) {
+    final img = participant?.avatar;
+    final hasAvatar = img != null && img.isNotEmpty;
 
     return Container(
       width: 40,
@@ -138,20 +142,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: const Color(0xFF475569),
-        image: img.startsWith('http')
-            ? DecorationImage(image: NetworkImage(img), fit: BoxFit.cover)
-            : null,
-      ),
-      child: !img.startsWith('http')
-          ? Center(
-        child: Text(
-          img.isNotEmpty ? img[0].toUpperCase() : '?',
-          style: const TextStyle(color: Colors.white),
+        image: DecorationImage(
+          image: hasAvatar
+              ? NetworkImage(img)
+              : const AssetImage(
+            'assets/images/illustrations/avatarDefault.png',
+          ) as ImageProvider,
+          fit: BoxFit.cover,
         ),
-      )
-          : null,
+      ),
     );
   }
+
 
 
   Widget _buildMessages(ChatState state, ChatNotifier notifier) {
@@ -212,7 +214,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildInput(ChatNotifier notifier) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 8, 12),
-      decoration: const BoxDecoration(color: Color(0xFF0D0783)),
+      decoration: const BoxDecoration(color: Color(0xFF201C4C)),
       child: Row(
         children: [
           Expanded(

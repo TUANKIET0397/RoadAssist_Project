@@ -4,145 +4,362 @@ import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/providers/selected_role.dart';
 import 'package:road_assist/core/routes/route_paths.dart';
+import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
 
 class AuthRoleScreen extends ConsumerWidget {
   const AuthRoleScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final h = MediaQuery.of(context).size.height;
+    final viewModel = ref.watch(loginViewModelProvider);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 48),
-
-              const Text(
-                'Chào mừng bạn 👋',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                'Bạn muốn đăng nhập với vai trò nào?',
-                style: TextStyle(fontSize: 16, color: Colors.black54),
-                textAlign: TextAlign.center,
-              ),
-
-              const Spacer(),
-
-              _RoleCard(
-                icon: Icons.person,
-                title: 'Người dùng',
-                subtitle: 'Tìm garage, chat, lịch sử cứu hộ',
-                onTap: () {
-                  ref.read(selectedRoleProvider.notifier).state =
-                      UserRole.customer;
-                  context.go(RoutePaths.userLogin);
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              _RoleCard(
-                icon: Icons.store,
-                title: 'Garage',
-                subtitle: 'Nhận yêu cầu, quản lý dịch vụ',
-                onTap: () {
-                  ref.read(selectedRoleProvider.notifier).state =
-                      UserRole.garage;
-                  context.go(RoutePaths.garageLogin);
-                },
-              ),
-
-              const Spacer(),
-
-              const Text(
-                'Bạn có thể thay đổi vai trò sau khi đăng xuất',
-                style: TextStyle(fontSize: 13, color: Colors.black45),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 24),
-            ],
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: h * 0.5,
+            child: Image.asset(
+              'assets/images/illustrations/background_car_login.jpg',
+              fit: BoxFit.cover,
+            ),
           ),
+
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: h * 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF1a2840).withOpacity(0.5),
+                    const Color(0xFF1a2840).withOpacity(0.95),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: h * 0.45,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF1a2840),
+                    Color(0xFF2d3f56),
+                    Color(0xFF1a2840),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+
+          Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.topCenter,
+                radius: 1.2,
+                colors: [
+                  const Color(0xFF34C8E8).withOpacity(0.12),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+
+          // Content
+          SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+
+                // Logo
+                Image.asset(
+                  'assets/images/logos/logo.png',
+                  width: 180,
+                  height: 180,
+                ),
+
+                const Spacer(flex: 2),
+
+                // Role selection buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _RoleButton(
+                      icon: Image.asset(
+                        'assets/images/icons/garagelogin.png',
+                      ),
+                      label: 'Tài khoản\nGarage',
+                      isSelected: false,
+                      onTap: () {
+                        ref.read(selectedRoleProvider.notifier).state =
+                            UserRole.garage;
+                        context.go(RoutePaths.garageLogin);
+                      },
+                    ),
+                    const SizedBox(width: 24),
+                    _RoleButton(
+                      icon: Image.asset(
+                        'assets/images/icons/userlogin.png',
+                      ),
+                      label: 'Tài khoản\nNgười dùng',
+                      isSelected: true,
+                      onTap: () {
+                        ref.read(selectedRoleProvider.notifier).state =
+                            UserRole.customer;
+                        context.go(RoutePaths.userLogin);
+                      },
+                    ),
+                  ],
+                ),
+
+                const Spacer(flex: 2),
+
+                // Emergency support card
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Color(0xFF4B4CED),
+                        Color(0xFF34CAE8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.all(Radius.circular(16)),
+                  ),
+                  padding: const EdgeInsets.all(1),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF19253B),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.warning,
+                              color: Colors.orange,
+                              size: 20,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Hỗ trợ khẩn cấp',
+                              style: TextStyle(
+                                color: Color(0xFFF88000),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Trong trường hợp khẩn cấp bạn có thể gọi trực tiếp bằng số Hotline bên dưới để hỗ trợ ngay.',
+                          style: TextStyle(
+                            color: Color(0xFF7181A6),
+                            fontSize: 14,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF4D67),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.phone, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Gọi Ngay',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+
+                // Social login
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _SocialButton(
+                        iconPath: 'assets/images/logos/gmail_logo.png',
+                        onTap: () async {
+                          final user = await viewModel.loginWithGoogle();
+                          if (user != null && context.mounted) {
+                            context.go('/home');
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      _SocialButton(
+                        iconPath: 'assets/images/logos/apple_logo.png',
+                        onTap: () {},
+                      ),
+                      const SizedBox(width: 16),
+                      _SocialButton(
+                        iconPath: 'assets/images/logos/facebook_logo.png',
+                        onTap: () {
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Sign up
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Chưa có tài khoản? ',
+                      style: TextStyle(
+                        color: Color(0xFF53789A),
+                        fontSize: 14,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        context.go('/auth/user/register');
+                      },
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Đăng ký ngay',
+                        style: TextStyle(
+                          color: Color(0xFF00D4FF),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoleButton extends StatelessWidget {
+  final Widget icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _RoleButton({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : const Color(0xFF2a3d50),
+          shape: BoxShape.circle,
+          boxShadow: isSelected
+              ? [
+            BoxShadow(
+              color: Colors.white.withOpacity(0.3),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
+          ]
+              : null,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(width: 50, height: 50, child: icon),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFF0DD7FF) : Colors.white70,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-
-class _RoleCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+class _SocialButton extends ConsumerWidget {
+  final String iconPath;
   final VoidCallback onTap;
 
-  const _RoleCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+  const _SocialButton({
+    required this.iconPath,
     required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
       onTap: onTap,
-      child: Ink(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(255, 1, 1, 1),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: const Color(0xFF34C8E8).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, size: 30, color: const Color(0xFF34C8E8)),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.black38),
-          ],
-        ),
+      child: Image.asset(
+        iconPath,
+        width: 56,
+        height: 56,
       ),
     );
   }

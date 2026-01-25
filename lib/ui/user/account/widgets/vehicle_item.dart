@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import '../model/vehicle_model.dart';
 
 class VehicleItem extends StatelessWidget {
@@ -15,6 +16,9 @@ class VehicleItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imagePath =
+        kVehicleImages[vehicle.type] ??
+        'assets/images/illustrations/vehicle.png'; // fallback
     return GestureDetector(
       onTap: onEdit, // 👉 click cả item để edit
       child: Stack(
@@ -52,7 +56,7 @@ class VehicleItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          vehicle.name,
+                          vehicle.type,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -104,7 +108,12 @@ class VehicleItem extends StatelessWidget {
             top: -18,
             bottom: 2,
             left: 2,
-            child: Image.asset(vehicle.image, width: 120, height: 120),
+            child: Image.asset(
+              imagePath,
+              width: 120,
+              height: 120,
+              fit: BoxFit.contain,
+            ),
           ),
         ],
       ),

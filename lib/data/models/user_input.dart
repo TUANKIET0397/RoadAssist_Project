@@ -9,14 +9,14 @@ class User {
   bool isVerified;
 
   User({
-    required this.firstName,
-    required this.lastName,
-    required this.phone,
-    required this.email,
+    required this.firstName, //
+    required this.lastName, //
+    required this.phone, //
+    required this.email, //
     required this.address,
     required this.birthDate,
-    this.isVerified = false, required this.password,
-
+    this.isVerified = false,
+    required this.password,
   });
   Map<String, dynamic> toJson() => {
     'firstName': firstName,
@@ -29,4 +29,3 @@ class User {
     'password': password,
   };
 }
-

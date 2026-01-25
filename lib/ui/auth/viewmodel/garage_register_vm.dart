@@ -48,10 +48,14 @@ class GarageRegisterScreenModel extends ChangeNotifier {
   final Set<String> selectedServices = {};
 
   final List<String> allVehicleTypes = [
-    'Xe Bốn bánh',
-    'Xe máy',
+    'Xe Số',
+    'Xe Tay ga',
+    'Xe Điện',
     'Ô tô',
-    'Xe tải',
+    'Xe Bus',
+    'Xe Container',
+    'Xe Tải',
+    'Xe Ba Gác',
   ];
   final List<String> selectedVehicleTypes = [];
 
@@ -227,8 +231,8 @@ class GarageRegisterScreenModel extends ChangeNotifier {
             '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
         'issues': selectedServices.toList(),
         'vehicleTypes': selectedVehicleTypes,
-        'imageUrl': "",
-        'bgimgUrl': "",
+        'image': "",
+        'bgimage': "",
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
       });

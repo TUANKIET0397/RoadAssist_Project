@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/chat_model.dart';
 import 'package:road_assist/data/models/message_model.dart';
@@ -9,7 +8,7 @@ import 'package:road_assist/data/models/message_model.dart';
 /// PROVIDERS
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  return ChatRepository();
+  return ChatRepository(ref);
 });
 
 /// Chat list (customer / garage)
@@ -27,7 +26,6 @@ final chatListProvider = StreamProvider<List<ChatModel>>((ref) {
       .read(chatRepositoryProvider)
       .getChatListByRole(
     userId: authState.userId!,
-    role: authState.role!,
   );
 });
 
@@ -37,31 +35,19 @@ final chatListProvider = StreamProvider<List<ChatModel>>((ref) {
 
 class ChatRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Ref _ref;
+
+  ChatRepository(this._ref);
 
 
 
   Stream<List<ChatModel>> getChatListByRole({
     required String userId,
-    required UserRole role,
   }) {
-    late Query<Map<String, dynamic>> query;
-
-    switch (role) {
-      case UserRole.customer:
-        query = _firestore
-            .collection('chats')
-            .where('userId', isEqualTo: userId);
-        break;
-
-      case UserRole.garage:
-        query = _firestore
-            .collection('chats')
-            .where('garageId', isEqualTo: userId);
-        break;
-    }
-
-    return query
-        .orderBy('lastMessageTime', descending: true)
+    return _firestore
+        .collection('chats')
+        .where('members', arrayContains: userId)
+        .orderBy('updatedAt', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -80,31 +66,41 @@ class ChatRepository {
   Future<String> getOrCreateChat({
     required String userId,
     required String garageId,
-    required String garageName,
-    required String garageImage,
   }) async {
     final existing = await _firestore
         .collection('chats')
-        .where('userId', isEqualTo: userId)
-        .where('garageId', isEqualTo: garageId)
+        .where('members', arrayContainsAny: [userId, garageId])
         .limit(1)
         .get();
 
     if (existing.docs.isNotEmpty) {
-      return existing.docs.first.id;
+      final chat = ChatModel.fromMap(existing.docs.first.id, existing.docs.first.data());
+      final members = chat.members;
+      if(members.contains(userId) && members.contains(garageId) && members.length == 2){
+        return existing.docs.first.id;
+      }
     }
 
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+    final garageDoc = await _firestore.collection('garages').doc(garageId).get();
+
     final chatRef = await _firestore.collection('chats').add({
-      'userId': userId,
-      'garageId': garageId,
-      'garageName': garageName,
-      'garageImage': garageImage,
-      'lastMessage': '',
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'unread': {
-        userId: 0,
-        garageId: 0,
+      'members': [userId, garageId],
+      'memberInfo': {
+        userId: {
+          'role': 'custommer',
+          'name': userDoc.data()?['name'] ?? 'User',
+          'avatar': userDoc.data()?['image'] ?? ''
+        },
+        garageId: {
+          'role': 'garage',
+          'name': garageDoc.data()?['name'] ?? 'Garage',
+          'avatar': garageDoc.data()?['image'] ?? ''
+        }
       },
+      'lastMessage': '',
+      'lastSenderId': '',
+      'updatedAt': FieldValue.serverTimestamp(),
       'createdAt': FieldValue.serverTimestamp(),
     });
 

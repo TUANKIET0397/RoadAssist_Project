@@ -346,17 +346,13 @@ class UserRescueTrackingScreen extends ConsumerWidget {
 
     if (dateTime == null) return '';
 
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    // Format thời gian thực (HH:mm:ss)
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final second = dateTime.second.toString().padLeft(2, '0');
+    final date = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
 
-    if (difference.inMinutes < 1) {
-      return 'Vừa xong';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} phút trước';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} giờ trước';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
+    return '$date/$month lúc $hour:$minute:$second';
   }
 }

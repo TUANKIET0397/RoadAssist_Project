@@ -19,7 +19,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
   String? currentRequestId;
   String? garageId;
   String? garageName;
-  RescueRequestModel? _currentRequestData;
+ // RescueRequestModel? _currentRequestData;
 
   void _navigateToWaiting(String requestId) {
     setState(() {
@@ -69,7 +69,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
           garageId: garageId,
           garageName: garageName,
           onBack: _backToRequest,
-          request: _currentRequestData!,
+         // request: _currentRequestData, // Can be null, it will fetch from Firebase
         );
       case 'rescue_no_garage':
         return ng_screen.UserRescueNoGarageScreen(

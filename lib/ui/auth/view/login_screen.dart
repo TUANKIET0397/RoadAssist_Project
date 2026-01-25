@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
 
 class LoginScreen extends ConsumerWidget {
@@ -13,10 +14,10 @@ class LoginScreen extends ConsumerWidget {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.0,
-            colors: [Color.fromARGB(255, 1, 23, 103), Color(0xFF1A1E3D)],
+          gradient: LinearGradient(
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
@@ -28,7 +29,11 @@ class LoginScreen extends ConsumerWidget {
                   margin: EdgeInsets.only(right: 250),
                   padding: EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
+                    gradient: LinearGradient(
+                      colors: AppPalette.bgColors,
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
                   ),
                   child: InkWell(
                     onTap: () {
@@ -193,7 +198,7 @@ class LoginScreen extends ConsumerWidget {
                       onTap: () async {
                         final user = await viewModel.loginWithGoogle();
                         if (user != null && context.mounted) {
-                          // context.go('/home');
+                          context.go('/home');
                         }
                       },
                       color: Colors.red,

@@ -19,7 +19,7 @@ class HistoryStatusBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        isCompleted ? 'Hoàn Thành' : 'Thất Bại',
+        isCompleted ? 'Hoàn Thành' : 'Đã Hủy',
         style: TextStyle(
           color: isCompleted ? Colors.greenAccent : Colors.redAccent,
           fontSize: 14,

@@ -3,10 +3,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_location_card.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_status_checklist.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_vehiclecard.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_cancel_button.dart';
 
 class UserRescueWaitingScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
-  final Function(String requestId, String? garageId, String? garageName) onNavigateToSuccess;
+  final Function(String requestId, String? garageId, String? name) onNavigateToSuccess;
   final Function(String requestId) onNavigateToNoGarage;
   final Function() onBack;
 
@@ -27,7 +31,7 @@ class _UserRescueWaitingScreenState
     extends ConsumerState<UserRescueWaitingScreen> {
   late Timer _timeoutTimer;
   int _elapsedSeconds = 0;
-  static const int _timeoutDuration = 30; // 3 phút
+  static const int _timeoutDuration = 2000; // 3 phút
   bool _timeoutHandled = false;
 
   @override
@@ -81,7 +85,8 @@ class _UserRescueWaitingScreenState
 
   Future<void> _cancelRequest() async {
     final repo = ref.read(rescueRequestRepoProvider);
-    final success = await repo.cancelRescueRequest(widget.rescueRequestId);
+    // Xóa hoàn toàn request khỏi database khi ở waiting screen
+    final success = await repo.deleteRescueRequest(widget.rescueRequestId);
 
     if (success && mounted) {
       if (_timeoutTimer.isActive) {
@@ -102,11 +107,6 @@ class _UserRescueWaitingScreenState
     super.dispose();
   }
 
-  String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +117,6 @@ class _UserRescueWaitingScreenState
     return PopScope(
       onPopInvokedWithResult: (didPop, result) => false,
       child: Scaffold(
-        appBar: AppBar(
-          leading: SizedBox.shrink(),
-          title: const Text('Đang tìm Garage phù hợp...'),
-          centerTitle: true,
-          backgroundColor: const Color(0xFF0f172a),
-        ),
         body: rescueRequest.when(
           data: (request) {
             if (request == null) {
@@ -139,7 +133,7 @@ class _UserRescueWaitingScreenState
                   widget.onNavigateToSuccess(
                     widget.rescueRequestId,
                     request.garageId,
-                    request.garageName,
+                    request.name,
                   );
                 }
               });
@@ -158,17 +152,17 @@ class _UserRescueWaitingScreenState
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 5),
 
                       const RadarScanner(),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 5),
 
                       Text(
                         'Đang tìm Garage phù hợp...',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 20,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
@@ -180,7 +174,7 @@ class _UserRescueWaitingScreenState
                         'Vui lòng chờ trong giây lát',
                         style: TextStyle(
                           color: Colors.blue.shade200,
-                          fontSize: 14,
+                          fontSize: 15,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -188,215 +182,31 @@ class _UserRescueWaitingScreenState
                       const SizedBox(height: 32),
 
                       // Vehicle info card
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1e3a8a).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.blue.shade700,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                // Vehicle icon
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade900.withOpacity(
-                                      0.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.two_wheeler,
-                                    color: Colors.blue.shade300,
-                                    size: 32,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        request.vehicleType,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        request.vehicleModel,
-                                        style: TextStyle(
-                                          color: Colors.blue.shade300,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            // Issue tags - Hiển thị các vấn đề từ request.issues
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: request.issues.map((issue) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 8,
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade900.withValues(
-                                      alpha: 0.5,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.blue.shade600,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    issue,
-                                    style: TextStyle(
-                                      color: Colors.blue.shade200,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-
+                      RescueVehicleCard(request: request),
+                      
                       const SizedBox(height: 16),
 
-                      // Checklist items
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1e3a8a).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.blue.shade700,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            _buildCheckItem(
-                              'Thời gian dự kiến trong 1 - 2 phút',
-                              true,
-                            ),
-                            const SizedBox(height: 12),
-                            _buildCheckItem('Kiểm tra khả năng cấu hộ', true),
-                            const SizedBox(height: 12),
-                            _buildCheckItem(
-                              'Gửi yêu cầu đến Garage phù hợp',
-                              true,
-                            ),
-                          ],
-                        ),
+                      RescueStatusChecklist(
+                        items: [
+                          'Yêu cầu cứu hộ đã gửi',
+                          'Vui lòng chờ garage phản hồi',
+                          'Bạn sẽ nhận thông báo sớm',
+                        ],
                       ),
 
                       const SizedBox(height: 16),
 
                       // Location info
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1e3a8a).withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.blue.shade700,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  color: Colors.blue.shade300,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Vị trí của bạn',
-                                  style: TextStyle(
-                                    color: Colors.blue.shade300,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              request.location,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.phone,
-                                  color: Colors.blue.shade300,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  request.userPhone,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      RescueLocationCard(
+                        location: request.location,
+                        userPhone: request.userPhone,
                       ),
-
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
 
                       // Cancel button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _cancelRequest,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red.shade600,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Hủy yêu cầu cứu hộ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                      RescueCancelButton(
+                        enabled: true,
+                        onConfirmCancel: _cancelRequest,
                       ),
 
                       const SizedBox(height: 12),
@@ -421,25 +231,7 @@ class _UserRescueWaitingScreenState
       ),
     );
   }
-
-  Widget _buildCheckItem(String text, bool isChecked) {
-    return Row(
-      children: [
-        Icon(
-          isChecked ? Icons.check_circle : Icons.circle_outlined,
-          color: isChecked ? Colors.blue.shade400 : Colors.grey.shade600,
-          size: 20,
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(color: Colors.white, fontSize: 14),
-          ),
-        ),
-      ],
-    );
-  }
+     
 }
 
 class RadarScanner extends StatefulWidget {
@@ -471,8 +263,8 @@ class _RadarScannerState extends State<RadarScanner>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
-      height: 200,
+      width: 150,
+      height: 150,
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, __) {

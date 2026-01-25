@@ -1,7 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/user/history/model/history_item.dart';
+import 'package:road_assist/data/models/rescue_request_model.dart';
+import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
-enum HistoryFilter { all, completed, failed }
+enum HistoryFilter { all, completed, cancelled }
 
 final HistoryProvider = StateNotifierProvider<HistoryVM, HistoryFilter>((ref) {
   return HistoryVM();
@@ -15,68 +18,55 @@ class HistoryVM extends StateNotifier<HistoryFilter> {
   }
 }
 
-final HistoryListProvider = Provider<List<HistoryItem>>((ref) {
+/// Provider lấy tất cả rescue requests của user từ Firebase
+final userRescueHistoryProvider = StreamProvider.autoDispose<List<RescueRequestModel>>((ref) {
+  final userId = ref.watch(userIdProvider);
+  if (userId == null) return Stream.value([]);
+
+  final repo = ref.watch(rescueRequestRepoProvider);
+  return repo.getUserRequestsStream(userId);
+});
+
+/// Provider convert RescueRequestModel -> HistoryItem
+final HistoryListProvider = Provider.autoDispose<AsyncValue<List<HistoryItem>>>((ref) {
   final filter = ref.watch(HistoryProvider);
+  final rescueHistoryAsync = ref.watch(userRescueHistoryProvider);
 
-  final all = [
-    HistoryItem(
-      vehicleType: 'Xe tay ga',
-      vehicleName: 'Xe tay ga',
-      vehicleModel: 'Honda SH Mode 2025',
-      image: 'assets/images/illustrations/vehicle.png',
-      status: Status.completed,
-      issue: 'Bể lốp, hư máy',
-      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
-      completedTime: '19:00 08-01-2026',
-    ),
-    HistoryItem(
-      vehicleType: 'Xe Hơi',
-      vehicleName: 'Xe Hơi',
-      vehicleModel: 'Toyota A125 2025',
-      image: 'assets/images/illustrations/vehicle.png',
-      status: Status.failed,
-      issue: 'Bể lốp, hư máy',
-      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
-      completedTime: '19:00 08-01-2026',
-    ),
-    HistoryItem(
-      vehicleType: 'Xe Hơi 1',
-      vehicleName: 'Xe Hơi 1',
-      vehicleModel: 'Toyota A125 2025',
-      image: 'assets/images/illustrations/vehicle.png',
-      status: Status.completed,
-      issue: 'Bể lốp, hư máy',
-      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
-      completedTime: '19:00 08-01-2026',
-    ),
-    HistoryItem(
-      vehicleType: 'Xe Hơi 2',
-      vehicleName: 'Xe Hơi 2',
-      vehicleModel: 'Toyota A125 2025',
-      image: 'assets/images/illustrations/vehicle.png',
-      status: Status.failed,
-      issue: 'Bể lốp, hư máy',
-      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
-      completedTime: '19:00 08-01-2026',
-    ),
-    HistoryItem(
-      vehicleType: 'Xe Hơi 3',
-      vehicleName: 'Xe Hơi 3',
-      vehicleModel: 'Toyota A125 2025',
-      image: 'assets/images/illustrations/vehicle.png',
-      status: Status.completed,
-      issue: 'Bể lốp, hư máy',
-      address: '15B Nguyễn Lương Bằng, P25, TP HCM',
-      completedTime: '19:00 08-01-2026',
-    ),
-  ];
+  return rescueHistoryAsync.whenData((rescueList) {
+    // Convert rescue requests to history items
+    final historyItems = rescueList.map((rescue) {
+      // Determine status based on rescue request status
+      final status = rescue.status == 'completed' 
+          ? Status.completed 
+          : rescue.status == 'cancelled'
+          ? Status.cancelled
+          : Status.completed; // Default to completed for other statuses
 
-  switch (filter) {
-    case HistoryFilter.completed:
-      return all.where((e) => e.status == Status.completed).toList();
-    case HistoryFilter.failed:
-      return all.where((e) => e.status == Status.failed).toList();
-    default:
-      return all;
-  }
+      return HistoryItem(
+        rescueRequestId: rescue.id,
+        vehicleType: rescue.vehicleType,
+        vehicleName: rescue.vehicleModel,
+        vehicleModel: rescue.vehicleModel,
+        image: 'assets/images/illustrations/vehicle.png',
+        status: status,
+        issue: rescue.issues.join(', '),
+        address: rescue.location,
+        completedTime: rescue.completedAt?.toString() ?? rescue.createdAt.toString(),
+        garageName: rescue.name ?? 'Unknown Garage',
+        userPhone: rescue.userPhone,
+        latitude: rescue.latitude,
+        longitude: rescue.longitude,
+      );
+    }).toList();
+
+    // Filter based on selection
+    switch (filter) {
+      case HistoryFilter.completed:
+        return historyItems.where((e) => e.status == Status.completed).toList();
+      case HistoryFilter.cancelled:
+        return historyItems.where((e) => e.status == Status.cancelled).toList();
+      default:
+        return historyItems;
+    }
+  });
 });

@@ -173,18 +173,27 @@ class RescueRequestRepository {
   }
 
   /// Cancel rescue request (dành cho user)
+  /// Cancel rescue request (chỉ update status, không xóa - dùng ở success screen sau khi garage đã chấp nhận)
   Future<bool> cancelRescueRequest(String requestId) async {
     try {
       await _firestore.collection('rescue_requests').doc(requestId).update({
         'status': 'cancelled',
         'cancelledAt': FieldValue.serverTimestamp(),
-        'garageId': FieldValue.delete(),
-        'garageName': FieldValue.delete(),
-        'acceptedAt': FieldValue.delete(),
       });
       return true;
     } catch (e) {
       print('Lỗi cancel rescue request: $e');
+      return false;
+    }
+  }
+
+  /// Delete rescue request (xóa hoàn toàn từ database - dùng ở waiting screen)
+  Future<bool> deleteRescueRequest(String requestId) async {
+    try {
+      await _firestore.collection('rescue_requests').doc(requestId).delete();
+      return true;
+    } catch (e) {
+      print('Lỗi delete rescue request: $e');
       return false;
     }
   }

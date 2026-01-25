@@ -42,7 +42,7 @@ class HistoryFilterTabs extends ConsumerWidget {
         const SizedBox(width: 10),
         tab('Hoàn Thành', HistoryFilter.completed),
         const SizedBox(width: 10),
-        tab('Thất Bại', HistoryFilter.failed),
+        tab('Đã Hủy', HistoryFilter.cancelled),
       ],
     );
   }

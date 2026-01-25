@@ -9,7 +9,7 @@ class HistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final list = ref.watch(HistoryListProvider);
+    final listAsync = ref.watch(HistoryListProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,15 +31,42 @@ class HistoryScreen extends ConsumerWidget {
             colors: [Color(0xFF0B1C2D), Color(0xFF2F52FF)],
           ),
         ),
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: [
-            const SizedBox(height: 16),
-            const HistoryFilterTabs(),
-            const SizedBox(height: 20),
-            ...list.map((e) => HistoryCard(item: e)),
-            const SizedBox(height: 100),
-          ],
+        child: listAsync.when(
+          data: (list) {
+            return ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                const SizedBox(height: 16),
+                const HistoryFilterTabs(),
+                const SizedBox(height: 20),
+                if (list.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Text(
+                        'Chưa có lịch sử cứu hộ',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  ...list.map((e) => HistoryCard(item: e)),
+                const SizedBox(height: 100),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (err, stack) => Center(
+            child: Text(
+              'Lỗi: $err',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
         ),
       ),
     );

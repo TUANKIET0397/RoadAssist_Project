@@ -28,6 +28,7 @@ class GarageRescueRequestDetailScreen extends ConsumerStatefulWidget {
 class _GarageRescueRequestDetailScreenState
     extends ConsumerState<GarageRescueRequestDetailScreen> {
   bool isAccepting = false;
+  bool isRejecting = false;
 
   @override
   void initState() {
@@ -114,6 +115,41 @@ class _GarageRescueRequestDetailScreenState
     } finally {
       if (mounted) {
         setState(() => isAccepting = false);
+      }
+    }
+  }
+
+  /// Từ chối yêu cầu - CHỈ xóa notification của garage này
+  /// Không ảnh hưởng đến các garage khác
+  Future<void> _rejectRequest() async {
+    setState(() => isRejecting = true);
+
+    try {
+      final userId = ref.read(userIdProvider);
+      debugPrint('[GARAGE REJECT] Rejecting request for garage: $userId');
+
+      // Chỉ xóa notification của garage này
+      // KHÔNG thay đổi status của rescue_request
+      await ref.read(notificationActionProvider).rejectNotification(
+        garageId: userId ?? 'unknown_garage',
+        rescueRequestId: widget.rescueRequestId,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã từ chối yêu cầu')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isRejecting = false);
       }
     }
   }
@@ -500,7 +536,7 @@ class _GarageRescueRequestDetailScreenState
         children: [
           Expanded(
             child: TextButton(
-              onPressed: () {},
+              onPressed: isRejecting ? null : _rejectRequest,
               style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(6),
@@ -511,7 +547,16 @@ class _GarageRescueRequestDetailScreenState
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              child: const Text('Từ chối'),
+              child: isRejecting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Từ chối'),
             ),
           ),
           const SizedBox(width: 30),

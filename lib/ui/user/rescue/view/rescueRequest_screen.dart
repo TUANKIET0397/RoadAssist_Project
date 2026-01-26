@@ -9,6 +9,7 @@ import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
+import 'package:road_assist/ui/user/home/viewmodel/home_vehicle_provider.dart';
 
 class RescueRequestScreen extends ConsumerStatefulWidget {
   final void Function(String requestId) onNavigateToWaiting;
@@ -48,6 +49,36 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   void initState() {
     super.initState();
     _loadInitialLocation();
+    // Delay loading pre-selected values until after the first frame
+    // to avoid modifying provider during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPreSelectedValues();
+    });
+  }
+
+  /// Load pre-selected vehicle type and issue from providers (if any)
+  void _loadPreSelectedValues() {
+    if (!mounted) return;
+    
+    // Read pre-selected vehicle type
+    final preSelectedVehicle = ref.read(preSelectedVehicleTypeProvider);
+    if (preSelectedVehicle != null && preSelectedVehicle.isNotEmpty) {
+      setState(() {
+        selectedVehicleType = preSelectedVehicle;
+      });
+      // Clear the provider after reading
+      ref.read(preSelectedVehicleTypeProvider.notifier).state = null;
+    }
+
+    // Read pre-selected issue
+    final preSelectedIssue = ref.read(preSelectedIssueProvider);
+    if (preSelectedIssue != null && preSelectedIssue.isNotEmpty) {
+      setState(() {
+        selectedIssues = [preSelectedIssue];
+      });
+      // Clear the provider after reading
+      ref.read(preSelectedIssueProvider.notifier).state = null;
+    }
   }
 
   Future<void> _loadInitialLocation() async {
@@ -100,7 +131,11 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     });
   }
 
-  void _showVehicleSelector(List<Vehicle> vehicles) {
+  /// Hiển thị tất cả loại xe để chọn (bao gồm cả xe chưa đăng ký)
+  void _showVehicleSelector(List<Vehicle> registeredVehicles) {
+    // Lấy set các loại xe đã đăng ký
+    final registeredTypes = registeredVehicles.map((v) => v.type).toSet();
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1e3a8a),
@@ -119,7 +154,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Chọn xe của bạn',
+                'Chọn loại xe',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -130,9 +165,16 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
               Expanded(
                 child: ListView.builder(
                   controller: scrollController,
-                  itemCount: vehicles.length,
+                  itemCount: kUserVehicleTypes.length,
                   itemBuilder: (context, index) {
-                    final vehicle = vehicles[index];
+                    final vehicleType = kUserVehicleTypes[index];
+                    final isRegistered = registeredTypes.contains(vehicleType);
+                    // Tìm vehicle đã đăng ký để lấy description nếu có
+                    final registeredVehicle = registeredVehicles.cast<Vehicle?>().firstWhere(
+                      (v) => v?.type == vehicleType,
+                      orElse: () => null,
+                    );
+                    
                     return ListTile(
                       leading: Container(
                         width: 70,
@@ -140,25 +182,29 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                           borderRadius: BorderRadius.circular(8),
                           image: DecorationImage(
                             image: AssetImage(
-                              kVehicleImages[vehicle.type] ?? 'assets/images/illustrations/vehicle.png',
+                              kVehicleImages[vehicleType] ?? 'assets/images/illustrations/vehicle.png',
                             ),
                             fit: BoxFit.contain,
                           ),
                         ),
                       ),
                       title: Text(
-                        vehicle.type,
+                        vehicleType,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       subtitle: Text(
-                        vehicle.description ?? 'Model mặc định',
-                        style: TextStyle(color: Colors.blue.shade200),
+                        isRegistered 
+                            ? (registeredVehicle?.description ?? 'Đã đăng ký')
+                            : 'Chưa đăng ký',
+                        style: TextStyle(
+                          color: isRegistered ? Colors.green.shade300 : Colors.orange.shade300,
+                        ),
                       ),
                       trailing: Radio<String>(
-                        value: vehicle.type,
+                        value: vehicleType,
                         groupValue: selectedVehicleType,
                         onChanged: (value) {
                           setState(() {
@@ -170,7 +216,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                       ),
                       onTap: () {
                         setState(() {
-                          selectedVehicleType = vehicle.type;
+                          selectedVehicleType = vehicleType;
                         });
                         Navigator.pop(context);
                       },
@@ -314,29 +360,24 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                       // Vehicle Selection
                       vehiclesAsync.when(
                         data: (vehicles) {
-                          if (vehicles.isEmpty) {
-                            return Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha:  0.3),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Text(
-                                'Không có xe nào được đăng ký',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            );
+                          // Nếu chưa chọn xe và có xe đã đăng ký -> chọn xe đầu tiên
+                          // Nếu chưa chọn xe và không có xe đăng ký -> chọn xe đầu tiên từ kUserVehicleTypes
+                          if (selectedVehicleType.isEmpty) {
+                            if (vehicles.isNotEmpty) {
+                              selectedVehicleType = vehicles.first.type;
+                            } else if (kUserVehicleTypes.isNotEmpty) {
+                              selectedVehicleType = kUserVehicleTypes.first;
+                            }
                           }
                           
-                          // Set default vehicle if not selected
-                          if (selectedVehicleType.isEmpty && vehicles.isNotEmpty) {
-                            selectedVehicleType = vehicles.first.type;
-                          }
-                          
-                          final currentVehicle = vehicles.firstWhere(
-                            (v) => v.type == selectedVehicleType,
-                            orElse: () => vehicles.first,
+                          // Tìm vehicle đã đăng ký (nếu có)
+                          final registeredVehicle = vehicles.cast<Vehicle?>().firstWhere(
+                            (v) => v?.type == selectedVehicleType,
+                            orElse: () => null,
                           );
+                          
+                          // Kiểm tra xe đã đăng ký hay chưa
+                          final isRegistered = registeredVehicle != null;
                           
                           return GestureDetector(
                             onTap: () => _showVehicleSelector(vehicles),
@@ -368,7 +409,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                       image: DecorationImage(
                                         image: AssetImage(
-                                          kVehicleImages[currentVehicle.type] ?? 'assets/images/illustrations/vehicle.png',
+                                          kVehicleImages[selectedVehicleType] ?? 'assets/images/illustrations/vehicle.png',
                                         ),
                                         fit: BoxFit.contain,
                                       ),
@@ -380,7 +421,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          currentVehicle.type,
+                                          selectedVehicleType,
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 18,
@@ -388,9 +429,11 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                                           ),
                                         ),
                                         Text(
-                                          currentVehicle.description ?? 'Model mặc định',
-                                          style: const TextStyle(
-                                            color: Colors.white54,
+                                          isRegistered 
+                                              ? (registeredVehicle.description ?? 'Đã đăng ký')
+                                              : 'Chưa đăng ký',
+                                          style: TextStyle(
+                                            color: isRegistered ? Colors.white54 : Colors.orange.shade300,
                                             fontSize: 14,
                                           ),
                                         ),

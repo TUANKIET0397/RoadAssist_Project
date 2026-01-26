@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/providers/garage_notification_provider.dart';
-import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
-import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
 import 'package:road_assist/ui/garage/home/widgets/rescue_request_card.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -75,7 +73,7 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
       ),
       body: requestData.when(
         data: (list) {
-          // ✅ Có dữ liệu → DÙNG gradient
+          // Có dữ liệu → DÙNG gradient
           return Container(
             decoration: list.isNotEmpty
                 ? BoxDecoration(
@@ -202,20 +200,15 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
           final request = requestList[index];
           return RescueRequestCard(
               request: request,
-              onAccept: () async {
-                debugPrint('🔵 onAccept callback triggered for request: ${request.id}');
+              onAccept: () {
+                debugPrint(' onAccept callback triggered for request: ${request.id}');
                 
-                // Navigate TRƯỚC để tránh context bị thay đổi khi provider rebuild
+                // Chỉ navigate đến detail, KHÔNG mark notification
+                // Để khi back lại vẫn còn thấy request trong list
                 if (context.mounted) {
-                  debugPrint('🔵 Navigating to: /garage/rescue-request-detail/${request.id}');
+                  debugPrint(' Navigating to: /garage/rescue-request-detail/${request.id}');
                   context.push('/garage/rescue-request-detail/${request.id}');
                 }
-                
-                // Mark notification sau khi đã navigate
-                await ref.read(notificationActionProvider).markNotificationViewed(
-                  garageId: garageId,
-                  rescueRequestId: request.id,
-                );
               },
           );
         },

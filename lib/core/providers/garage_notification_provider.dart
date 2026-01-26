@@ -206,6 +206,29 @@ class NotificationActionService {
     }
   }
 
+  /// Từ chối request - CHỈ xóa notification của garage này
+  /// KHÔNG ảnh hưởng đến các garage khác và KHÔNG thay đổi rescue_request status
+  Future<void> rejectNotification({
+    required String garageId,
+    required String rescueRequestId,
+  }) async {
+    try {
+      // Chỉ xóa notification của garage này
+      await _firestore
+          .collection('garage_notifications')
+          .doc(garageId)
+          .collection('rescue_requests')
+          .doc(rescueRequestId)
+          .delete();
+      
+      debugPrint(' Rejected & deleted notification: garage=$garageId, request=$rescueRequestId');
+      debugPrint(' Các garage khác vẫn có thể nhận request này');
+    } catch (e) {
+      debugPrint(' Lỗi reject notification: $e');
+      rethrow;
+    }
+  }
+
   /// Cleanup expired notifications (optional background task)
   Future<void> cleanupExpiredNotifications(String garageId) async {
     try {
@@ -226,9 +249,9 @@ class NotificationActionService {
         });
       }
       
-      debugPrint('🧹 Cleaned up ${expiredDocs.docs.length} expired notifications for garage $garageId');
+      debugPrint(' Cleaned up ${expiredDocs.docs.length} expired notifications for garage $garageId');
     } catch (e) {
-      debugPrint('❌ Lỗi cleanup notifications: $e');
+      debugPrint(' Lỗi cleanup notifications: $e');
     }
   }
 }

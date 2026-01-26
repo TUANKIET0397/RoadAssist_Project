@@ -161,8 +161,8 @@ class GarageRescueStatusUpdateScreen extends ConsumerWidget {
                                 height: 62,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.lightBlueAccent.withOpacity(
-                                    0.2,
+                                  color: Colors.lightBlueAccent.withValues(
+                                    alpha: 0.2,
                                   ),
                                 ),
                                 child: const Icon(

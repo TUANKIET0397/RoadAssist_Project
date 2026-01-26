@@ -9,6 +9,7 @@ class VehicleGridItem extends StatefulWidget {
   final String image;
   final bool isFavorite;
   final VoidCallback onFavoriteTap;
+  final VoidCallback? onTap; // Thêm callback khi bấm vào card
 
   const VehicleGridItem({
     super.key,
@@ -18,6 +19,7 @@ class VehicleGridItem extends StatefulWidget {
     required this.image,
     required this.isFavorite,
     required this.onFavoriteTap,
+    this.onTap,
   });
 
   @override
@@ -63,19 +65,21 @@ class _VehicleGridItemState extends State<VehicleGridItem>
       builder: (context, constraints) {
         final width = constraints.maxWidth;
 
-        return ClippedCard(
-          width: width,
-          heightFactor: 2, // 🔒 GIỮ NGUYÊN
-          clipper: RPSClipperSmall(),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 22, 18, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// ❤️ FAVORITE (ANIMATE NHẸ, KHÔNG PHÁ CLIP)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+        return GestureDetector(
+          onTap: widget.onTap,
+          child: ClippedCard(
+            width: width,
+            heightFactor: 2, // 🔒 GIỮ NGUYÊN
+            clipper: RPSClipperSmall(),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 22, 18, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// ❤️ FAVORITE (ANIMATE NHẸ, KHÔNG PHÁ CLIP)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
                     GestureDetector(
                       onTap: widget.onFavoriteTap,
                       child: ScaleTransition(
@@ -145,6 +149,7 @@ class _VehicleGridItemState extends State<VehicleGridItem>
                 ),
               ],
             ),
+          ),
           ),
         );
       },

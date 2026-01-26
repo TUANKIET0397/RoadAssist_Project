@@ -41,25 +41,20 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(garageProvider);
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: AppPalette.bgColors,
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Column(
-        children: [
-          GarageHeader(
-            title: 'Danh sách garage',
-            onSearchTap: () {
-            },
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
+        ),
+        child: Column(
+          children: [
+            GarageHeader(title: 'Danh sách garage', onSearchTap: () {}),
 
-          Expanded(
-            child: SafeArea(
-              top: false,
+            Expanded(
               child: GarageListView(
                 garages: state.garages,
                 isLoading: state.isLoading,
@@ -67,8 +62,10 @@ class _GarageListScreenState extends ConsumerState<GarageListScreen> {
                 controller: _scrollController,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: 80),
+          ],
+          // ),
+        ),
       ),
     );
   }
@@ -78,11 +75,7 @@ class GarageHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSearchTap;
 
-  const GarageHeader({
-    super.key,
-    required this.title,
-    this.onSearchTap,
-  });
+  const GarageHeader({super.key, required this.title, this.onSearchTap});
 
   @override
   Widget build(BuildContext context) {
@@ -90,15 +83,8 @@ class GarageHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        16,
-        topPadding + 10,
-        16,
-        8,
-      ),
-      decoration: const BoxDecoration(
-        color: Color.fromRGBO(37, 44, 59, 1),
-      ),
+      padding: EdgeInsets.fromLTRB(16, topPadding + 10, 16, 8),
+      decoration: const BoxDecoration(color: Color.fromRGBO(37, 44, 59, 1)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -119,20 +105,13 @@ class GarageHeader extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF34C8E8),
-                  Color(0xFF4E4AF2),
-                ],
+                colors: [Color(0xFF34C8E8), Color(0xFF4E4AF2)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
             ),
             child: IconButton(
-              icon: const Icon(
-                Icons.search,
-                color: Colors.white,
-                size: 18,
-              ),
+              icon: const Icon(Icons.search, color: Colors.white, size: 18),
               onPressed: onSearchTap,
             ),
           ),

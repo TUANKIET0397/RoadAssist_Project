@@ -1,6 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <!-- Cấu hình platform -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- IOS => ios/Runner/Info.plist  -->
+    <!-- <key>NSCameraUsageDescription</key>
+    <string>Need camera for video call</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Need mic for voice call</string> -->
     <application
         android:label="road_assist"
         android:name="${applicationName}"

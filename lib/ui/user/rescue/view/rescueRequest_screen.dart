@@ -212,7 +212,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     final userInfo = await ref.read(currentUserInfoFutureProvider.future);
     final userName = userInfo?['name'] ?? 'User';
     final userPhone = userInfo?['phone'] ?? 'N/A';
-    final vehiclesAsync = ref.read(currentUserVehiclesProvider);
+    final vehiclesAsync = ref.read(allUserVehiclesProvider);
     
     final vehicles = vehiclesAsync.value ?? [];
     final currentVehicle = vehicles.firstWhere(
@@ -221,6 +221,14 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     );
 
     final repo = ref.read(rescueRequestRepoProvider);
+
+    debugPrint('🔥 === CREATING RESCUE REQUEST ===');
+    debugPrint('👤 User: $userName ($userId)');
+    debugPrint('📱 Phone: $userPhone'); 
+    debugPrint('🚗 Vehicle: $selectedVehicleType - ${currentVehicle.description}');
+    debugPrint('📍 Location: $currentAddress');
+    debugPrint('🌍 Coordinates: lat=$currentLat, lng=$currentLng');
+    debugPrint('❗ Issues: $selectedIssues');
 
     final id = await repo.createRescueRequest(
       userId: userId,
@@ -235,7 +243,10 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       image: selectedImages.isNotEmpty ? selectedImages.first : null,
     );
 
+    debugPrint('📋 Created rescue request with ID: $id');
+    
     if (id != null) {
+      debugPrint('✅ Rescue request creation SUCCESS - Navigating to waiting...');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -247,6 +258,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
         widget.onNavigateToWaiting(id);
       }
     } else {
+      debugPrint('❌ Rescue request creation FAILED - ID is null');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -257,7 +269,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehiclesAsync = ref.watch(currentUserVehiclesProvider);
+    final vehiclesAsync = ref.watch(allUserVehiclesProvider);
 
     return Scaffold(
       appBar: AppBar(

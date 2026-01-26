@@ -3,9 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
-    as outViewModel;
+as outViewModel;
 
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/action_grid.dart';
@@ -72,9 +73,9 @@ class AccountScreen extends ConsumerWidget {
                 VehicleSection(
                   vehicles: vehicles,
                   onEdit: (vehicle) =>
-                      _openEditBottomSheet(context, ref, vehicle),
+                      _openEditBottomSheet(context, ref, vehicle, vehicles.indexOf(vehicle)),
                   onRemove: (vehicle) =>
-                      _removeVehicleFromFirebase(context, ref, vehicle),
+                      _removeVehicleFromFirebase(ref, vehicle, vehicles.indexOf(vehicle)),
                   onAdd: () =>
                       _openAddVehicleBottomSheet(context, ref, vehicles),
                 ),
@@ -138,78 +139,44 @@ class AccountScreen extends ConsumerWidget {
   }
 
   Future<void> _removeVehicleFromFirebase(
-      BuildContext context,
       WidgetRef ref,
       Vehicle vehicle,
+      int vehicleIndex,
       ) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2A38),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(
-            color: Color(0xFF4FC3F7),
-            width: 2,
-          ),
-        ),
-        title: const Text(
-          'Xác nhận xóa',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Bạn có chắc muốn xóa phương tiện này?',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(
-              'Hủy',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(
-              'Xóa',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(uid)
-        .set(
-      {
-        'vehicles': FieldValue.arrayRemove([vehicle.toMap()]),
-      },
-      SetOptions(merge: true),
-    );
+    final doc = FirebaseFirestore.instance.collection('users').doc(uid);
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã xóa phương tiện'),
-          backgroundColor: Colors.green,
-        ),
-      );
+    // Lấy current vehicles từ Firestore
+    final docSnapshot = await doc.get();
+    final data = docSnapshot.data();
+    final currentVehicles = (data?['vehicles'] as List<dynamic>? ?? [])
+        .map((e) => Vehicle.fromMap(e as Map<String, dynamic>))
+        .toList();
+
+    // Remove vehicle tại đúng index
+    if (vehicleIndex >= 0 && vehicleIndex < currentVehicles.length) {
+      currentVehicles.removeAt(vehicleIndex);
+
+      // Save lại danh sách mới
+      await doc.set({
+        'vehicles': currentVehicles.map((v) => v.toMap()).toList(),
+      }, SetOptions(merge: true));
+
+      // Invalidate providers để cập nhật UI ngay lập tức
+      ref.invalidate(allUserVehiclesProvider);
+      ref.invalidate(currentUserVehiclesProvider);
+      ref.invalidate(currentUserVehiclesSubcollectionProvider);
     }
   }
 
   void _openEditBottomSheet(
-    BuildContext context,
-    WidgetRef ref,
-    Vehicle vehicle,
-  ) {
+      BuildContext context,
+      WidgetRef ref,
+      Vehicle vehicle,
+      int vehicleIndex,
+      ) {
     final controller = TextEditingController(text: vehicle.description ?? '');
 
     showModalBottomSheet(
@@ -220,14 +187,26 @@ class AccountScreen extends ConsumerWidget {
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 115,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Padding(padding:  const EdgeInsets.symmetric(vertical: 12), child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),),
               Text('Mô tả cho ${vehicle.type}'),
               TextField(controller: controller),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
                 onPressed: () async {
                   final uid = FirebaseAuth.instance.currentUser?.uid;
                   if (uid == null) return;
@@ -236,23 +215,31 @@ class AccountScreen extends ConsumerWidget {
                       .collection('users')
                       .doc(uid);
 
-                  // remove old
-                  await doc.set({
-                    'vehicles': FieldValue.arrayRemove([vehicle.toMap()]),
-                  }, SetOptions(merge: true));
+                  // Lấy current vehicles từ Firestore để đảm bảo data mới nhất
+                  final docSnapshot = await doc.get();
+                  final data = docSnapshot.data();
+                  final currentVehicles = (data?['vehicles'] as List<dynamic>? ?? [])
+                      .map((e) => Vehicle.fromMap(e as Map<String, dynamic>))
+                      .toList();
 
-                  // add new
-                  await doc.set({
-                    'vehicles': FieldValue.arrayUnion([
-                      vehicle
-                          .copyWith(
-                            description: controller.text.trim().isEmpty
-                                ? null
-                                : controller.text.trim(),
-                          )
-                          .toMap(),
-                    ]),
-                  }, SetOptions(merge: true));
+                  // Sử dụng index để update đúng vehicle
+                  if (vehicleIndex >= 0 && vehicleIndex < currentVehicles.length) {
+                    currentVehicles[vehicleIndex] = vehicle.copyWith(
+                      description: controller.text.trim().isEmpty
+                          ? null
+                          : controller.text.trim(),
+                    );
+
+                    // Save lại toàn bộ danh sách
+                    await doc.set({
+                      'vehicles': currentVehicles.map((v) => v.toMap()).toList(),
+                    }, SetOptions(merge: true));
+
+                    // Invalidate providers để cập nhật UI ngay lập tức
+                    ref.invalidate(allUserVehiclesProvider);
+                    ref.invalidate(currentUserVehiclesProvider);
+                    ref.invalidate(currentUserVehiclesSubcollectionProvider);
+                  }
 
                   Navigator.pop(context);
                 },
@@ -266,10 +253,10 @@ class AccountScreen extends ConsumerWidget {
   }
 
   void _openAddVehicleBottomSheet(
-    BuildContext context,
-    WidgetRef ref,
-    List<Vehicle> currentVehicles,
-  ) {
+      BuildContext context,
+      WidgetRef ref,
+      List<Vehicle> currentVehicles,
+      ) {
     String? selectedType;
     final descController = TextEditingController();
     final existingTypes = currentVehicles.map((v) => v.type).toSet();
@@ -355,31 +342,37 @@ class AccountScreen extends ConsumerWidget {
                       onPressed: selectedType == null
                           ? null
                           : () async {
-                              final uid =
-                                  FirebaseAuth.instance.currentUser?.uid;
-                              if (uid == null) return;
+                        final uid =
+                            FirebaseAuth.instance.currentUser?.uid;
+                        if (uid == null) return;
 
-                              final vehicle = Vehicle(
-                                type: selectedType!,
-                                description: descController.text.trim().isEmpty
-                                    ? null
-                                    : descController.text.trim(),
-                              );
+                        final vehicle = Vehicle(
+                          type: selectedType!,
+                          description: descController.text.trim().isEmpty
+                              ? null
+                              : descController.text.trim(),
+                        );
 
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(uid)
-                                  .set({
-                                    'vehicles': FieldValue.arrayUnion([
-                                      vehicle.toMap(),
-                                    ]),
-                                  }, SetOptions(merge: true));
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(uid)
+                            .set({
+                          'vehicles': FieldValue.arrayUnion([
+                            vehicle.toMap(),
+                          ]),
+                        }, SetOptions(merge: true));
 
-                              Navigator.pop(context);
-                            },
+                        // Invalidate providers để cập nhật UI ngay lập tức
+                        ref.invalidate(allUserVehiclesProvider);
+                        ref.invalidate(currentUserVehiclesProvider);
+                        ref.invalidate(currentUserVehiclesSubcollectionProvider);
+
+                        Navigator.pop(context);
+                      },
                       child: const Text('Thêm phương tiện'),
                     ),
                   ),
+                  const SizedBox(height: 115),
                 ],
               ),
             );

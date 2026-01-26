@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -38,13 +39,27 @@ class RescueRequestRepository {
     File? image,
   }) async {
     try {
+      debugPrint('💾 === FIRESTORE CREATE RESCUE REQUEST ===');
+      debugPrint('👤 userId: $userId');
+      debugPrint('🏷️ userName: $userName');
+      debugPrint('📱 userPhone: $userPhone');
+      debugPrint('🚗 vehicleType: $vehicleType');
+      debugPrint('🔧 vehicleModel: $vehicleModel'); 
+      debugPrint('❗ issues: $issues');
+      debugPrint('📍 location: $location');
+      debugPrint('🌍 coordinates: $latitude, $longitude');
+      debugPrint('🖼️ image: ${image?.path}');
+      
       String? imageUrl;
       if (image != null) {
+        debugPrint('⬆️ Uploading image...');
         imageUrl = await uploadImage(userId, image);
+        debugPrint('🖼️ Image uploaded: $imageUrl');
       }
 
-      // Add lên firebase
-      final docRef = await _firestore.collection('rescue_requests').add({
+      debugPrint('📝 Creating Firestore document...');
+      
+      final docData = {
         'userId': userId,
         'userName': userName,
         'userPhone': userPhone,
@@ -58,11 +73,17 @@ class RescueRequestRepository {
         'status': 'pending',
         'progressStep': 0,
         'createdAt': FieldValue.serverTimestamp(),
-      });
+      };
+      
+      debugPrint('📄 Document data: $docData');
 
+      // Add lên firebase
+      final docRef = await _firestore.collection('rescue_requests').add(docData);
+
+      debugPrint('✅ Document created successfully with ID: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      print('Lỗi create rescue request: $e');
+      debugPrint('❌ Lỗi create rescue request: $e');
       return null;
     }
   }
@@ -229,15 +250,27 @@ class RescueRequestRepository {
 
   /// Stream một rescue request cụ thể
   Stream<RescueRequestModel?> getRescueRequestStream(String requestId) {
+    debugPrint('🔍 === GET RESCUE REQUEST STREAM ===');
+    debugPrint('🆔 Request ID: $requestId');
+    debugPrint('🔄 Setting up Firestore stream...');
+    
     return _firestore
         .collection('rescue_requests')
         .doc(requestId)
         .snapshots()
         .map((doc) {
+          debugPrint('📄 Document snapshot received');
+          debugPrint('✅ Document exists: ${doc.exists}');
+          
           if (doc.exists) {
-            return RescueRequestModel.fromMap(doc.id, doc.data()!);
+            debugPrint('📊 Raw data: ${doc.data()}');
+            final model = RescueRequestModel.fromMap(doc.id, doc.data()!);
+            debugPrint('🏗️ Parsed model: ${model.toString()}');
+            return model;
+          } else {
+            debugPrint('❌ Document does not exist for ID: $requestId');
+            return null;
           }
-          return null;
         });
   }
 

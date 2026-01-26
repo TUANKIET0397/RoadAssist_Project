@@ -212,7 +212,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     final userInfo = await ref.read(currentUserInfoFutureProvider.future);
     final userName = userInfo?['name'] ?? 'User';
     final userPhone = userInfo?['phone'] ?? 'N/A';
-    final vehiclesAsync = ref.read(currentUserVehiclesProvider);
+    final vehiclesAsync = ref.read(allUserVehiclesProvider);
     
     final vehicles = vehiclesAsync.value ?? [];
     final currentVehicle = vehicles.firstWhere(
@@ -257,7 +257,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final vehiclesAsync = ref.watch(currentUserVehiclesProvider);
+    final vehiclesAsync = ref.watch(allUserVehiclesProvider);
 
     return Scaffold(
       appBar: AppBar(

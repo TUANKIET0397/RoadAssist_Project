@@ -155,39 +155,110 @@ final currentGarageInfoFutureProvider = FutureProvider<Map<String, String>?>((re
   }
 });
 
-/// Provider để lấy danh sách xe của user hiện tại
-final currentUserVehiclesProvider = FutureProvider<List<Vehicle>>((ref) async {
+/// Provider để lấy danh sách xe của user hiện tại (Real-time stream)
+final currentUserVehiclesProvider = StreamProvider<List<Vehicle>>((ref) {
   final userId = ref.watch(userIdProvider);
-  if (userId == null) return [];
+  if (userId == null) return Stream.value([]);
 
   final firestore = ref.watch(firestoreProvider);
-  try {
-    final doc = await firestore.collection('users').doc(userId).get();
-    if (doc.exists) {
-      final data = doc.data();
-      // Sử dụng field 'vehicles' thay vì 'vehicleTypes'
-      final vehiclesData = data?['vehicles'] as List<dynamic>? ?? [];
-      
-      // Convert to Vehicle objects using UserModel logic
-      return vehiclesData.map((e) {
-        // 🔵 DATA CŨ: String
-        if (e is String) {
-          return Vehicle(type: e);
-        }
+  
+  return firestore
+      .collection('users')
+      .doc(userId)
+      .snapshots()
+      .map((doc) {
+    try {
+      if (doc.exists) {
+        final data = doc.data();
+        // Sử dụng field 'vehicles' thay vì 'vehicleTypes'
+        final vehiclesData = data?['vehicles'] as List<dynamic>? ?? [];
+        
+        // Convert to Vehicle objects using UserModel logic
+        return vehiclesData.map((e) {
+          // 🔵 DATA CŨ: String
+          if (e is String) {
+            return Vehicle(type: e);
+          }
 
-        // 🟢 DATA MỚI: Map
-        if (e is Map<String, dynamic>) {
-          return Vehicle.fromMap(e);
-        }
+          // 🟢 DATA MỚI: Map
+          if (e is Map<String, dynamic>) {
+            return Vehicle.fromMap(e);
+          }
 
-        // Fallback cho data không hợp lệ
-        return Vehicle(type: e.toString());
-      }).toList();
+          // Fallback cho data không hợp lệ
+          return Vehicle(type: e.toString());
+        }).toList();
+      }
+      return <Vehicle>[];
+    } catch (e) {
+      print('❌ Error parsing user vehicles: $e');
+      return <Vehicle>[];
     }
-    return [];
-  } catch (e) {
-    print('❌ Error fetching user vehicles: $e');
-    return [];
+  }).handleError((e) {
+    print('❌ Error streaming user vehicles: $e');
+    return <Vehicle>[];
+  });
+});
+
+/// Provider để lấy vehicles theo subcollection (cho phương tiện mới)
+final currentUserVehiclesSubcollectionProvider = StreamProvider<List<Vehicle>>((ref) {
+  final userId = ref.watch(userIdProvider);
+  if (userId == null) return Stream.value([]);
+
+  final firestore = ref.watch(firestoreProvider);
+  
+  return firestore
+      .collection('users')
+      .doc(userId)
+      .collection('vehicles')
+      .snapshots()
+      .map((snapshot) {
+    try {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Vehicle.fromMap(data..['id'] = doc.id);
+      }).toList();
+    } catch (e) {
+      print('❌ Error parsing vehicles subcollection: $e');
+      return <Vehicle>[];
+    }
+  }).handleError((e) {
+    print('❌ Error streaming vehicles subcollection: $e');
+    return <Vehicle>[];
+  });
+});
+
+/// Combined provider để merge vehicles từ cả 2 nguồn
+final allUserVehiclesProvider = StreamProvider<List<Vehicle>>((ref) async* {
+  final mainVehiclesAsync = ref.watch(currentUserVehiclesProvider);
+  final subVehiclesAsync = ref.watch(currentUserVehiclesSubcollectionProvider);
+  
+  await for (final mainVehicles in mainVehiclesAsync.when(
+    data: (data) => Stream.value(data),
+    loading: () => Stream.value(<Vehicle>[]),
+    error: (_, __) => Stream.value(<Vehicle>[]),
+  )) {
+    await for (final subVehicles in subVehiclesAsync.when(
+      data: (data) => Stream.value(data),
+      loading: () => Stream.value(<Vehicle>[]),
+      error: (_, __) => Stream.value(<Vehicle>[]),
+    )) {
+      // Combine và remove duplicates
+      final allVehicles = <Vehicle>[...mainVehicles, ...subVehicles];
+      final uniqueVehicles = <Vehicle>[];
+      final seen = <String>{};
+      
+      for (final vehicle in allVehicles) {
+        final key = '${vehicle.type}_${vehicle.description ?? ''}';
+        if (!seen.contains(key)) {
+          seen.add(key);
+          uniqueVehicles.add(vehicle);
+        }
+      }
+      
+      yield uniqueVehicles;
+      break;
+    }
   }
 });
 

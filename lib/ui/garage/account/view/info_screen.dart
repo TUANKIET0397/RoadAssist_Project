@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/auth/widgets/day_selector.dart';
 import 'package:road_assist/ui/auth/widgets/service_chip.dart';
@@ -16,8 +17,14 @@ class InfoScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(garageProvider);
-    final notifier = ref.read(garageProvider.notifier);
+    final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Chưa đăng nhập')),
+      );
+    }
+    final state = ref.watch(garageProvider(userId));
+    final notifier = ref.read(garageProvider(userId).notifier);
     final draftGarage = state.draftGarage;
 
     // Tạm thời hardcode ở đây, lý tưởng hơn là lấy từ 1 config file hoặc remote config
@@ -168,6 +175,8 @@ class InfoScreen extends ConsumerWidget {
               ),
               SizedBox(height: 16),
               const SaveGarageButton(),
+              SizedBox(height: 120),
+
             ],
           ),
         ),

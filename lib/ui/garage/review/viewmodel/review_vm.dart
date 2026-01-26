@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:road_assist/data/models/review_model.dart';
 
 class GarageReviewState {
@@ -23,42 +26,47 @@ class GarageReviewState {
   }
 }
 
-
 class GarageReviewNotifier extends StateNotifier<GarageReviewState> {
   GarageReviewNotifier() : super(GarageReviewState());
 
   final _firestore = FirebaseFirestore.instance;
+  StreamSubscription? _subscription;
 
-  Future<void> watchReviews(String garageId) async {
+  void watchReviews(String garageId) {
     state = state.copyWith(isLoading: true);
 
-    try {
-      final snapshot = await _firestore
-          .collection('garages')
-          .doc(garageId)
-          .collection('reviews')
-          .orderBy('createdAt', descending: true)
-          .get();
+    _subscription?.cancel();
 
-      final reviews = snapshot.docs
-          .map((doc) => ReviewModel.fromMap(doc.data()))
-          .toList();
+    _subscription = _firestore
+        .collection('garages')
+        .doc(garageId)
+        .collection('reviews')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .listen(
+          (snapshot) {
+        final reviews = snapshot.docs
+            .map((doc) => ReviewModel.fromMap(doc.data()))
+            .toList();
 
-      state = state.copyWith(
-        reviews: reviews,
-        isLoading: false, // 🔥 QUAN TRỌNG
-      );
-    } catch (e) {
-      debugPrint('Load reviews error: $e');
+        state = state.copyWith(
+          reviews: reviews,
+          isLoading: false,
+        );
+      },
+      onError: (e) {
+        debugPrint('Watch reviews error: $e');
+        state = state.copyWith(isLoading: false);
+      },
+    );
+  }
 
-      state = state.copyWith(
-        isLoading: false,
-      );
-    }
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }
-
-
 
 final garageReviewProvider =
 StateNotifierProvider<GarageReviewNotifier, GarageReviewState>(

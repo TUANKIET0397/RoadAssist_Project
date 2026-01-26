@@ -1,225 +1,169 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_state.dart';
 
-final garageProvider = StateNotifierProvider<GarageVM, GarageState>(
-      (ref) => GarageVM(),
+///
+final garageProvider =
+StateNotifierProvider.family<GarageVM, GarageState, String>(
+      (ref, userId) => GarageVM(userId),
 );
 
+/// VIEW MODEL
 class GarageVM extends StateNotifier<GarageState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final String userId;
+  StreamSubscription<QuerySnapshot>? _garageSubscription;
 
-  GarageVM()
+  GarageVM(this.userId)
       : super(
     GarageState(
-      savedGarage: GarageModel(
-        id: '',
-        name: '',
-        phone: '',
-        address: '',
-        vehicleTypes: [],
-        issues: [],
-        openTime: '08:00',
-        closeTime: '19:00',
-        lat: 0.0,
-        lng: 0.0,
-        isActive: true,
-        distance: 0.0,
-      ),
-      draftGarage: GarageModel(
-        id: '',
-        name: '',
-        phone: '',
-        address: '',
-        vehicleTypes: [],
-        issues: [],
-        openTime: '08:00',
-        closeTime: '19:00',
-        lat: 0.0,
-        lng: 0.0,
-        isActive: true,
-        distance: 0.0,
-      ),
+      savedGarage: GarageModel.initial(),
+      draftGarage: GarageModel.initial(),
       workingDays: const [1, 2, 3, 4, 5],
       taxCode: '',
       isLoading: true,
     ),
-  );
+  ) {
+    _listenToGarage();
+  }
 
-  Future<void> loadGarage(String garageId) async {
-    state = state.copyWith(isLoading: true);
-
-    try {
-
-      final doc = await _firestore.collection('garages').doc(garageId).get();
-
-      if (!doc.exists) {
-        state = state.copyWith(isLoading: false);
-        return;
-      }
-
-      final data = doc.data()!;
-      final garage = GarageModel.fromMap(doc.id, data);
-
-      // Load workingDays và taxCode nếu có
-      final workingDays = data['workingDays'] != null
-          ? List<int>.from(data['workingDays'])
-          : [1, 2, 3, 4, 5];
-      final taxCode = data['taxCode'] as String?;
-
-      state = state.copyWith(
-        savedGarage: garage,
-        draftGarage: garage, // Set draftGarage = savedGarage ban đầu
-        workingDays: workingDays,
-        taxCode: taxCode,
-        isLoading: false,
-      );
-
-      debugPrint('Garage loaded successfully: ${garage.name}');
-    } catch (e) {
-      debugPrint('Error loading garage: $e');
+  void _listenToGarage() {
+    if (userId.isEmpty) {
       state = state.copyWith(isLoading: false);
+      return;
     }
-  }
 
-  /// 👇 THÊM: Load garage bằng userId (cho trường hợp garage login)
-  Future<void> loadGarageByUserId(String userId) async {
-    state = state.copyWith(isLoading: true);
+    _garageSubscription = _firestore
+        .collection('garages')
+        .where('id', isEqualTo: userId)
+        .limit(1)
+        .snapshots()
+        .listen(
+          (snapshot) {
+        if (snapshot.docs.isEmpty) {
+          state = state.copyWith(isLoading: false);
+          return;
+        }
 
-    try {
-      debugPrint('📥 Loading garage for user: $userId');
+        final doc = snapshot.docs.first;
+        final data = doc.data();
+        final garage = GarageModel.fromMap(doc.id, data);
 
-      // Tìm garage có userId này
-      final query = await _firestore
-          .collection('garages')
-          .where('userId', isEqualTo: userId)
-          .limit(1)
-          .get();
-
-      if (query.docs.isEmpty) {
-        debugPrint('No garage found for this user');
+        state = state.copyWith(
+          savedGarage: garage,
+          draftGarage: garage,
+          workingDays: data['operatingDays'] != null
+              ? List<int>.from(data['operatingDays'])
+              : const [1, 2, 3, 4, 5],
+          taxCode: data['taxCode'] as String?,
+          isLoading: false,
+        );
+      },
+      onError: (_) {
         state = state.copyWith(isLoading: false);
-        return;
-      }
-
-      final doc = query.docs.first;
-      final data = doc.data();
-      final garage = GarageModel.fromMap(doc.id, data);
-
-      final workingDays = data['workingDays'] != null
-          ? List<int>.from(data['workingDays'])
-          : [1, 2, 3, 4, 5];
-      final taxCode = data['taxCode'] as String?;
-
-      state = state.copyWith(
-        savedGarage: garage,
-        draftGarage: garage,
-        workingDays: workingDays,
-        taxCode: taxCode,
-        isLoading: false,
-      );
-
-      debugPrint(' Garage loaded successfully: ${garage.name}');
-    } catch (e) {
-      debugPrint('Error loading garage: $e');
-      state = state.copyWith(isLoading: false);
-    }
-  }
-
-  /// 👇 THÊM: Stream để realtime update
-  Stream<GarageModel?> watchGarage(String garageId) {
-    return _firestore.collection('garages').doc(garageId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      return GarageModel.fromMap(doc.id, doc.data()!);
-    });
-  }
-
-  /// ===== VEHICLE =====
-  void toggleVehicle(String vehicle) {
-    final vehicles = [...state.draftGarage.vehicleTypes];
-    vehicles.contains(vehicle)
-        ? vehicles.remove(vehicle)
-        : vehicles.add(vehicle);
-
-    state = state.copyWith(
-      draftGarage: state.draftGarage.copyWith(vehicleTypes: vehicles),
+      },
     );
   }
+
 
   Future<void> addVehicleType({
     required String garageId,
     required String vehicleType,
   }) async {
-    try {
+    final vehicles = [...state.savedGarage.vehicleTypes];
+    if (vehicles.contains(vehicleType)) return;
 
-      final currentVehicles = [...state.savedGarage.vehicleTypes];
+    vehicles.add(vehicleType);
 
-      // Kiểm tra đã tồn tại chưa
-      if (currentVehicles.contains(vehicleType)) {
-        return;
-      }
-
-      currentVehicles.add(vehicleType);
-
-      // Cập nhật vào Firestore
-      await _firestore.collection('garages').doc(garageId).update({
-        'vehicleTypes': currentVehicles,
-      });
-
-      // Cập nhật state local
-      final updatedGarage = state.savedGarage.copyWith(
-        vehicleTypes: currentVehicles,
-      );
-
-      state = state.copyWith(
-        savedGarage: updatedGarage,
-        draftGarage: updatedGarage,
-      );
-
-    } catch (e) {
-      debugPrint(' Error adding vehicle type: $e');
-      rethrow;
-    }
+    await _firestore.collection('garages').doc(garageId).update({
+      'vehicleTypes': vehicles,
+    });
   }
 
   Future<void> removeVehicleType({
     required String garageId,
     required String vehicleType,
   }) async {
+    final vehicles = [...state.savedGarage.vehicleTypes]
+      ..remove(vehicleType);
+
+    await _firestore.collection('garages').doc(garageId).update({
+      'vehicleTypes': vehicles,
+    });
+  }
+
+  void toggleWorkingDay(int day) {
+    final days = [...state.workingDays];
+    days.contains(day) ? days.remove(day) : days.add(day);
+    state = state.copyWith(workingDays: days);
+  }
+
+
+  void setOpenTime(TimeOfDay time) {
+    final timeStr =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    state = state.copyWith(
+      draftGarage: state.draftGarage.copyWith(openTime: timeStr),
+    );
+  }
+
+  void setCloseTime(TimeOfDay time) {
+    final timeStr =
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+    state = state.copyWith(
+      draftGarage: state.draftGarage.copyWith(closeTime: timeStr),
+    );
+  }
+
+  /// UPDATE
+  void updateGarage(GarageModel garage) {
+    state = state.copyWith(draftGarage: garage);
+  }
+
+  void updateTaxCode(String? taxCode) {
+    state = state.copyWith(taxCode: taxCode);
+  }
+
+  /// SAVE GARAGE
+  Future<void> saveGarage() async {
+    if (state.isLoading) return;
+
+    state = state.copyWith(isLoading: true);
+
     try {
+      final garage = state.draftGarage;
 
-      final currentVehicles = [...state.savedGarage.vehicleTypes];
+      final data = garage.toMap()
+        ..['id'] = userId
+        ..['operatingDays'] = state.workingDays;
 
-      currentVehicles.remove(vehicleType);
+      if (state.taxCode?.isNotEmpty == true) {
+        data['taxCode'] = state.taxCode;
+      }
 
-      debugPrint('🔥 Updating Firestore...');
-      await _firestore.collection('garages').doc(garageId).update({
-        'vehicleTypes': currentVehicles,
-      });
-      debugPrint('🔥 Firestore updated successfully');
+      final docId =
+      garage.id.isNotEmpty ? garage.id : userId;
 
-      // Cập nhật state local
-      final updatedGarage = state.savedGarage.copyWith(
-        vehicleTypes: currentVehicles,
-      );
+      await _firestore
+          .collection('garages')
+          .doc(docId)
+          .set(data, SetOptions(merge: true));
 
-      state = state.copyWith(
-        savedGarage: updatedGarage,
-        draftGarage: updatedGarage,
-      );
-
-    } catch (e, stackTrace) {
-      debugPrint(' Error removing vehicle type: $e');
-      debugPrint(' Stack trace: $stackTrace');
+      state = state.copyWith(isLoading: false);
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
       rethrow;
     }
   }
 
-  /// ===== SERVICE =====
+
   void toggleService(String service) {
     final services = [...state.draftGarage.issues];
+
     services.contains(service)
         ? services.remove(service)
         : services.add(service);
@@ -229,102 +173,44 @@ class GarageVM extends StateNotifier<GarageState> {
     );
   }
 
-  /// ===== WORKING DAYS =====
-  void toggleWorkingDay(int day) {
-    final days = [...state.workingDays];
-    days.contains(day) ? days.remove(day) : days.add(day);
-    state = state.copyWith(workingDays: days);
-  }
-
-  void setOpenTime(TimeOfDay time) {
-    final newTime = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    state = state.copyWith(draftGarage: state.draftGarage.copyWith(openTime: newTime));
-  }
-
-  void setCloseTime(TimeOfDay time) {
-    final newTime = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-    state = state.copyWith(draftGarage: state.draftGarage.copyWith(closeTime: newTime));
-  }
-
-  /// ===== UPDATE DRAFT GARAGE =====
-  void updateGarage(GarageModel garage) {
-    state = state.copyWith(draftGarage: garage);
-  }
-
-  /// ===== UPDATE TAX CODE =====
-  void updateTaxCode(String? taxCode) {
-    state = state.copyWith(taxCode: taxCode);
-  }
-
-  /// ===== SAVE GARAGE =====
-  Future<void> saveGarage({String? garageId, String? userId}) async {
-    if (state.isLoading) {
-      return;
-    }
-
+  /// MANUAL REFRESH
+  Future<void> refresh() async {
     state = state.copyWith(isLoading: true);
 
     try {
-      final garage = state.draftGarage;
-      final garageData = garage.toMap();
-
-      garageData['workingDays'] = state.workingDays;
-      if (state.taxCode != null && state.taxCode!.isNotEmpty) {
-        garageData['taxCode'] = state.taxCode;
-      }
-
-      String docId;
-      if (garageId != null && garageId.isNotEmpty) {
-        docId = garageId;
-      } else if (userId != null && userId.isNotEmpty) {
-        try {
-          final query = await _firestore
-              .collection('garages')
-              .where('userId', isEqualTo: userId)
-              .limit(1)
-              .get();
-
-          if (query.docs.isNotEmpty) {
-            docId = query.docs.first.id;
-          } else {
-            docId = _firestore.collection('garages').doc().id;
-            garageData['userId'] = userId;
-          }
-        } catch (e) {
-          docId = _firestore.collection('garages').doc().id;
-          garageData['userId'] = userId;
-        }
-      } else {
-        docId = _firestore.collection('garages').doc().id;
-      }
-
-      await _firestore
+      final query = await _firestore
           .collection('garages')
-          .doc(docId)
-          .set(garageData, SetOptions(merge: true));
+          .where('id', isEqualTo: userId)
+          .limit(1)
+          .get();
 
-      final savedDoc = await _firestore.collection('garages').doc(docId).get();
-      final savedData = savedDoc.data()!;
-      final savedGarage = GarageModel.fromMap(docId, savedData);
+      if (query.docs.isEmpty) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
 
-      final savedWorkingDays = savedData['workingDays'] != null
-          ? List<int>.from(savedData['workingDays'])
-          : state.workingDays;
-      final savedTaxCode = savedData['taxCode'] as String?;
+      final doc = query.docs.first;
+      final data = doc.data();
+      final garage = GarageModel.fromMap(doc.id, data);
 
       state = state.copyWith(
-        savedGarage: savedGarage,
-        draftGarage: savedGarage, // 👈 Sync draftGarage với savedGarage
-        workingDays: savedWorkingDays,
-        taxCode: savedTaxCode,
+        savedGarage: garage,
+        draftGarage: garage,
+        workingDays: data['operatingDays'] != null
+            ? List<int>.from(data['operatingDays'])
+            : const [1, 2, 3, 4, 5],
+        taxCode: data['taxCode'] as String?,
         isLoading: false,
       );
-
-    } catch (e, stackTrace) {
-
-      rethrow;
-    } finally {
+    } catch (_) {
       state = state.copyWith(isLoading: false);
     }
+  }
+
+  /// DISPOSE
+  @override
+  void dispose() {
+    _garageSubscription?.cancel();
+    super.dispose();
   }
 }

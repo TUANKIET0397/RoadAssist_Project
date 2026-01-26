@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
+import 'package:road_assist/ui/garage/home/viewmodel/garage_distance_vm.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart';
 
@@ -29,7 +31,12 @@ class _GarageRescueRequestDetailScreenState
   @override
   void initState() {
     super.initState();
+    Future.microtask(() {
+      ref.read(garageHomeViewModelProvider.notifier)
+          .initGarageLocation();
+    });
   }
+
 
   Future<void> _acceptRequest() async {
     setState(() => isAccepting = true);
@@ -316,28 +323,124 @@ class _GarageRescueRequestDetailScreenState
   }
 
   Widget _buildLocationSection(RescueRequestModel request) {
-    return _card(
+    final garageState = ref.watch(garageHomeViewModelProvider);
+
+    final distanceKm = ref
+        .read(garageHomeViewModelProvider.notifier)
+        .calculateDistanceToRequest(request);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A2332),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFF34C8E8),
+          width: 2,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionTitle('Địa điểm cứu hộ'),
-          const SizedBox(height: 8),
-          Text(request.location, style: const TextStyle(color: Colors.white)),
-          const SizedBox(height: 8),
+          const Text(
+            'Địa điểm cứu hộ',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.location_on_outlined,
+                color: Color(0xFF34C8E8),
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                    children: [
+                      TextSpan(text: request.location),
+                      const TextSpan(text: ' '),
+
+                      /// 🔥 HIỂN THỊ KHOẢNG CÁCH
+                      TextSpan(
+                        text: garageState.isLoading
+                            ? '(Đang lấy vị trí garage...)'
+                            : distanceKm == null
+                            ? '(Không xác định khoảng cách)'
+                            : '(Cách bạn ${distanceKm.toStringAsFixed(1)} km)',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
-              'assets/images/icons/map.png',
-              height: 150,
+              'assets/images/illustrations/map.png',
+              height: 70,
               width: double.infinity,
               fit: BoxFit.cover,
             ),
           ),
-          const SizedBox(height: 8),
+
+          const SizedBox(height: 16),
+
           Center(
             child: OutlinedButton(
               onPressed: () {},
-              child: const Text('Google Map'),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF4B4CED)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 48,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: ShaderMask(
+                shaderCallback: (bounds) {
+                  return const LinearGradient(
+                    colors: [
+                      Color(0xFF4B55ED),
+                      Color(0xFFFC5C72),
+                      Color(0xFFFBFF00),
+                      Color(0xFF4B4CED),
+                      Color(0xFF4B4CED),
+                      Color(0xFF3CD69E),
+                      Color(0xFFFC5C72),
+                    ],
+                  ).createShader(
+                    Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                  );
+                },
+                child: const Text(
+                  'Google Map',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -393,7 +496,7 @@ class _GarageRescueRequestDetailScreenState
               onPressed: () {},
               style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6), // 👈 KHÓA BO GÓC
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 foregroundColor: Colors.white,
                 backgroundColor: const Color.fromARGB(106, 198, 14, 14),
@@ -410,7 +513,7 @@ class _GarageRescueRequestDetailScreenState
               onPressed: isAccepting ? null : _acceptRequest,
               style: TextButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6), // 👈 KHÓA BO GÓC
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 foregroundColor: Colors.white,
                 backgroundColor: const Color.fromARGB(197, 68, 137, 255),

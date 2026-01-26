@@ -74,7 +74,7 @@ class AccountScreen extends ConsumerWidget {
                   onEdit: (vehicle) =>
                       _openEditBottomSheet(context, ref, vehicle),
                   onRemove: (vehicle) =>
-                      _removeVehicleFromFirebase(ref, vehicle),
+                      _removeVehicleFromFirebase(context, ref, vehicle),
                   onAdd: () =>
                       _openAddVehicleBottomSheet(context, ref, vehicles),
                 ),
@@ -138,15 +138,71 @@ class AccountScreen extends ConsumerWidget {
   }
 
   Future<void> _removeVehicleFromFirebase(
-    WidgetRef ref,
-    Vehicle vehicle,
-  ) async {
+      BuildContext context,
+      WidgetRef ref,
+      Vehicle vehicle,
+      ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E2A38),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(
+            color: Color(0xFF4FC3F7),
+            width: 2,
+          ),
+        ),
+        title: const Text(
+          'Xác nhận xóa',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Bạn có chắc muốn xóa phương tiện này?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text(
+              'Hủy',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Xóa',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    await FirebaseFirestore.instance.collection('users').doc(uid).set({
-      'vehicles': FieldValue.arrayRemove([vehicle.toMap()]),
-    }, SetOptions(merge: true));
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .set(
+      {
+        'vehicles': FieldValue.arrayRemove([vehicle.toMap()]),
+      },
+      SetOptions(merge: true),
+    );
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã xóa phương tiện'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   void _openEditBottomSheet(

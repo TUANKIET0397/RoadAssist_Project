@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
 class WorkingTimeSelector extends ConsumerWidget {
   final String open;
@@ -20,9 +21,7 @@ class WorkingTimeSelector extends ConsumerWidget {
         final minute = int.parse(parts[1]);
         return TimeOfDay(hour: hour, minute: minute);
       }
-    } catch (e) {
-      // If parsing fails, return default time
-    }
+    } catch (_) {}
     return const TimeOfDay(hour: 8, minute: 0);
   }
 
@@ -30,13 +29,19 @@ class WorkingTimeSelector extends ConsumerWidget {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _showTimeRangePicker(BuildContext context, WidgetRef ref) async {
-    final state = ref.read(garageProvider);
-    final garage = state.draftGarage; // Dùng draftGarage cho form
+  Future<void> _showTimeRangePicker(
+      BuildContext context,
+      WidgetRef ref,
+      ) async {
+    final userId = ref.read(userIdProvider);
+    if (userId == null) return;
+
+    final state = ref.read(garageProvider(userId));
+    final garage = state.draftGarage;
+
     final openTime = _parseTime(garage.openTime);
     final closeTime = _parseTime(garage.closeTime);
 
-    // Show dialog to select both times
     await showDialog(
       context: context,
       builder: (context) => _TimeRangePickerDialog(
@@ -44,13 +49,13 @@ class WorkingTimeSelector extends ConsumerWidget {
         initialCloseTime: closeTime,
         onSave: (open, close) {
           ref
-              .read(garageProvider.notifier)
+              .read(garageProvider(userId).notifier)
               .updateGarage(
-                garage.copyWith(
-                  openTime: _formatTime(open),
-                  closeTime: _formatTime(close),
-                ),
-              );
+            garage.copyWith(
+              openTime: _formatTime(open),
+              closeTime: _formatTime(close),
+            ),
+          );
         },
       ),
     );
@@ -58,8 +63,13 @@ class WorkingTimeSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(garageProvider);
-    final garage = state.draftGarage; // Dùng draftGarage cho form
+    final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const SizedBox();
+    }
+
+    final state = ref.watch(garageProvider(userId));
+    final garage = state.draftGarage;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,20 +90,10 @@ class WorkingTimeSelector extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(
-                25,
-                37,
-                59,
-                1,
-              ), // Dark blue background
+              color: const Color.fromRGBO(25, 37, 59, 1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: const Color.fromRGBO(
-                  127,
-                  199,
-                  252,
-                  1,
-                ), // Light blue border
+                color: const Color.fromRGBO(127, 199, 252, 1),
                 width: 1.5,
               ),
             ),
@@ -118,10 +118,12 @@ class WorkingTimeSelector extends ConsumerWidget {
   }
 }
 
+/* ======================= DIALOG ======================= */
+
 class _TimeRangePickerDialog extends StatefulWidget {
   final TimeOfDay initialOpenTime;
   final TimeOfDay initialCloseTime;
-  final Function(TimeOfDay open, TimeOfDay close) onSave;
+  final void Function(TimeOfDay open, TimeOfDay close) onSave;
 
   const _TimeRangePickerDialog({
     required this.initialOpenTime,
@@ -136,7 +138,6 @@ class _TimeRangePickerDialog extends StatefulWidget {
 class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
   late TimeOfDay openTime;
   late TimeOfDay closeTime;
-  bool selectingOpen = true;
 
   @override
   void initState() {
@@ -151,7 +152,8 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
 
   Future<void> _selectTime(bool isOpen) async {
     final currentTime = isOpen ? openTime : closeTime;
-    final TimeOfDay? picked = await showTimePicker(
+
+    final picked = await showTimePicker(
       context: context,
       initialTime: currentTime,
       builder: (context, child) {
@@ -204,40 +206,7 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
                 Expanded(
                   child: InkWell(
                     onTap: () => _selectTime(true),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromRGBO(25, 37, 59, 1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color.fromRGBO(127, 199, 252, 1),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Giờ mở cửa',
-                            style: TextStyle(
-                              color: Color.fromRGBO(127, 199, 252, 1),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formatTime(openTime),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _timeBox('Giờ mở cửa', openTime),
                   ),
                 ),
                 const Padding(
@@ -254,40 +223,7 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
                 Expanded(
                   child: InkWell(
                     onTap: () => _selectTime(false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromRGBO(25, 37, 59, 1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color.fromRGBO(127, 199, 252, 1),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Giờ đóng cửa',
-                            style: TextStyle(
-                              color: Color.fromRGBO(127, 199, 252, 1),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _formatTime(closeTime),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: _timeBox('Giờ đóng cửa', closeTime),
                   ),
                 ),
               ],
@@ -298,12 +234,6 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
                     child: const Text(
                       'Hủy',
                       style: TextStyle(color: Colors.white70),
@@ -318,11 +248,8 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(79, 172, 254, 1),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      backgroundColor:
+                      const Color.fromRGBO(79, 172, 254, 1),
                     ),
                     child: const Text(
                       'Lưu',
@@ -334,6 +261,40 @@ class _TimeRangePickerDialogState extends State<_TimeRangePickerDialog> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _timeBox(String label, TimeOfDay time) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: const Color.fromRGBO(25, 37, 59, 1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color.fromRGBO(127, 199, 252, 1),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color.fromRGBO(127, 199, 252, 1),
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _formatTime(time),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -95,6 +95,19 @@ class LocationService {
     }).toList();
   }
 
-
+  static double calculateDistanceKm({
+    required double garageLat,
+    required double garageLng,
+    required double userLat,
+    required double userLng,
+  }) {
+    final meters = Geolocator.distanceBetween(
+      garageLat,
+      garageLng,
+      userLat,
+      userLng,
+    );
+    return meters / 1000;
+  }
 
 }

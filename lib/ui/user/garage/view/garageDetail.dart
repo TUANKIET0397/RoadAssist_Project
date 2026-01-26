@@ -77,6 +77,8 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                   _buildReviews(state),
                   const SizedBox(height: 20),
                   _buildBottomButtons(garage),
+                  const SizedBox(height: 120),
+
                 ],
               ),
             ),

@@ -9,8 +9,14 @@ class SaveGarageButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(garageProvider);
     final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Chưa đăng nhập')),
+      );
+    }
+
+    final state = ref.watch(garageProvider(userId));
 
     return Center(
       child: ElevatedButton(
@@ -19,8 +25,8 @@ class SaveGarageButton extends ConsumerWidget {
             : () async {
           try {
             await ref
-                .read(garageProvider.notifier)
-                .saveGarage(userId: userId);
+                .read(garageProvider(userId).notifier)
+                .saveGarage();
 
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

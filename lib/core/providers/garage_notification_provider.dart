@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,74 +6,153 @@ import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 
 /// Provider để garage nhận rescue request từ notification system
-/// Thay thế cho logic quét tự động cũ
+/// Tự động cập nhật khi:
+/// 1. Notification thay đổi (garage_notifications)
+/// 2. Rescue request status thay đổi (rescue_requests) - ví dụ user hủy
 final notifiedRescueRequestsProvider = StreamProvider.family
     .autoDispose<List<RescueRequestModel>, String>((ref, garageId) {
   
   final firestore = FirebaseFirestore.instance;
-  final repo = ref.watch(rescueRequestRepoProvider);
   
-  return firestore
+  // Controller để emit combined results
+  final controller = StreamController<List<RescueRequestModel>>();
+  
+  // Cache các request IDs hiện tại để listen
+  Set<String> currentRequestIds = {};
+  List<StreamSubscription> requestSubscriptions = [];
+  
+  // Listen notification changes
+  final notificationSubscription = firestore
       .collection('garage_notifications')
       .doc(garageId)
       .collection('rescue_requests')
+      .where('status', isEqualTo: 'notified')
       .orderBy('notifiedAt', descending: true)
       .snapshots()
-      .asyncMap((notificationSnapshot) async {
+      .listen((notificationSnapshot) async {
     
     debugPrint('🔔 Garage $garageId nhận ${notificationSnapshot.docs.length} notifications');
     
     if (notificationSnapshot.docs.isEmpty) {
-      return <RescueRequestModel>[];
-    }
-
-    // Filter by status in memory instead of query
-    final validNotifications = notificationSnapshot.docs
-        .where((doc) => doc.data()['status'] == 'notified')
-        .toList();
-    
-    if (validNotifications.isEmpty) {
-      return <RescueRequestModel>[];
+      currentRequestIds = {};
+      controller.add(<RescueRequestModel>[]);
+      return;
     }
 
     // Lấy rescue request IDs từ notifications  
-    final rescueRequestIds = validNotifications
+    final rescueRequestIds = notificationSnapshot.docs
         .map((doc) => doc.data()['rescueRequestId'] as String)
-        .toList();
+        .toSet();
 
-    debugPrint('📋 Valid rescue request IDs: $rescueRequestIds');
-
-    // Fetch rescue request details
-    final rescueRequests = <RescueRequestModel>[];
+    debugPrint('📋 Rescue request IDs: $rescueRequestIds');
     
-    for (final requestId in rescueRequestIds) {
-      try {
-        final requestDoc = await firestore
+    // Nếu có request IDs mới, setup listeners cho chúng
+    if (!_setEquals(currentRequestIds, rescueRequestIds)) {
+      currentRequestIds = rescueRequestIds;
+      
+      // Cancel old subscriptions
+      for (final sub in requestSubscriptions) {
+        sub.cancel();
+      }
+      requestSubscriptions.clear();
+      
+      // Setup real-time listeners cho từng rescue request
+      for (final requestId in rescueRequestIds) {
+        final sub = firestore
             .collection('rescue_requests')
             .doc(requestId)
-            .get();
-            
-        if (requestDoc.exists) {
-          final data = requestDoc.data();
-          if (data != null && data['status'] == 'pending') {
-            final rescueRequest = RescueRequestModel.fromMap(requestId, data);
-            rescueRequests.add(rescueRequest);
-            debugPrint('✅ Loaded rescue request: ${rescueRequest.id} - ${rescueRequest.vehicleType}');
-          } else {
-            debugPrint('⚠️ Rescue request $requestId không còn pending, bỏ qua');
-          }
-        } else {
-          debugPrint('⚠️ Rescue request $requestId không tồn tại');
-        }
-      } catch (e) {
-        debugPrint('❌ Lỗi load rescue request $requestId: $e');
+            .snapshots()
+            .listen((requestDoc) async {
+          // Khi bất kỳ request nào thay đổi, fetch lại tất cả
+          await _fetchAndEmitRequests(firestore, garageId, rescueRequestIds, controller);
+        });
+        requestSubscriptions.add(sub);
       }
     }
-
-    debugPrint('📦 Garage $garageId có ${rescueRequests.length} rescue requests active');
-    return rescueRequests;
+    
+    // Fetch initial data
+    await _fetchAndEmitRequests(firestore, garageId, rescueRequestIds, controller);
   });
+  
+  // Cleanup khi dispose
+  ref.onDispose(() {
+    notificationSubscription.cancel();
+    for (final sub in requestSubscriptions) {
+      sub.cancel();
+    }
+    controller.close();
+  });
+  
+  return controller.stream;
 });
+
+/// Helper để so sánh 2 sets
+bool _setEquals<T>(Set<T> a, Set<T> b) {
+  if (a.length != b.length) return false;
+  for (final item in a) {
+    if (!b.contains(item)) return false;
+  }
+  return true;
+}
+
+/// Helper function để fetch và emit rescue requests
+Future<void> _fetchAndEmitRequests(
+  FirebaseFirestore firestore,
+  String garageId,
+  Set<String> rescueRequestIds,
+  StreamController<List<RescueRequestModel>> controller,
+) async {
+  final rescueRequests = <RescueRequestModel>[];
+  
+  for (final requestId in rescueRequestIds) {
+    try {
+      final requestDoc = await firestore
+          .collection('rescue_requests')
+          .doc(requestId)
+          .get();
+          
+      if (requestDoc.exists) {
+        final data = requestDoc.data();
+        if (data != null && data['status'] == 'pending') {
+          final rescueRequest = RescueRequestModel.fromMap(requestId, data);
+          rescueRequests.add(rescueRequest);
+          debugPrint('✅ Loaded rescue request: ${rescueRequest.id} - ${rescueRequest.vehicleType}');
+        } else {
+          debugPrint('⚠️ Rescue request $requestId không còn pending (status: ${data?['status']}), bỏ qua');
+          // Xóa notification cho request không còn pending
+          _cleanupStaleNotification(garageId, requestId);
+        }
+      } else {
+        debugPrint('⚠️ Rescue request $requestId không tồn tại');
+        // Xóa notification cho request không tồn tại
+        _cleanupStaleNotification(garageId, requestId);
+      }
+    } catch (e) {
+      debugPrint('❌ Lỗi load rescue request $requestId: $e');
+    }
+  }
+  
+  debugPrint('📦 Garage $garageId có ${rescueRequests.length} rescue requests active');
+  
+  if (!controller.isClosed) {
+    controller.add(rescueRequests);
+  }
+}
+
+/// Helper function để xóa notifications cho requests không còn valid
+Future<void> _cleanupStaleNotification(String garageId, String requestId) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('garage_notifications')
+        .doc(garageId)
+        .collection('rescue_requests')
+        .doc(requestId)
+        .delete();
+    debugPrint('🧹 Đã xóa notification cũ cho request: $requestId');
+  } catch (e) {
+    debugPrint('❌ Lỗi xóa notification cũ: $e');
+  }
+}
 
 /// Provider để mark notification đã xem
 final notificationActionProvider = Provider((ref) {

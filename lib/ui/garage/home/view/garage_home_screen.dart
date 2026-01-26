@@ -26,9 +26,10 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authState = ref.read(authStateProvider);
       if (authState.userId != null) {
-        ref.read(notificationActionProvider).cleanupExpiredNotifications(authState.userId!);
+        // Comment cleanup tạm thời vì thiếu Firestore index
+        // ref.read(notificationActionProvider).cleanupExpiredNotifications(authState.userId!);
       }
-      debugPrint('🧹 Garage Home initialized with notification cleanup');
+      debugPrint('Garage Home initialized with notification cleanup');
     });
   }
 
@@ -45,10 +46,10 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
       );
     }
 
-    debugPrint('🏠 Building garage home for garageId: $garageId');
+    debugPrint('Building garage home for garageId: $garageId');
 
-    // Sử dụng provider mới từ notification system
-    final requestData = ref.watch(garageRescueRequestsProvider(garageId));
+    // Sử dụng StreamProvider trực tiếp để tự động cập nhật real-time
+    final requestData = ref.watch(notifiedRescueRequestsProvider(garageId));
 
     // Lấy tên garage từ Firestore
     final garageName = ref.watch(_garageNameProvider(garageId));
@@ -65,10 +66,9 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Refresh notifications
-              ref.invalidate(garageRescueRequestsProvider(garageId));
+              // Refresh notifications (thủ công nếu cần)
               ref.invalidate(notifiedRescueRequestsProvider(garageId));
-              debugPrint('🔄 Refreshed rescue request notifications');
+              debugPrint('Refreshed rescue request notifications');
             },
           ),
         ],
@@ -101,8 +101,8 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
                       const SizedBox(width: 8),
                       Text(
                         list.isNotEmpty 
-                          ? 'Có ${list.length} yêu cầu từ hệ thống quét'
-                          : 'Chưa có yêu cầu nào',
+                          ? 'Có ${list.length} yêu cầu cứu hộ mới'
+                          : 'Chưa có yêu cầu cứu hộ nào',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: list.isNotEmpty ? Colors.white : Colors.grey.shade400,
                           fontWeight: FontWeight.bold,
@@ -137,7 +137,7 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
     List<RescueRequestModel> requestList,
     String garageId,
   ) {
-    debugPrint('🔔 Notification ListView: ${requestList.length} rescue requests');
+    debugPrint(' Notification ListView: ${requestList.length} rescue requests');
     
     if (requestList.isEmpty) {
       return Stack(
@@ -189,7 +189,7 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(garageRescueRequestsProvider(garageId));
+        // Chỉ cần invalidate notifiedRescueRequestsProvider
         ref.invalidate(notifiedRescueRequestsProvider(garageId));
       },
       child: ListView.builder(
@@ -200,32 +200,23 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
         addRepaintBoundaries: true,
         itemBuilder: (context, index) {
           final request = requestList[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.cyan.withOpacity(0.3), width: 2),
-              borderRadius: BorderRadius.circular(12),
-              gradient: LinearGradient(
-                colors: [
-                  Colors.cyan.withOpacity(0.1),
-                  Colors.blue.withOpacity(0.05),
-                ],
-              ),
-            ),
-            child: RescueRequestCard(
+          return RescueRequestCard(
               request: request,
               onAccept: () async {
-                // Mark notification đã được viewed
+                debugPrint('🔵 onAccept callback triggered for request: ${request.id}');
+                
+                // Navigate TRƯỚC để tránh context bị thay đổi khi provider rebuild
+                if (context.mounted) {
+                  debugPrint('🔵 Navigating to: /garage/rescue-request-detail/${request.id}');
+                  context.push('/garage/rescue-request-detail/${request.id}');
+                }
+                
+                // Mark notification sau khi đã navigate
                 await ref.read(notificationActionProvider).markNotificationViewed(
                   garageId: garageId,
                   rescueRequestId: request.id,
                 );
-                
-                if (context.mounted) {
-                  context.push('/garage/rescue-request-detail/${request.id}');
-                }
               },
-            ),
           );
         },
       ),

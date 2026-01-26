@@ -16,9 +16,7 @@ class RescueRequestCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1B1E3C), Color(0xFF11132A)],
-        ),
+        color: const Color(0xFF111125),
       ),
       child: Row(
         children: [

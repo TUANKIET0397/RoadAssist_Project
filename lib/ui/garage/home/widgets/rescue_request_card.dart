@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 class RescueRequestCard extends StatelessWidget {
   final RescueRequestModel request;
@@ -25,10 +26,9 @@ class RescueRequestCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
-              'assets/images/icons/doc.png', // đổi theo asset của bạn
-              width: 56,
-              height: 56,
-              fit: BoxFit.cover,
+              kVehicleImages[request.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
+              width: 70,
+              fit: BoxFit.contain,
             ),
           ),
 

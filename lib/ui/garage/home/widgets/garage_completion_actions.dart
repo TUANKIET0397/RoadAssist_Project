@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+
+class GarageCompletionActions extends StatelessWidget {
+  final VoidCallback onViewHistory;
+
+  const GarageCompletionActions({super.key, required this.onViewHistory});
+
+  @override
+  Widget build(BuildContext) {
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: onViewHistory,
+            child: Container(
+              width: 350,
+              height: 60,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color.fromRGBO(25, 37, 59, 1),
+                    Color.fromRGBO(52, 202, 232, 1),
+                  ],
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.white24,
+                    offset: Offset(1, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Text(
+                'Xem lịch sử cứu hộ',
+                maxLines: 1,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -6,7 +6,6 @@ import 'package:road_assist/ui/auth/viewmodel/user_register_vm.dart';
 import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
 import 'package:road_assist/ui/auth/widgets/vehicle_type_item.dart';
 import 'package:road_assist/ui/auth/widgets/password_text_field.dart';
-import 'package:road_assist/ui/auth/widgets/phone_text_field.dart';
 
 class UserRegisterScreen extends ConsumerWidget {
   const UserRegisterScreen({super.key});
@@ -63,10 +62,10 @@ class UserRegisterScreen extends ConsumerWidget {
                   hint: 'Họ và tên',
                   hintColor: Colors.white70,
                 ),
-                const SizedBox(height: 8),
-                PhoneTextField(
+                CustomTextField(
                   controller: vm.phoneController,
-                  hint: 'Số điện thoại',
+                  hint: 'Số điện thoại của bạn',
+                  hintColor: Colors.white70
                 ),
 
                 // Password Section

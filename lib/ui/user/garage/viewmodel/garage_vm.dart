@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 
@@ -48,12 +49,33 @@ class GarageState {
 class GarageNotifier extends StateNotifier<GarageState> {
   final FirebaseFirestore _firestore;
   final LocationService _locationService;
+  final Ref _ref; // 👈 THÊM REF
 
   DocumentSnapshot? _lastDoc;
   static const int _pageSize = 10;
 
-  GarageNotifier(this._firestore, this._locationService)
-      : super(GarageState.initial());
+  GarageNotifier(
+      this._firestore,
+      this._locationService,
+      this._ref,
+      ) : super(GarageState.initial());
+
+  Future<Set<String>> _loadFavorites(String? userId) async {
+    if (userId == null) return {};
+
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('favorites')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.id).toSet();
+    } catch (e) {
+      debugPrint('Load favorites error: $e');
+      return {};
+    }
+  }
 
   Future<void> fetchGarages() async {
     if (state.isLoading) return;
@@ -61,6 +83,10 @@ class GarageNotifier extends StateNotifier<GarageState> {
     state = state.copyWith(isLoading: true);
 
     try {
+      final userId = _ref.read(userIdProvider);
+
+      final favoriteIds = await _loadFavorites(userId);
+
       final snapshot = await _firestore
           .collection('garages')
           .where('isActive', isEqualTo: true)
@@ -71,9 +97,10 @@ class GarageNotifier extends StateNotifier<GarageState> {
         _lastDoc = snapshot.docs.last;
       }
 
-      final garages = snapshot.docs
-          .map((doc) => GarageModel.fromMap(doc.id, doc.data()))
-          .toList();
+      final garages = snapshot.docs.map((doc) {
+        final garage = GarageModel.fromMap(doc.id, doc.data());
+        return garage.copyWith(isFavorite: favoriteIds.contains(doc.id));
+      }).toList();
 
       final withDistance = await _locationService.calculateDistanceForGarages(garages);
 
@@ -101,6 +128,9 @@ class GarageNotifier extends StateNotifier<GarageState> {
     state = state.copyWith(isLoadingMore: true);
 
     try {
+      final userId = _ref.read(userIdProvider);
+      final favoriteIds = await _loadFavorites(userId);
+
       final snapshot = await _firestore
           .collection('garages')
           .where('isActive', isEqualTo: true)
@@ -112,9 +142,10 @@ class GarageNotifier extends StateNotifier<GarageState> {
         _lastDoc = snapshot.docs.last;
       }
 
-      final garages = snapshot.docs
-          .map((doc) => GarageModel.fromMap(doc.id, doc.data()))
-          .toList();
+      final garages = snapshot.docs.map((doc) {
+        final garage = GarageModel.fromMap(doc.id, doc.data());
+        return garage.copyWith(isFavorite: favoriteIds.contains(doc.id));
+      }).toList();
 
       final withDistance =
       await _locationService.calculateDistanceForGarages(garages);
@@ -126,12 +157,13 @@ class GarageNotifier extends StateNotifier<GarageState> {
         return a.distance!.compareTo(b.distance!);
       });
 
+      final allGarages = [...state.garages, ...withDistance];
+
       state = state.copyWith(
-        garages: withDistance,
-        isLoading: false,
+        garages: allGarages,
+        isLoadingMore: false,
         hasMore: snapshot.docs.length == _pageSize,
       );
-
     } catch (e) {
       debugPrint('Load more error: $e');
       state = state.copyWith(isLoadingMore: false);
@@ -157,7 +189,10 @@ class GarageNotifier extends StateNotifier<GarageState> {
             .doc(userId)
             .collection('favorites')
             .doc(garage.id)
-            .set({'garageId': garage.id, 'createdAt': FieldValue.serverTimestamp()});
+            .set({
+          'garageId': garage.id,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
       } else {
         await _firestore
             .collection('users')
@@ -168,7 +203,6 @@ class GarageNotifier extends StateNotifier<GarageState> {
       }
     } catch (e) {
       debugPrint('Toggle favorite error: $e');
-      // Revert on error
       final revertedGarages = state.garages.map((g) {
         return g.id == garage.id ? garage : g;
       }).toList();
@@ -262,6 +296,7 @@ StateNotifierProvider<GarageNotifier, GarageState>((ref) {
   return GarageNotifier(
     FirebaseFirestore.instance,
     ref.read(locationServiceProvider),
+    ref,
   );
 });
 

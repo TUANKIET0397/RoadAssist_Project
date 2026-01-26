@@ -3,6 +3,7 @@ import 'package:road_assist/ui/user/history/model/history_item.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 enum HistoryFilter { all, completed, cancelled }
 
@@ -45,9 +46,9 @@ final HistoryListProvider = Provider.autoDispose<AsyncValue<List<HistoryItem>>>(
       return HistoryItem(
         rescueRequestId: rescue.id,
         vehicleType: rescue.vehicleType,
-        vehicleName: rescue.vehicleModel,
+        vehicleName: rescue.vehicleType,
         vehicleModel: rescue.vehicleModel,
-        image: 'assets/images/illustrations/vehicle.png',
+        image: kVehicleImages[rescue.vehicleType] ?? 'assets/images/illustrations/vehicle.png',
         status: status,
         issue: rescue.issues.join(', '),
         address: rescue.location,

@@ -30,6 +30,7 @@ class CompletionInfoCard extends StatelessWidget {
                 children: [
                   Text(
                     maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     data.vehicleName,
                     style: const TextStyle(
                       color: Colors.white,

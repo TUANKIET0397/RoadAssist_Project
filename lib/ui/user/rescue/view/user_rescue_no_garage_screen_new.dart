@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UserRescueNoGarageScreen extends StatelessWidget {
+class UserRescueNoGarageScreen extends ConsumerWidget {
   final String? rescueRequestId;
   final Function() onBack;
 
@@ -11,7 +12,7 @@ class UserRescueNoGarageScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Không tìm được garage'),

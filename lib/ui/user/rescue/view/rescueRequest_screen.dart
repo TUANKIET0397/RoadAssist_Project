@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
+import 'package:road_assist/ui/user/account/model/vehicle_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 class RescueRequestScreen extends ConsumerStatefulWidget {
   final void Function(String requestId) onNavigateToWaiting;
@@ -20,7 +22,7 @@ class RescueRequestScreen extends ConsumerStatefulWidget {
 
 class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   // Selected options
-  String selectedVehicleType = 'Xe tay ga';
+  String selectedVehicleType = '';
   List<String> selectedIssues = [];
   List<File> selectedImages = [];
   final ImagePicker _picker = ImagePicker();
@@ -30,13 +32,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   double? currentLng;
   String? currentAddress;
   bool isLoadingLocation = true;
-
-  // Vehicle types
-  final List<Map<String, dynamic>> vehicleTypes = [
-    {'name': 'Xe tay ga', 'model': 'Honda SH Mode 2025'},
-    {'name': 'Xe số', 'model': 'Honda Wave 2024'},
-    {'name': 'Xe côn tay', 'model': 'Yamaha Exciter 2025'},
-  ];
 
   // Issues
   final List<String> issues = [
@@ -105,74 +100,86 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     });
   }
 
-  void _showVehicleSelector() {
+  void _showVehicleSelector(List<Vehicle> vehicles) {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1e3a8a),
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Chọn xe của bạn',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Chọn xe của bạn',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ...vehicleTypes.map(
-              (vehicle) => ListTile(
-                leading: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: vehicles.length,
+                  itemBuilder: (context, index) {
+                    final vehicle = vehicles[index];
+                    return ListTile(
+                      leading: Container(
+                        width: 70,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: AssetImage(
+                              kVehicleImages[vehicle.type] ?? 'assets/images/illustrations/vehicle.png',
+                            ),
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  vehicle['name'],
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  vehicle['model'],
-                  style: TextStyle(color: Colors.blue.shade200),
-                ),
-                trailing: Radio<String>(
-                  value: vehicle['name'],
-                  groupValue: selectedVehicleType,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedVehicleType = value!;
-                    });
-                    Navigator.pop(context);
+                      title: Text(
+                        vehicle.type,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        vehicle.description ?? 'Model mặc định',
+                        style: TextStyle(color: Colors.blue.shade200),
+                      ),
+                      trailing: Radio<String>(
+                        value: vehicle.type,
+                        groupValue: selectedVehicleType,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedVehicleType = value!;
+                          });
+                          Navigator.pop(context);
+                        },
+                        activeColor: Colors.blue,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          selectedVehicleType = vehicle.type;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
                   },
-                  activeColor: Colors.blue,
                 ),
-                onTap: () {
-                  setState(() {
-                    selectedVehicleType = vehicle['name'];
-                  });
-                  Navigator.pop(context);
-                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -201,16 +208,26 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       return;
     }
 
+    // Lấy user info từ FutureProvider
+    final userInfo = await ref.read(currentUserInfoFutureProvider.future);
+    final userName = userInfo?['name'] ?? 'User';
+    final userPhone = userInfo?['phone'] ?? 'N/A';
+    final vehiclesAsync = ref.read(allUserVehiclesProvider);
+    
+    final vehicles = vehiclesAsync.value ?? [];
+    final currentVehicle = vehicles.firstWhere(
+      (v) => v.type == selectedVehicleType,
+      orElse: () => Vehicle(type: selectedVehicleType, description: 'Model mặc định'),
+    );
+
     final repo = ref.read(rescueRequestRepoProvider);
 
     final id = await repo.createRescueRequest(
       userId: userId,
-      userName: 'Nguyen Gia Bao',
-      userPhone: '0123456789',
+      userName: userName,
+      userPhone: userPhone,
       vehicleType: selectedVehicleType,
-      vehicleModel: vehicleTypes.firstWhere(
-        (v) => v['name'] == selectedVehicleType,
-      )['model'],
+      vehicleModel: currentVehicle.description ?? 'Model mặc định',
       issues: selectedIssues,
       location: currentAddress!,
       latitude: currentLat!,
@@ -240,10 +257,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentVehicle = vehicleTypes.firstWhere(
-      (v) => v['name'] == selectedVehicleType,
-      orElse: () => vehicleTypes[0],
-    );
+    final vehiclesAsync = ref.watch(allUserVehiclesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -286,70 +300,119 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                       const SizedBox(height: 16),
 
                       // Vehicle Selection
-                      GestureDetector(
-                        onTap: _showVehicleSelector,
-                        child: Container(
+                      vehiclesAsync.when(
+                        data: (vehicles) {
+                          if (vehicles.isEmpty) {
+                            return Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withValues(alpha:  0.3),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Text(
+                                'Không có xe nào được đăng ký',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            );
+                          }
+                          
+                          // Set default vehicle if not selected
+                          if (selectedVehicleType.isEmpty && vehicles.isNotEmpty) {
+                            selectedVehicleType = vehicles.first.type;
+                          }
+                          
+                          final currentVehicle = vehicles.firstWhere(
+                            (v) => v.type == selectedVehicleType,
+                            orElse: () => vehicles.first,
+                          );
+                          
+                          return GestureDetector(
+                            onTap: () => _showVehicleSelector(vehicles),
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xFF008CA8),
+                                    Color(0xFF2A3DAA),
+                                    Color(0xFF001029),
+                                  ],
+                                  stops: [0.0, 0.7, 1.0],
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.blueAccent,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 90,
+                                    height: 60,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: DecorationImage(
+                                        image: AssetImage(
+                                          kVehicleImages[currentVehicle.type] ?? 'assets/images/illustrations/vehicle.png',
+                                        ),
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          currentVehicle.type,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          currentVehicle.description ?? 'Model mặc định',
+                                          style: const TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        loading: () => Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                Color(0xFF008CA8),
-                                Color(0xFF2A3DAA),
-                                Color(0xFF001029),
-                              ],
-                              stops: [0.0, 0.7, 1.0],
-                            ),
+                            color: Colors.grey.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.blueAccent,
-                              width: 1,
-                            ),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  image: const DecorationImage(
-                                    image: NetworkImage(
-                                      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      currentVehicle['name'],
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      currentVehicle['model'],
-                                      style: const TextStyle(
-                                        color: Colors.white54,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right,
-                                color: Colors.white,
-                              ),
-                            ],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        error: (error, stack) => Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            'Lỗi: $error',
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ),

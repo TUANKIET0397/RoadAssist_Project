@@ -8,6 +8,8 @@ class User {
   DateTime birthDate;
   bool isVerified;
 
+  List<String> favouriteGarageIds;
+
   User({
     required this.firstName, //
     required this.lastName, //
@@ -17,6 +19,7 @@ class User {
     required this.birthDate,
     this.isVerified = false,
     required this.password,
+    this.favouriteGarageIds = const [],
   });
   Map<String, dynamic> toJson() => {
     'firstName': firstName,
@@ -27,5 +30,6 @@ class User {
     'birthDate': birthDate,
     'isVerified': isVerified,
     'password': password,
+    'favouriteGarageIds': favouriteGarageIds,
   };
 }

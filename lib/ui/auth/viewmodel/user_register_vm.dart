@@ -101,11 +101,26 @@ class UserRegisterViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _isValidPhone(String phone) {
+    return RegExp(r'^0\d{9,10}$').hasMatch(phone);
+  }
+
   // Validation
   bool _validate() {
     // Name validation
     if (nameController.text.trim().isEmpty) {
       errorMessage = 'Vui lòng nhập họ và tên';
+      return false;
+    }
+
+    //Phone validation
+    if (phoneController.text.trim().isEmpty) {
+      errorMessage = 'Vui lòng nhập số điện thoại';
+      return false;
+    }
+
+    if (!_isValidPhone(phoneController.text.trim())) {
+      errorMessage = 'Số điện thoại không hợp lệ';
       return false;
     }
 

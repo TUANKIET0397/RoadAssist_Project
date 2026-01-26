@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garageDetail_viewmodel.dart';
 
@@ -54,10 +55,7 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
         constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(56, 56, 224, 1),
-              Color.fromRGBO(46, 144, 183, 1),
-            ],
+            colors: AppPalette.bgColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

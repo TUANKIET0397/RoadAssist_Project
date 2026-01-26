@@ -81,6 +81,20 @@ class RescueRequestRepository {
         );
   }
 
+  /// Stream danh sách rescue requests của garage (accepted by garage)
+  Stream<List<RescueRequestModel>> getGarageRequestsStream(String garageId) {
+    return _firestore
+        .collection('rescue_requests')
+        .where('garageId', isEqualTo: garageId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => RescueRequestModel.fromMap(doc.id, doc.data()))
+              .toList(),
+        );
+  }
+
   /// Load rescue requests gần vị trí (dành cho garage)
   Future<List<RescueRequestModel>> loadNearbyRequests({
     required double latitude,
@@ -133,13 +147,15 @@ class RescueRequestRepository {
     required String requestId,
     required String garageId,
     required String garageName,
+    required String garagePhone,
   }) async {
     try {
       await _firestore.collection('rescue_requests').doc(requestId).update({
         'status': 'accepted',
         'progressStep': 1,
         'garageId': garageId,
-        'garageName': garageName,
+        'name': garageName,
+        'garagePhone': garagePhone,
         'acceptedAt': FieldValue.serverTimestamp(),
       });
       return true;

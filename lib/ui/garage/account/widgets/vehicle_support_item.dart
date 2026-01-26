@@ -35,7 +35,7 @@ class VehicleSupportItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white, size: 30),
+            icon: const Icon(Icons.remove, color: Colors.white, size: 30),
             onPressed: onAdd,
           ),
         ],

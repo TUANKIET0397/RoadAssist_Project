@@ -3,18 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/user/history/model/history_item.dart';
+import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
+import 'package:road_assist/ui/shared/widgets/view_history_button.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 
-class HistoryDetailScreen extends ConsumerWidget {
+class HistoryDetailScreen extends ConsumerStatefulWidget {
   final HistoryItem historyItem;
 
-  const HistoryDetailScreen({
-    super.key,
-    required this.historyItem,
-  });
+  const HistoryDetailScreen({super.key, required this.historyItem});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (historyItem.rescueRequestId == null) {
+  ConsumerState<HistoryDetailScreen> createState() =>
+      _HistoryDetailScreenState();
+}
+
+class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
+    if (widget.historyItem.rescueRequestId == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Chi tiết lịch sử')),
         body: const Center(child: Text('Không có dữ liệu')),
@@ -22,24 +30,73 @@ class HistoryDetailScreen extends ConsumerWidget {
     }
 
     final rescueRequest = ref.watch(
-      currentRescueRequestProvider(historyItem.rescueRequestId!),
+      currentRescueRequestProvider(widget.historyItem.rescueRequestId!),
     );
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chi tiết cứu hộ'),
         centerTitle: true,
+        backgroundColor: const Color(0xFF0f172a),
       ),
       body: rescueRequest.when(
         data: (request) {
           if (request == null) {
-            return const Center(child: Text('Không tìm thấy yêu cầu'));
+            return Scaffold(
+              body: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Không tìm thấy yêu cầu',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            );
           }
 
           return _buildContent(context, request);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, st) => Center(child: Text('Lỗi: $error')),
+        loading: () => Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+        ),
+        error: (error, st) {
+          print('❌ Error loading rescue request: $error');
+          print('Stack trace: $st');
+          return Scaffold(
+            body: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'Lỗi: $error',
+                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -58,86 +115,14 @@ class HistoryDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header với status
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFF19253B),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Trạng thái',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: request.status == 'completed'
-                              ? Colors.green.withOpacity(0.2)
-                              : Colors.red.withOpacity(0.2),
-                        ),
-                        child: Text(
-                          request.status == 'completed'
-                              ? '✓ Hoàn thành'
-                              : '✕ Đã hủy',
-                          style: TextStyle(
-                            color: request.status == 'completed'
-                                ? Colors.green
-                                : Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    request.vehicleModel,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    request.vehicleType,
-                    style: TextStyle(
-                      color: Colors.blue.shade200,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
             // Vehicle info
             _buildSection(
               title: 'Thông tin phương tiện',
               children: [
+                _buildStatusRow(request),
                 _buildInfoRow('Loại xe', request.vehicleType),
                 _buildInfoRow('Mẫu xe', request.vehicleModel),
-                _buildInfoRow(
-                  'Các vấn đề',
-                  request.issues.join(', '),
-                ),
+                _buildInfoRow('Các vấn đề', request.issues.join(', ')),
               ],
             ),
 
@@ -148,7 +133,7 @@ class HistoryDetailScreen extends ConsumerWidget {
               title: 'Thông tin garage',
               children: [
                 _buildInfoRow('Tên garage', request.name ?? 'N/A'),
-                _buildInfoRow('SĐT', request.userPhone),
+                _buildInfoRow('SĐT', request.garagePhone ?? 'N/A'),
               ],
             ),
 
@@ -168,14 +153,55 @@ class HistoryDetailScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // Timeline
-            _buildTimeline(request),
+            // Timeline progress
+            RescueProgressTimeline(request: request, showBorder: true),
+            
+            const SizedBox(height: 20),
+            
+            // Contact garage button
+            if (request.garageId != null)
+              ViewHistoryButton(
+                text: 'Liên hệ với garage',
+                icon: Icons.chat,
+                onPressed: () => _contactGarage(context, ref, request),
+              ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 200),
+
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _contactGarage(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+    if (request.garageId == null) return;
+    
+    try {
+      final userId = ref.read(userIdProvider);
+      if (userId == null) return;
+      
+      final chatRepo = ref.read(chatRepositoryProvider);
+      final chatId = await chatRepo.getOrCreateChat(
+        userId: userId,
+        garageId: request.garageId!,
+      );
+      
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(chatId: chatId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi kết nối: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildSection({
@@ -186,7 +212,7 @@ class HistoryDetailScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: const Color(0xFF19253B),
+        color: const Color(0xFF001029),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,12 +221,36 @@ class HistoryDetailScreen extends ConsumerWidget {
             title,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
           ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusRow(RescueRequestModel request) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Trạng thái',
+            style: TextStyle(color: Colors.white70, fontSize: 18),
+          ),
+          const Spacer(),
+          Text(
+            request.status == 'completed' ? '✓ Hoàn thành' : '✕ Đã hủy',
+            style: TextStyle(
+              color: request.status == 'completed' ? Colors.green : Colors.red,
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+            ),
+          ),
         ],
       ),
     );
@@ -214,10 +264,7 @@ class HistoryDetailScreen extends ConsumerWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 18),
           ),
           const Spacer(),
           Expanded(
@@ -227,145 +274,13 @@ class HistoryDetailScreen extends ConsumerWidget {
               textAlign: TextAlign.end,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTimeline(RescueRequestModel request) {
-    final steps = [
-      (
-        'Yêu cầu được gửi',
-        request.createdAt,
-        request.progressStep >= 0,
-      ),
-      (
-        'Garage đã nhận',
-        request.acceptedAt,
-        request.progressStep >= 1,
-      ),
-      (
-        'Garage đã đến',
-        request.arrivedAt,
-        request.progressStep >= 1,
-      ),
-      (
-        'Sửa chữa',
-        request.repairingStartedAt,
-        request.progressStep >= 2,
-      ),
-      (
-        'Hoàn thành',
-        request.completedAt,
-        request.progressStep >= 3,
-      ),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: const Color(0xFF19253B),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Quá trình xử lý',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...steps
-              .asMap()
-              .entries
-              .map(
-                (entry) => _buildTimelineItem(
-                  entry.value.$1,
-                  entry.value.$2,
-                  entry.value.$3,
-                  isLast: entry.key == steps.length - 1,
-                ),
-              )
-              .toList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineItem(
-    String label,
-    DateTime? dateTime,
-    bool isCompleted, {
-    bool isLast = false,
-  }) {
-    return Column(
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCompleted
-                        ? Colors.green.withOpacity(0.2)
-                        : Colors.grey.withOpacity(0.2),
-                  ),
-                  child: Icon(
-                    isCompleted ? Icons.check : Icons.pending,
-                    size: 14,
-                    color: isCompleted ? Colors.green : Colors.grey,
-                  ),
-                ),
-                if (!isLast)
-                  Container(
-                    width: 2,
-                    height: 32,
-                    color: isCompleted
-                        ? Colors.green.withOpacity(0.3)
-                        : Colors.grey.withOpacity(0.2),
-                  ),
-              ],
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isCompleted ? Colors.white : Colors.white70,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (dateTime != null)
-                    Text(
-                      '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
+import 'package:road_assist/ui/auth/viewmodel/garage_register_vm.dart';
+import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
+import 'package:road_assist/ui/map/location_pick_result.dart';
+import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/viewmodel/edit_profile_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/birth_date_field.dart';
@@ -36,91 +41,196 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final userAsync = ref.watch(accountStreamProvider);
     final isSaving = ref.watch(editProfileProvider);
     final _birthCtrl = TextEditingController();
+    final vm = ref.watch(garageRegisterVMProvider);
+    final vmNotifier = ref.read(garageRegisterVMProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Thông tin cá nhân')),
-      body: userAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text('Không có dữ liệu'));
-          }
-
-          /// INIT FORM 1 LẦN
-          if (!_inited) {
-            _nameCtrl.text = user.name;
-            _phoneCtrl.text = user.phone;
-            _emailCtrl.text = user.email ?? '';
-            _addressCtrl.text = user.address;
-            if (!_inited) {
-              _birthCtrl.text = user.birthDate ?? '';
-              _inited = true;
+      appBar: AppBar(
+        backgroundColor: Color.fromRGBO(37, 44, 59, 1),
+        elevation: 0,
+        title: const Text(
+          'Thông tin cá nhân',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3b82f6),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () {},
+            ),
+          ),
+        ],
+      ),
+      body: Container(
+        decoration: const
+        BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: userAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (user) {
+            if (user == null) {
+              return const Center(child: Text('Không có dữ liệu'));
             }
-          }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                /// ===== PROFILE CARD =====
-                ProfileCard(user: user),
+            /// INIT FORM 1 LẦN
+            if (!_inited) {
+              _nameCtrl.text = user.name;
+              _phoneCtrl.text = user.phone;
+              _emailCtrl.text = user.email ?? '';
+              _addressCtrl.text = user.address;
+              if (!_inited) {
+                _birthCtrl.text = user.birthDate ?? '';
+                _inited = true;
+              }
+            }
 
-                const SizedBox(height: 30),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  /// ===== PROFILE CARD =====
+                  ProfileCard(user: user),
 
-                _field('Họ và tên *', _nameCtrl),
-                _row2(
-                  BirthDateField(controller: _birthCtrl),
+                  const SizedBox(height: 30),
 
-                  _field('SĐT *', _phoneCtrl),
-                ),
-                _field('Email', _emailCtrl),
-                _field('Địa chỉ', _addressCtrl),
+                  _field('Họ và tên *', _nameCtrl),
+                  _row2(
+                    BirthDateField(controller: _birthCtrl),
 
-                const SizedBox(height: 30),
+                    _field('SĐT *', _phoneCtrl),
+                  ),
+                  _field('Email', _emailCtrl),
 
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: isSaving
-                        ? null
-                        : () async {
-                            final error = await ref
-                                .read(editProfileProvider.notifier)
-                                .saveProfile(
-                                  name: _nameCtrl.text,
-                                  phone: _phoneCtrl.text,
-                                  email: _emailCtrl.text,
-                                  address: _addressCtrl.text,
-                                  birthDate: _birthCtrl.text,
-                                );
+                GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push<LocationPickResult>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => MapPickScreen(
+                          initialLat: vm.latitude,
+                          initialLng: vm.longitude,
+                        ),
+                      ),
+                    );
 
-                            if (error != null && mounted) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(SnackBar(content: Text(error)));
-                              return;
-                            }
+                    if (result != null) {
+                      await vmNotifier.setLocationFromLatLng(
+                        lat: result.latitude,
+                        lng: result.longitude,
+                        address: result.address,
+                      );
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: "Đia chỉ *",
+                      labelStyle: const TextStyle(color: Colors.white70),
 
-                            if (mounted) {
-                              Navigator.pop(context);
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: Colors.white),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF4B4CED),
+                          width: 2,
+                        ),
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.location_on,
+                        color: Colors.white70,
                       ),
                     ),
-                    child: isSaving
-                        ? const CircularProgressIndicator()
-                        : const Text('Lưu thông tin'),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        vm.addressController.text.isEmpty
+                            ? 'Chọn vị trí'
+                            : vm.addressController.text,
+                        style: TextStyle(
+                          color: vm.addressController.text.isEmpty
+                              ? Colors.white70
+                              : Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
+
+                const SizedBox(height: 30),
+
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                        final error = await ref
+                            .read(editProfileProvider.notifier)
+                            .saveProfile(
+                          name: _nameCtrl.text,
+                          phone: _phoneCtrl.text,
+                          email: _emailCtrl.text,
+                          address: _addressCtrl.text,
+                          birthDate: _birthCtrl.text,
+                        );
+
+                        if (error != null && mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(error)));
+                          return;
+                        }
+
+                        if (mounted) {
+                          Navigator.pop(context);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4B4CED),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      child: isSaving
+                          ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                          : const Text(
+                        'Lưu thông tin',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -130,9 +240,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       padding: const EdgeInsets.only(bottom: 14),
       child: TextField(
         controller: ctrl,
+        style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+          labelStyle: const TextStyle(color: Colors.white70),
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Colors.white,
+              width: 1,
+            ),
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(
+              color: Color(0xFF4B4CED),
+              width: 2,
+            ),
+          ),
         ),
       ),
     );

@@ -28,9 +28,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/ui/call/view/outgoing_call_screen.dart';
 import 'package:road_assist/ui/call/viewmodel/call_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/navigation/configs/user_bottom_nav.dart';
 import 'package:road_assist/ui/navigation/widgets/slanted_animated_bottom_bar.dart';
+import 'package:road_assist/core/providers/navigation_provider.dart';
 
+class UserMainScreen extends ConsumerWidget {
 class UserMainScreen extends ConsumerWidget {
   final Widget child;
 
@@ -44,7 +47,11 @@ class UserMainScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+  Widget build(BuildContext context, WidgetRef ref) {
+    final showNavigation = ref.watch(navigationVisibilityProvider);
+
     return Scaffold(
+      extendBody: true,
       body: child,
       bottomNavigationBar: SlantedAnimatedBottomBar(
         items: userBottomNavItems,
@@ -81,6 +88,12 @@ class UserMainScreen extends ConsumerWidget {
           }
         },
       ),
+      bottomNavigationBar: showNavigation
+          ? SlantedAnimatedBottomBar(
+              items: userBottomNavItems,
+              defaultIndex: 2,
+            )
+          : null,
     );
   }
 }

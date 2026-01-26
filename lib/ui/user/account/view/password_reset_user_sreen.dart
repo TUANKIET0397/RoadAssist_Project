@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/garage/account/models/change_password_state.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/change_password_vm.dart';
-import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/garage/account/widgets/password_field.dart';
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/profile_card.dart';
@@ -77,7 +77,6 @@ class _PasswordResetUserSreenState
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final userAsync = ref.watch(accountStreamProvider);
     final pwdState = ref.watch(changePasswordProvider);
 
@@ -112,108 +111,124 @@ class _PasswordResetUserSreenState
         return Scaffold(
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
-            title: const Text('Đổi Mật khẩu'),
-            backgroundColor: colorScheme.surface,
+            backgroundColor: Color.fromRGBO(37, 44, 59, 1),
+            elevation: 0,
+            title: const Text(
+              'Đổi mật khẩu',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             actions: [
               Container(
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.only(right: 16, bottom: 10),
+                margin: const EdgeInsets.only(right: 16),
                 decoration: BoxDecoration(
+                  color: const Color(0xFF3b82f6),
                   borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color.fromRGBO(79, 172, 254, 1),
-                      Color.fromRGBO(0, 242, 254, 1),
-                    ],
-                  ),
                 ),
-                child: const Icon(Icons.key_sharp, color: Colors.white),
+                child: IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  onPressed: () {},
+                ),
               ),
             ],
           ),
-          body: SingleChildScrollView(
-            controller: _scrollController,
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 5,
+          body: Container(
+            padding: const EdgeInsets.only(top: 16),
+            decoration: const
+            BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppPalette.bgColors,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                /// GARAGE INFO
-                // GarageCard(garage: garage),
-                ProfileCard(user: user),
-                const SizedBox(height: 38),
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 5,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  /// GARAGE INFO
+                  // GarageCard(garage: garage),
+                  ProfileCard(user: user),
+                  const SizedBox(height: 38),
 
-                /// PASSWORD INPUTS
-                PasswordField(
-                  label: 'Mật khẩu cũ',
-                  controller: _oldController,
-                  focusNode: _oldFocus,
-                ),
-                PasswordField(
-                  label: 'Mật khẩu mới',
-                  controller: _newController,
-                  focusNode: _newFocus,
-                ),
-                PasswordField(
-                  label: 'Xác nhận mật khẩu',
-                  controller: _confirmController,
-                  focusNode: _confirmFocus,
-                ),
-
-                const SizedBox(height: 32),
-
-                /// CHANGE PASSWORD BUTTON (VẪN TRONG BODY)
-                SizedBox(
-                  width: 300,
-                  child: ElevatedButton(
-                    onPressed: pwdState.isLoading
-                        ? null
-                        : () {
-                            ref
-                                .read(changePasswordProvider.notifier)
-                                .changePassword(
-                                  oldPassword: _oldController.text,
-                                  newPassword: _newController.text,
-                                  confirmPassword: _confirmController.text,
-                                );
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromRGBO(75, 76, 237, 1),
-                      shadowColor: const Color.fromRGBO(55, 182, 233, 1),
-                      elevation: 8,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                    ),
-                    child: pwdState.isLoading
-                        ? const SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Đổi mật khẩu',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
+                  /// PASSWORD INPUTS
+                  PasswordField(
+                    label: 'Mật khẩu cũ',
+                    controller: _oldController,
+                    focusNode: _oldFocus,
                   ),
-                ),
+                  PasswordField(
+                    label: 'Mật khẩu mới',
+                    controller: _newController,
+                    focusNode: _newFocus,
+                  ),
+                  PasswordField(
+                    label: 'Xác nhận mật khẩu',
+                    controller: _confirmController,
+                    focusNode: _confirmFocus,
+                  ),
 
-                const SizedBox(height: 20),
+                  const SizedBox(height: 32),
 
-                /// FOOTER
-                const Text(
-                  'Đổi mật khẩu để nâng cao bảo mật!',
-                  style: TextStyle(color: Colors.white),
-                ),
-                // const SizedBox(height: 40),
-              ],
+                  /// CHANGE PASSWORD BUTTON (VẪN TRONG BODY)
+                  SizedBox(
+                    width: 300,
+                    child: ElevatedButton(
+                      onPressed: pwdState.isLoading
+                          ? null
+                          : () {
+                              ref
+                                  .read(changePasswordProvider.notifier)
+                                  .changePassword(
+                                    oldPassword: _oldController.text,
+                                    newPassword: _newController.text,
+                                    confirmPassword: _confirmController.text,
+                                  );
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(75, 76, 237, 1),
+                        shadowColor: const Color.fromRGBO(55, 182, 233, 1),
+                        elevation: 8,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      child: pwdState.isLoading
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'Đổi mật khẩu',
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  /// FOOTER
+                  const Text(
+                    'Đổi mật khẩu để nâng cao bảo mật!',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  // const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         );

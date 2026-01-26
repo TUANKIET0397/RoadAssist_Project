@@ -42,6 +42,7 @@ class GarageMainScreen extends ConsumerWidget {
     return Stack(
       children: [
         Scaffold(
+          extendBody: true,
           body: child,
           bottomNavigationBar: SlantedAnimatedBottomBar(
             items: garageBottomNavItems,

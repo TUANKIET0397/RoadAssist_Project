@@ -231,8 +231,8 @@ class GarageRegisterScreenModel extends ChangeNotifier {
             '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}',
         'issues': selectedServices.toList(),
         'vehicleTypes': selectedVehicleTypes,
-        'image': "",
-        'bgimage': "",
+        'imageUrl': "",
+        'bgimgUrl': "",
         'isActive': true,
         'createdAt': FieldValue.serverTimestamp(),
       });

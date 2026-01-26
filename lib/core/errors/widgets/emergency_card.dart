@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:road_assist/core/services/call_hotline.dart';
+
 
 class EmergencyCard extends StatelessWidget {
   const EmergencyCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final hotlineService = HotlineService();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -45,8 +49,46 @@ class EmergencyCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           InkWell(
-            onTap: () {
-              print('onpress');
+            onTap: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Xác nhận'),
+                  content: const Text(
+                    'Bạn sắp gọi hotline hỗ trợ khẩn cấp. Tiếp tục?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('HỦY'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('GỌI'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                try {
+                  await hotlineService.callHotline();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Không thể gọi hotline'),
+                      ),
+                    );
+                  }
+                }
+              }
             },
             child: Container(
               padding: EdgeInsets.all(12),

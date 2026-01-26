@@ -108,6 +108,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
                 },
                 child: const Text('Tạo thông tin garage'),
               ),
+              LogoutButton(onTap: vm.logout),
             ],
           ),
         )

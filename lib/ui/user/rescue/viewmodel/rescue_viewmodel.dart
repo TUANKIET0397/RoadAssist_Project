@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:road_assist/core/utils/geo_utils.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 
 /// Repository
@@ -39,25 +39,14 @@ class RescueRequestRepository {
     File? image,
   }) async {
     try {
-      debugPrint('💾 === FIRESTORE CREATE RESCUE REQUEST ===');
-      debugPrint('👤 userId: $userId');
-      debugPrint('🏷️ userName: $userName');
-      debugPrint('📱 userPhone: $userPhone');
-      debugPrint('🚗 vehicleType: $vehicleType');
-      debugPrint('🔧 vehicleModel: $vehicleModel'); 
-      debugPrint('❗ issues: $issues');
-      debugPrint('📍 location: $location');
-      debugPrint('🌍 coordinates: $latitude, $longitude');
-      debugPrint('🖼️ image: ${image?.path}');
+      if (kDebugMode) {
+        print('[RescueRepo] createRescueRequest: userId=$userId, vehicleType=$vehicleType');
+      }
       
       String? imageUrl;
       if (image != null) {
-        debugPrint('⬆️ Uploading image...');
         imageUrl = await uploadImage(userId, image);
-        debugPrint('🖼️ Image uploaded: $imageUrl');
       }
-
-      debugPrint('📝 Creating Firestore document...');
       
       final docData = {
         'userId': userId,
@@ -74,16 +63,17 @@ class RescueRequestRepository {
         'progressStep': 0,
         'createdAt': FieldValue.serverTimestamp(),
       };
-      
-      debugPrint('📄 Document data: $docData');
 
-      // Add lên firebase
       final docRef = await _firestore.collection('rescue_requests').add(docData);
 
-      debugPrint('✅ Document created successfully with ID: ${docRef.id}');
+      if (kDebugMode) {
+        print('[RescueRepo] Created rescue request: ${docRef.id}');
+      }
       return docRef.id;
     } catch (e) {
-      debugPrint('❌ Lỗi create rescue request: $e');
+      if (kDebugMode) {
+        print('[RescueRepo] Lỗi create rescue request: $e');
+      }
       return null;
     }
   }
@@ -122,8 +112,8 @@ class RescueRequestRepository {
     required double longitude,
     double radiusKm = 10.0,
   }) async {
-    final latDelta = radiusKm / 111.0;
-    final lngDelta = radiusKm / (111.0 * 0.7); // approximation
+    final latDelta = GeoUtils.latDeltaForRadius(radiusKm);
+    final lngDelta = GeoUtils.lngDeltaForRadius(radiusKm);
 
     final snapshot = await _firestore
         .collection('rescue_requests')
@@ -135,32 +125,19 @@ class RescueRequestRepository {
     return snapshot.docs
         .map((doc) => RescueRequestModel.fromMap(doc.id, doc.data()))
         .where((req) {
-          final distance = _calculateDistance(
-            latitude,
-            longitude,
-            req.latitude,
-            req.longitude,
-          );
-          return req.longitude >= longitude - lngDelta &&
-              req.longitude <= longitude + lngDelta &&
-              distance <= radiusKm;
+          return GeoUtils.isWithinRadius(
+            centerLat: latitude,
+            centerLng: longitude,
+            pointLat: req.latitude,
+            pointLng: req.longitude,
+            radiusKm: radiusKm,
+          ) && req.longitude >= longitude - lngDelta &&
+              req.longitude <= longitude + lngDelta;
         })
         .toList();
   }
 
-  double _calculateDistance(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const p = 0.017453292519943295;
-    final a =
-        0.5 -
-        cos((lat2 - lat1) * p) / 2 +
-        cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a)); // 2*R, R = 6371 km
-  }
+  // Đã chuyển sang GeoUtils.calculateDistance()
 
 
   /// Accept rescue request (dành cho garage)
@@ -181,12 +158,12 @@ class RescueRequestRepository {
       });
       return true;
     } catch (e) {
-      print('Lỗi accept rescue request: $e');
+      if (kDebugMode) print('[RescueRepo] Lỗi accept rescue request: $e');
       return false;
     }
   }
 
-  /// 🧪 TESTING: Lấy TẤT CẢ pending requests (không filter khoảng cách)
+  /// Lấy TẤT CẢ pending requests (không filter khoảng cách) - dùng cho testing
   Stream<List<RescueRequestModel>> getAllPendingRescueRequestsStream() {
     return _firestore
         .collection('rescue_requests')
@@ -194,13 +171,12 @@ class RescueRequestRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      print('🧪 getAllPendingRescueRequestsStream: ${snapshot.docs.length} pending requests');
       return snapshot.docs
           .map((doc) {
             try {
               return RescueRequestModel.fromMap(doc.id, doc.data());
             } catch (e) {
-              print('Lỗi parse doc ${doc.id}: $e');
+              if (kDebugMode) print('[RescueRepo] Lỗi parse doc ${doc.id}: $e');
               return null;
             }
           })
@@ -209,7 +185,6 @@ class RescueRequestRepository {
     });
   }
 
-  /// Cancel rescue request (dành cho user)
   /// Cancel rescue request (chỉ update status, không xóa - dùng ở success screen sau khi garage đã chấp nhận)
   Future<bool> cancelRescueRequest(String requestId) async {
     try {
@@ -219,7 +194,7 @@ class RescueRequestRepository {
       });
       return true;
     } catch (e) {
-      print('Lỗi cancel rescue request: $e');
+      if (kDebugMode) print('[RescueRepo] Lỗi cancel rescue request: $e');
       return false;
     }
   }
@@ -230,7 +205,7 @@ class RescueRequestRepository {
       await _firestore.collection('rescue_requests').doc(requestId).delete();
       return true;
     } catch (e) {
-      print('Lỗi delete rescue request: $e');
+      if (kDebugMode) print('[RescueRepo] Lỗi delete rescue request: $e');
       return false;
     }
   }
@@ -243,32 +218,21 @@ class RescueRequestRepository {
       });
       return true;
     } catch (e) {
-      print('Lỗi set timed out: $e');
+      if (kDebugMode) print('[RescueRepo] Lỗi set timed out: $e');
       return false;
     }
   }
 
   /// Stream một rescue request cụ thể
   Stream<RescueRequestModel?> getRescueRequestStream(String requestId) {
-    debugPrint('🔍 === GET RESCUE REQUEST STREAM ===');
-    debugPrint('🆔 Request ID: $requestId');
-    debugPrint('🔄 Setting up Firestore stream...');
-    
     return _firestore
         .collection('rescue_requests')
         .doc(requestId)
         .snapshots()
         .map((doc) {
-          debugPrint('📄 Document snapshot received');
-          debugPrint('✅ Document exists: ${doc.exists}');
-          
           if (doc.exists) {
-            debugPrint('📊 Raw data: ${doc.data()}');
-            final model = RescueRequestModel.fromMap(doc.id, doc.data()!);
-            debugPrint('🏗️ Parsed model: ${model.toString()}');
-            return model;
+            return RescueRequestModel.fromMap(doc.id, doc.data()!);
           } else {
-            debugPrint('❌ Document does not exist for ID: $requestId');
             return null;
           }
         });
@@ -284,40 +248,39 @@ class RescueRequestRepository {
         .collection('rescue_requests')
         .where('status', isEqualTo: 'pending')
         .orderBy('createdAt', descending: true)
-        .limit(10) // ← OPTIMIZED: Giảm từ 50 xuống 20 để tránh lag
+        .limit(10)
         .snapshots()
         .map((snapshot) {
-      print(' getPendingRescueRequestsStream: Tổng docs từ Firebase: ${snapshot.docs.length}');
-      print(' Garage location để filter: lat=$latitude, lng=$longitude, radius=$radiusKm km');
+      if (kDebugMode) {
+        print('[RescueRepo] getPendingRescueRequestsStream: ${snapshot.docs.length} docs');
+      }
       
       final requests = snapshot.docs
           .map((doc) {
             try {
               return RescueRequestModel.fromMap(doc.id, doc.data());
             } catch (e) {
-              print(' Lỗi parse doc ${doc.id}: $e');
-              print(' Data: ${doc.data()}');
+              if (kDebugMode) {
+                print('[RescueRepo] Lỗi parse doc ${doc.id}: $e');
+              }
               return null;
             }
           })
           .whereType<RescueRequestModel>()
           .where((req) {
-            // ← OPTIMIZED: Filter trước khi tính distance
-            final distance = _calculateDistance(
-              latitude,
-              longitude,
-              req.latitude,
-              req.longitude,
+            return GeoUtils.isWithinRadius(
+              centerLat: latitude,
+              centerLng: longitude,
+              pointLat: req.latitude,
+              pointLng: req.longitude,
+              radiusKm: radiusKm,
             );
-            final isNear = distance <= radiusKm;
-            if (isNear) {
-              print(' Request ${req.id}: distance=$distance km, lat=${req.latitude}, lng=${req.longitude}');
-            }
-            return isNear;
           })
           .toList();
       
-      print(' Kết quả cuối: ${requests.length} requests gần vị trí (< $radiusKm km)');
+      if (kDebugMode) {
+        print('[RescueRepo] Kết quả: ${requests.length} requests gần vị trí');
+      }
       return requests;
     });
   }

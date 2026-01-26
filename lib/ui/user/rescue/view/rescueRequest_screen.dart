@@ -6,15 +6,18 @@ import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/user/account/model/vehicle_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/ui/user/rescue/viewmodel/rescue_navigation_provider.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/user/home/viewmodel/home_vehicle_provider.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_vehicle_selector.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_issue_selector.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_location_picker.dart';
+import 'package:road_assist/ui/user/rescue/widgets/rescue_image_picker.dart';
 
 class RescueRequestScreen extends ConsumerStatefulWidget {
-  final void Function(String requestId) onNavigateToWaiting;
-
-  const RescueRequestScreen({super.key, required this.onNavigateToWaiting});
+  const RescueRequestScreen({super.key});
 
   @override
   ConsumerState<RescueRequestScreen> createState() =>
@@ -131,106 +134,6 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     });
   }
 
-  /// Hiển thị tất cả loại xe để chọn (bao gồm cả xe chưa đăng ký)
-  void _showVehicleSelector(List<Vehicle> registeredVehicles) {
-    // Lấy set các loại xe đã đăng ký
-    final registeredTypes = registeredVehicles.map((v) => v.type).toSet();
-    
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1e3a8a),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.3,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Chọn loại xe',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: kUserVehicleTypes.length,
-                  itemBuilder: (context, index) {
-                    final vehicleType = kUserVehicleTypes[index];
-                    final isRegistered = registeredTypes.contains(vehicleType);
-                    // Tìm vehicle đã đăng ký để lấy description nếu có
-                    final registeredVehicle = registeredVehicles.cast<Vehicle?>().firstWhere(
-                      (v) => v?.type == vehicleType,
-                      orElse: () => null,
-                    );
-                    
-                    return ListTile(
-                      leading: Container(
-                        width: 70,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          image: DecorationImage(
-                            image: AssetImage(
-                              kVehicleImages[vehicleType] ?? 'assets/images/illustrations/vehicle.png',
-                            ),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        vehicleType,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      subtitle: Text(
-                        isRegistered 
-                            ? (registeredVehicle?.description ?? 'Đã đăng ký')
-                            : 'Chưa đăng ký',
-                        style: TextStyle(
-                          color: isRegistered ? Colors.green.shade300 : Colors.orange.shade300,
-                        ),
-                      ),
-                      trailing: Radio<String>(
-                        value: vehicleType,
-                        groupValue: selectedVehicleType,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedVehicleType = value!;
-                          });
-                          Navigator.pop(context);
-                        },
-                        activeColor: Colors.blue,
-                      ),
-                      onTap: () {
-                        setState(() {
-                          selectedVehicleType = vehicleType;
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _sendRequest() async {
     final userId = ref.read(userIdProvider);
 
@@ -288,27 +191,24 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       longitude: currentLng!,
       image: selectedImages.isNotEmpty ? selectedImages.first : null,
     );
-
-    debugPrint('📋 Created rescue request with ID: $id');
     
     if (id != null) {
-      debugPrint('✅ Rescue request creation SUCCESS - Navigating to waiting...');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thành công!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gửi yêu cầu thành công!')),
+        );
         setState(() {
           selectedIssues.clear();
           selectedImages.clear();
         });
-        widget.onNavigateToWaiting(id);
+        // Sử dụng provider thay vì callback
+        ref.read(rescueNavigationProvider.notifier).navigateToWaiting(id);
       }
     } else {
-      debugPrint('❌ Rescue request creation FAILED - ID is null');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thất bại!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gửi yêu cầu thất bại!')),
+        );
       }
     }
   }
@@ -370,82 +270,16 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                             }
                           }
                           
-                          // Tìm vehicle đã đăng ký (nếu có)
-                          final registeredVehicle = vehicles.cast<Vehicle?>().firstWhere(
-                            (v) => v?.type == selectedVehicleType,
-                            orElse: () => null,
-                          );
-                          
-                          // Kiểm tra xe đã đăng ký hay chưa
-                          final isRegistered = registeredVehicle != null;
-                          
-                          return GestureDetector(
-                            onTap: () => _showVehicleSelector(vehicles),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(0xFF008CA8),
-                                    Color(0xFF2A3DAA),
-                                    Color(0xFF001029),
-                                  ],
-                                  stops: [0.0, 0.7, 1.0],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.blueAccent,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 90,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      image: DecorationImage(
-                                        image: AssetImage(
-                                          kVehicleImages[selectedVehicleType] ?? 'assets/images/illustrations/vehicle.png',
-                                        ),
-                                        fit: BoxFit.contain,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          selectedVehicleType,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          isRegistered 
-                                              ? (registeredVehicle.description ?? 'Đã đăng ký')
-                                              : 'Chưa đăng ký',
-                                          style: TextStyle(
-                                            color: isRegistered ? Colors.white54 : Colors.orange.shade300,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              ),
+                          return RescueVehicleSelector(
+                            selectedVehicleType: selectedVehicleType,
+                            vehicles: vehicles,
+                            onTap: () => VehicleSelectorBottomSheet.show(
+                              context,
+                              selectedVehicleType: selectedVehicleType,
+                              registeredVehicles: vehicles,
+                              onVehicleSelected: (type) {
+                                setState(() => selectedVehicleType = type);
+                              },
                             ),
                           );
                         },
@@ -475,72 +309,33 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                       const SizedBox(height: 20),
 
                       // Issues Selection
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: issues.map((issue) {
-                          final isSelected = selectedIssues.contains(issue);
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                if (isSelected) {
-                                  selectedIssues.remove(issue);
-                                } else {
-                                  selectedIssues.add(issue);
-                                }
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFF008CA8)
-                                    : const Color(0xFF001029),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.blue.shade300
-                                      : Colors.blue.shade700,
-                                  width: 1,
-                                ),
-                              ),
-                              child: Text(
-                                issue,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                      RescueIssueSelector(
+                        allIssues: issues,
+                        selectedIssues: selectedIssues,
+                        onIssueToggle: (issue) {
+                          setState(() {
+                            if (selectedIssues.contains(issue)) {
+                              selectedIssues.remove(issue);
+                            } else {
+                              selectedIssues.add(issue);
+                            }
+                          });
+                        },
                       ),
 
                       const SizedBox(height: 24),
 
                       // Location Section
-                      const Text(
-                        'Vị trí hiện tại',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      GestureDetector(
+                      RescueLocationPicker(
+                        currentAddress: currentAddress,
+                        isLoading: isLoadingLocation,
                         onTap: () async {
-                          final result =
-                              await Navigator.push<LocationPickResult>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const MapPickScreen(),
-                                ),
-                              );
+                          final result = await Navigator.push<LocationPickResult>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MapPickScreen(),
+                            ),
+                          );
 
                           if (result != null && mounted) {
                             setState(() {
@@ -550,164 +345,19 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                             });
                           }
                         },
-
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF001029),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.blue.shade700,
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.map_outlined,
-                                    color: Colors.blue.shade300,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      currentAddress ?? 'Đang lấy vị trí...',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              const Divider(
-                                color: Colors.white38,
-                                thickness: 1,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.navigation,
-                                    color: Colors.blue.shade300,
-                                    size: 32,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Chọn / cập nhật vị trí',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
 
                       const SizedBox(height: 24),
 
                       // Photo Section
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF001029),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.blue.shade700,
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            for (int i = 0; i < selectedImages.length; i++) ...[
-                              Expanded(
-                                child: Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.file(
-                                        selectedImages[i],
-                                        height: 140,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 6,
-                                      right: 6,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          if (mounted) {
-                                            setState(() {
-                                              selectedImages.removeAt(i);
-                                            });
-                                          }
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.black54,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (i != selectedImages.length - 1)
-                                const SizedBox(width: 12),
-                            ],
-
-                            if (selectedImages.length < 2) ...[
-                              if (selectedImages.isNotEmpty)
-                                const SizedBox(width: 12),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: _pickImage,
-                                  child: Container(
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      color: const Color(0xFF4B4CED),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: const [
-                                        Icon(
-                                          Icons.camera_alt,
-                                          color: Colors.white,
-                                          size: 24,
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          'Chụp ảnh',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                      RescueImagePicker(
+                        selectedImages: selectedImages,
+                        onPickImage: _pickImage,
+                        onRemoveImage: (index) {
+                          if (mounted) {
+                            setState(() => selectedImages.removeAt(index));
+                          }
+                        },
                       ),
                       const SizedBox(height: 10),
 

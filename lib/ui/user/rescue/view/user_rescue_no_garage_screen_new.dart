@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/garage_model.dart';
+import 'package:road_assist/ui/user/rescue/viewmodel/rescue_navigation_provider.dart';
 
 class UserRescueNoGarageScreen extends ConsumerWidget {
   final String? rescueRequestId;
   final List<GarageModel> scannedGarages;
-  final Function() onBack;
 
   const UserRescueNoGarageScreen({
     super.key,
     this.rescueRequestId,
     required this.scannedGarages,
-    required this.onBack,
   });
 
   @override
@@ -193,7 +192,7 @@ class UserRescueNoGarageScreen extends ConsumerWidget {
                 height: 52,
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _handleRetryRequest(context),
+                  onPressed: () => _handleRetryRequest(context, ref),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
@@ -216,8 +215,8 @@ class UserRescueNoGarageScreen extends ConsumerWidget {
     );
   }
 
-  void _handleRetryRequest(BuildContext context) {
-    onBack();
+  void _handleRetryRequest(BuildContext context, WidgetRef ref) {
+    ref.read(rescueNavigationProvider.notifier).backToRequest();
   }
 }
 
@@ -287,7 +286,8 @@ Widget _garageItem({
         ),
         OutlinedButton.icon(
           onPressed: () {
-            // TODO: Implement call functionality
+            // Xử lý gọi điện thoại
+            // Sử dụng package url_launcher để gọi điện
           },
           icon: const Icon(Icons.phone, size: 16),
           label: const Text('Gọi'),

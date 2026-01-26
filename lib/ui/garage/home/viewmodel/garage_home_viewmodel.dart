@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/garage_notification_provider.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 
@@ -14,36 +15,33 @@ const bool USE_MOCK_DATA = false; // ← Change thành true để dùng mock dat
 const bool USE_EMPTY_MOCK_DATA =
     false; // ← Change thành true để test empty state
 
-/// 🧪 TESTING: Tạm thời lấy TẤT CẢ pending requests (không filter khoảng cách)
-const bool DISABLE_DISTANCE_FILTER =
-    true; // ← Change thành false để bật filter khoảng cách lại
+/// 🔄 MỚI: Provider chính cho garage rescue requests - từ notification system
+final garageRescueRequestsProvider = FutureProvider.family
+    .autoDispose<List<RescueRequestModel>, String>((ref, garageId) async {
+      if (USE_MOCK_DATA) {
+        // Mock data mode
+        final mockData = ref.watch(mockRescueRequestsProvider({}));
+        return mockData;
+      } else {
+        // Real data từ notification system
+        final asyncValue = ref.watch(notifiedRescueRequestsProvider(garageId));
+        return asyncValue.when(
+          data: (data) => data,
+          loading: () => throw Exception('Loading notifications...'),
+          error: (error, stack) => throw Exception('Lỗi load notifications: $error'),
+        );
+      }
+    });
 
+/// 🗑️ DEPRECATED: Providers cũ (giữ lại cho compatibility)
 /// Provider chọn list requests theo mode (mock hoặc real)
 final rescueRequestsProvider = FutureProvider.family
     .autoDispose<List<RescueRequestModel>, Map<String, double>>((
       ref,
       locationMap,
     ) async {
-      if (USE_MOCK_DATA) {
-        return ref.watch(mockRescueRequestsProvider(locationMap));
-      } else if (DISABLE_DISTANCE_FILTER) {
-        // 🧪 TESTING: Lấy tất cả pending requests không filter khoảng cách
-        final asyncValue = ref.watch(allPendingRescueRequestsProvider);
-        return asyncValue.when(
-          data: (data) => data,
-          loading: () => throw Exception('Loading...'),
-          error: (error, stack) => throw Exception(error),
-        );
-      } else {
-        final asyncValue = ref.watch(
-          pendingRescueRequestsProvider(locationMap),
-        );
-        return asyncValue.when(
-          data: (data) => data,
-          loading: () => throw Exception('Loading...'),
-          error: (error, stack) => throw Exception(error),
-        );
-      }
+      // Chuyển hướng về notification system mới
+      throw Exception('⚠️ Provider cũ đã deprecated. Hãy dùng garageRescueRequestsProvider với garageId');
     });
 
 /// Mock data provider - để test UI không cần database - dùng StateProvider (synchronous)

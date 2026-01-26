@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/data/models/garage_model.dart';
 
 class UserRescueNoGarageScreen extends ConsumerWidget {
   final String? rescueRequestId;
+  final List<GarageModel> scannedGarages;
   final Function() onBack;
 
   const UserRescueNoGarageScreen({
     super.key,
     this.rescueRequestId,
+    required this.scannedGarages,
     required this.onBack,
   });
 
@@ -125,9 +128,60 @@ class UserRescueNoGarageScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _garageItem(name: 'Minh Thuan motor', type: 'Honda, xe máy'),
-                    _garageItem(name: 'Đức mạnh oto', type: 'Xe container, bus'),
-                    _garageItem(name: 'Giabao Xe', type: 'Xe điện'),
+                    // Hiển thị garage đã quét được hoặc thông báo không có
+                    if (scannedGarages.isEmpty) ...[
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF020617),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Text(
+                          'Không có garage nào gần bạn trong lúc này.\nVui lòng thử lại sau hoặc liên hệ trực tiếp.',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ] else ...[
+                      // Container với ListView có thể scroll cho danh sách garage
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        height: scannedGarages.length > 3 ? 240 : null, // Chiều cao cố định nếu > 3 garage
+                        child: scannedGarages.length > 3 
+                          ? ListView.builder(
+                              itemCount: scannedGarages.length,
+                              itemBuilder: (context, index) {
+                                final garage = scannedGarages[index];
+                                return _garageItem(
+                                  name: garage.name,
+                                  type: garage.vehicleTypes.isNotEmpty 
+                                      ? garage.vehicleTypes.join(', ') 
+                                      : 'Đa dạng phương tiện',
+                                  distance: garage.distance != null 
+                                      ? '${garage.distance!.toStringAsFixed(1)} km'
+                                      : 'N/A',
+                                  phone: garage.phone,
+                                );
+                              },
+                            )
+                          : Column(
+                              children: scannedGarages.map((garage) => _garageItem(
+                                name: garage.name,
+                                type: garage.vehicleTypes.isNotEmpty 
+                                    ? garage.vehicleTypes.join(', ') 
+                                    : 'Đa dạng phương tiện',
+                                distance: garage.distance != null 
+                                    ? '${garage.distance!.toStringAsFixed(1)} km'
+                                    : 'N/A',
+                                phone: garage.phone,
+                              )).toList(),
+                            ),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -167,9 +221,14 @@ class UserRescueNoGarageScreen extends ConsumerWidget {
   }
 }
 
-Widget _garageItem({required String name, required String type}) {
+Widget _garageItem({
+  required String name, 
+  required String type, 
+  required String distance, 
+  required String phone
+}) {
   return Container(
-    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    margin: const EdgeInsets.only(bottom: 8), // Chỉ margin bottom cho spacing
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: const Color(0xFF020617),
@@ -219,9 +278,9 @@ Widget _garageItem({required String name, required String type}) {
                 style: const TextStyle(color: Colors.white60, fontSize: 12),
               ),
               const SizedBox(height: 4),
-              const Text(
-                '● 1.2 km',
-                style: TextStyle(color: Colors.greenAccent, fontSize: 12),
+              Text(
+                '● $distance',
+                style: const TextStyle(color: Colors.greenAccent, fontSize: 12),
               ),
             ],
           ),

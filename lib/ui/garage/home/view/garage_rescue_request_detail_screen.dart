@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/core/providers/garage_notification_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/view/garage_rescue_status_update_screen.dart';
@@ -56,6 +57,12 @@ class _GarageRescueRequestDetailScreenState
       );
 
       if (success && mounted) {
+        // Mark notification đã được accepted
+        await ref.read(notificationActionProvider).markNotificationAccepted(
+          garageId: userId ?? 'unknown_garage',
+          rescueRequestId: widget.rescueRequestId,
+        );
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Đã chấp nhận yêu cầu cứu hộ')),
         );

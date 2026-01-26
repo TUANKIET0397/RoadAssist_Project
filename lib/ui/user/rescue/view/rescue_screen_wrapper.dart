@@ -4,6 +4,7 @@ import 'package:road_assist/ui/user/rescue/view/rescueRequest_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_waiting_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_success_screen.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_no_garage_screen_new.dart' as ng_screen;
+import 'package:road_assist/data/models/garage_model.dart';
 
 class RescueScreenWrapper extends ConsumerStatefulWidget {
   const RescueScreenWrapper({super.key});
@@ -18,6 +19,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
   String? currentRequestId;
   String? garageId;
   String? garageName;
+  List<GarageModel> scannedGarages = [];
  // RescueRequestModel? _currentRequestData;
 
   void _navigateToWaiting(String requestId) {
@@ -36,10 +38,11 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
     });
   }
 
-  void _navigateToNoGarage(String requestId) {
+  void _navigateToNoGarage(String requestId, [List<GarageModel>? garages]) {
     setState(() {
       currentScreen = 'rescue_no_garage';
       currentRequestId = requestId;
+      scannedGarages = garages ?? [];
     });
   }
 
@@ -49,6 +52,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
       currentRequestId = null;
       garageId = null;
       garageName = null;
+      scannedGarages = [];
     });
   }
 
@@ -73,6 +77,7 @@ class _RescueScreenWrapperState extends ConsumerState<RescueScreenWrapper> {
       case 'rescue_no_garage':
         return ng_screen.UserRescueNoGarageScreen(
           rescueRequestId: currentRequestId,
+          scannedGarages: scannedGarages,
           onBack: _backToRequest,
         );
       case 'rescue_request':

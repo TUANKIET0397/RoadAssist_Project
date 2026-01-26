@@ -372,6 +372,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
 
               /// LOGOUT
               LogoutButton(onTap: vm.logout),
+              const SizedBox(height: 130),
             ],
           ),
         ),

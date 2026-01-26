@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/services/garage_scanner_service.dart';
+import 'package:road_assist/data/models/rescue_request_model.dart';
+import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_location_card.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_status_checklist.dart';
@@ -11,7 +14,7 @@ import 'package:road_assist/ui/user/rescue/widgets/rescue_cancel_button.dart';
 class UserRescueWaitingScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
   final Function(String requestId, String? garageId, String? name) onNavigateToSuccess;
-  final Function(String requestId) onNavigateToNoGarage;
+  final Function(String requestId, [List<GarageModel>? garages]) onNavigateToNoGarage;
   final Function() onBack;
 
   const UserRescueWaitingScreen({
@@ -29,69 +32,183 @@ class UserRescueWaitingScreen extends ConsumerStatefulWidget {
 
 class _UserRescueWaitingScreenState
     extends ConsumerState<UserRescueWaitingScreen> {
-  late Timer _timeoutTimer;
+  GarageScannerService? _garageScannerService;
+  StreamSubscription? _scanSubscription;
+  
+  // UI state
+  ScanPhase _currentPhase = ScanPhase.phase1;
+  int _phase1GarageCount = 0;
+  int _phase2GarageCount = 0;
   int _elapsedSeconds = 0;
-  static const int _timeoutDuration = 2000; // 3 phút
-  bool _timeoutHandled = false;
+  Timer? _uiUpdateTimer;
+  bool _scanCompleted = false;
+  List<GarageModel> _allScannedGarages = [];  // Lưu tất cả garage đã quét
+
+  bool _hasStartedScanning = false;
+  bool _needsToListenForData = false;
 
   @override
   void initState() {
     super.initState();
-    _startTimeoutTimer();
+    _startUIUpdateTimer();
   }
 
-  void _startTimeoutTimer() {
-    _timeoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Start scanning only once
+    if (!_hasStartedScanning) {
+      debugPrint('🔧 === STARTING GARAGE SCANNING INITIALIZATION ===');
+      
+      // Use addPostFrameCallback to ensure widget is fully built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _startGarageScanning();
+      });
+    }
+  }
+
+  void _startUIUpdateTimer() {
+    _uiUpdateTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-
       setState(() {
         _elapsedSeconds++;
       });
-
-      // Nếu quá 3 phút không có garage nhận thì chuyển đến NoGarage
-      if (_elapsedSeconds >= _timeoutDuration) {
-        _timeoutTimer.cancel();
-        _handleTimeout();
-      }
     });
   }
 
-  Future<void> _handleTimeout() async {
-    if (_timeoutHandled || !mounted) {
-      return;
-    }
-
-    _timeoutHandled = true;
-
+  Future<void> _startGarageScanning() async {
     try {
-      final repo = ref.read(rescueRequestRepoProvider);
-      await repo.setRescueRequestTimedOut(widget.rescueRequestId);
-
-      if (mounted) {
-        widget.onNavigateToNoGarage(widget.rescueRequestId);
+      debugPrint('🚀 Bắt đầu _startGarageScanning...');
+      debugPrint('🆔 Rescue Request ID: ${widget.rescueRequestId}');
+      
+      // Use ref.read() for one-time access
+      final rescueRequestAsync = ref.read(currentRescueRequestProvider(widget.rescueRequestId));
+      
+      debugPrint('📋 Đã lấy rescueRequestAsync provider với read...');
+      debugPrint('🔍 Provider state: ${rescueRequestAsync.runtimeType}');
+      debugPrint('🔍 Provider hasValue: ${rescueRequestAsync.hasValue}');
+      debugPrint('🔍 Provider isLoading: ${rescueRequestAsync.isLoading}');
+      debugPrint('🔍 Provider hasError: ${rescueRequestAsync.hasError}');
+      
+      // Check if we already have data available
+      if (rescueRequestAsync.hasValue && rescueRequestAsync.value != null) {
+        debugPrint('✅ === IMMEDIATE DATA AVAILABLE ===');
+        final rescueRequest = rescueRequestAsync.value!;
+        debugPrint('📋 Rescue request data: $rescueRequest');
+        
+        // Mark as started when we have immediate data
+        _hasStartedScanning = true;
+        
+        _executeGarageScanning(rescueRequest);
+        return;
       }
+      
+      // If no immediate data, set flag for build method to handle listening
+      debugPrint('⏳ === NO IMMEDIATE DATA - SETTING BUILD LISTENER FLAG ===');
+      setState(() {
+        _needsToListenForData = true;
+      });
+      
     } catch (e) {
-      print('Error handling timeout: $e');
+      debugPrint('❌ Lỗi khởi tạo garage scanner: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lỗi khi xử lý timeout')),
+          SnackBar(content: Text('Lỗi khởi tạo: $e')),
         );
       }
     }
   }
 
+  void _executeGarageScanning(RescueRequestModel rescueRequest) {
+    if (!mounted) {
+      debugPrint('❌ Widget unmounted - aborting scanning');
+      return;
+    }
+    
+    debugPrint('🎯 === EXECUTING GARAGE SCANNING ===');
+    debugPrint('📍 User position: lat=${rescueRequest.latitude}, lng=${rescueRequest.longitude}');
+
+    // Execute scanning in next frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
+      debugPrint('🔍 === PHASE 1 START ===');
+      
+      _garageScannerService = GarageScannerService();
+      
+      final scanStream = _garageScannerService!.scanForGarages(
+        rescueRequestId: widget.rescueRequestId,
+        userLat: rescueRequest.latitude,
+        userLng: rescueRequest.longitude,
+      );
+
+      debugPrint('🔄 Đang subscribe đến scan stream...');
+
+      _scanSubscription = scanStream.listen(
+        (result) {
+          debugPrint('📨 Nhận scan result: phase=${result.phase}, garages=${result.garages.length}');
+          
+          if (!mounted) return;
+          
+          setState(() {
+            _currentPhase = result.phase;
+            
+            // Lưu garage từ mỗi phase, tránh duplicate bằng cách check ID
+            for (var garage in result.garages) {
+              if (!_allScannedGarages.any((existing) => existing.id == garage.id)) {
+                _allScannedGarages.add(garage);
+              }
+            }
+            
+            switch (result.phase) {
+              case ScanPhase.phase1:
+                _phase1GarageCount = result.garages.length;
+                debugPrint('✅ Phase 1: ${_phase1GarageCount} garage(s)');
+                break;
+              case ScanPhase.phase2:
+                _phase2GarageCount = result.garages.length;
+                debugPrint('✅ Phase 2: ${_phase2GarageCount} garage(s)');
+                break;
+              case ScanPhase.completed:
+                _scanCompleted = true;
+                debugPrint('✅ Scan completed - garage accepted!');
+                // Garage đã nhận, chuyển success
+                if (result.hasAcceptance) {
+                  widget.onNavigateToSuccess(
+                    widget.rescueRequestId,
+                    result.acceptedGarageId,
+                    result.acceptedGarageName,
+                  );
+                }
+                break;
+              case ScanPhase.failed:
+                _scanCompleted = true;
+                debugPrint('❌ Scan failed - no garage found/accepted');
+                // Truyền danh sách garage đã quét được (dù không ai nhận)
+                widget.onNavigateToNoGarage(widget.rescueRequestId, _allScannedGarages);
+                break;
+            }
+          });
+        },
+        onError: (error) {
+          debugPrint('❌ Lỗi garage scanner: $error');
+          // Don't use ScaffoldMessenger here since it's called from didChangeDependencies
+          // The error will be handled in the UI through state changes
+        },
+      );
+    });
+  }
   Future<void> _cancelRequest() async {
     final repo = ref.read(rescueRequestRepoProvider);
     // Xóa hoàn toàn request khỏi database khi ở waiting screen
     final success = await repo.deleteRescueRequest(widget.rescueRequestId);
 
     if (success && mounted) {
-      if (_timeoutTimer.isActive) {
-        _timeoutTimer.cancel();
-      }
+      _cleanup();
       widget.onBack();
       ScaffoldMessenger.of(
         context,
@@ -99,12 +216,57 @@ class _UserRescueWaitingScreenState
     }
   }
 
+  void _cleanup() {
+    _scanSubscription?.cancel();
+    _garageScannerService?.dispose();
+    _uiUpdateTimer?.cancel();
+  }
+
   @override
   void dispose() {
-    if (_timeoutTimer.isActive) {
-      _timeoutTimer.cancel();
-    }
+    _cleanup();
     super.dispose();
+  }
+
+  String _getPhaseDescription() {
+    switch (_currentPhase) {
+      case ScanPhase.phase1:
+        return 'Đang quét garage gần (5km)...';
+      case ScanPhase.phase2:
+        return 'Mở rộng tìm kiếm (10km)...';
+      case ScanPhase.completed:
+        return 'Đã tìm thấy garage!';
+      case ScanPhase.failed:
+        return 'Không tìm thấy garage';
+    }
+  }
+
+  List<String> _getStatusItems() {
+    final items = <String>[];
+    
+    if (_currentPhase == ScanPhase.phase1) {
+      items.addAll([
+        'Yêu cầu cứu hộ đã gửi ✅',
+        'Đang quét garage gần (5km)...',
+        if (_phase1GarageCount > 0) 'Tìm thấy $_phase1GarageCount garage gần bạn',
+        'Chờ garage phản hồi...',
+      ]);
+    } else if (_currentPhase == ScanPhase.phase2) {
+      items.addAll([
+        'Đợt 1 hoàn thành ✅',
+        'Mở rộng tìm kiếm (10km)...',
+        if (_phase2GarageCount > 0) 'Tìm thấy $_phase2GarageCount garage trong vùng mở rộng',
+        'Chờ garage phản hồi...',
+      ]);
+    } else if (_currentPhase == ScanPhase.completed) {
+      items.addAll([
+        'Yêu cầu đã được chấp nhận ✅',
+        'Garage đang chuẩn bị...',
+        'Bạn sẽ nhận thông báo sớm',
+      ]);
+    }
+    
+    return items;
   }
 
 
@@ -114,6 +276,49 @@ class _UserRescueWaitingScreenState
       currentRescueRequestProvider(widget.rescueRequestId),
     );
 
+    // Handle listening for data when immediate data wasn't available
+    // ref.listen must be called outside of conditions to work properly
+    ref.listen(currentRescueRequestProvider(widget.rescueRequestId), (previous, next) {
+      debugPrint('🔔 Build listener: Provider state changed: ${previous?.runtimeType} -> ${next.runtimeType}');
+      
+      // Only process if we're waiting for data and haven't started scanning yet
+      if (_needsToListenForData && !_hasStartedScanning && next.hasValue && next.value != null) {
+        debugPrint('✅ === DATA RECEIVED VIA BUILD LISTENER - STARTING GARAGE SCANNING ===');
+        final rescueRequest = next.value!;
+        debugPrint('📋 Rescue request data: $rescueRequest');
+        
+        setState(() {
+          _needsToListenForData = false;  // Stop waiting for data
+          _hasStartedScanning = true;     // Mark as started
+        });
+        
+        _executeGarageScanning(rescueRequest);
+      } else {
+        debugPrint('🔍 Build listener conditions:');
+        debugPrint('   _needsToListenForData: $_needsToListenForData');
+        debugPrint('   !_hasStartedScanning: ${!_hasStartedScanning}');
+        debugPrint('   hasValue: ${next.hasValue}');
+        debugPrint('   value != null: ${next.value != null}');
+        
+        if (_needsToListenForData && _hasStartedScanning) {
+          debugPrint('⚠️  Already started scanning - skipping');
+        } else if (!_needsToListenForData) {
+          debugPrint('⚠️  Not waiting for data - skipping');
+        } else if (!next.hasValue || next.value == null) {
+          debugPrint('⚠️  No valid data yet - waiting...');
+        }
+        
+        if (next.hasError) {
+          debugPrint('❌ === ERROR RECEIVED VIA BUILD LISTENER ===');
+          debugPrint('❌ Error: ${next.error}');
+          
+          setState(() {
+            _needsToListenForData = false;
+          });
+        }
+      }
+    });
+
     return PopScope(
       onPopInvokedWithResult: (didPop, result) => false,
       child: Scaffold(
@@ -121,22 +326,6 @@ class _UserRescueWaitingScreenState
           data: (request) {
             if (request == null) {
               return const Center(child: Text('Không tìm thấy yêu cầu'));
-            }
-
-            // Nếu garage đã nhận thì chuyển đến success screen
-            if (request.status == 'accepted') {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_timeoutTimer.isActive) {
-                  _timeoutTimer.cancel();
-                }
-                if (mounted) {
-                  widget.onNavigateToSuccess(
-                    widget.rescueRequestId,
-                    request.garageId,
-                    request.name,
-                  );
-                }
-              });
             }
 
             return Container(
@@ -154,13 +343,18 @@ class _UserRescueWaitingScreenState
                     children: [
                       const SizedBox(height: 5),
 
-                      const RadarScanner(),
+                      // Radar Scanner với phase indicator
+                      RadarScanner(
+                        phase: _currentPhase,
+                        phase1Count: _phase1GarageCount,
+                        phase2Count: _phase2GarageCount,
+                      ),
 
                       const SizedBox(height: 5),
 
                       Text(
-                        'Đang tìm Garage phù hợp...',
-                        style: TextStyle(
+                        _getPhaseDescription(),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -170,14 +364,24 @@ class _UserRescueWaitingScreenState
 
                       const SizedBox(height: 8),
 
-                      Text(
-                        'Vui lòng chờ trong giây lát',
-                        style: TextStyle(
-                          color: Colors.blue.shade200,
-                          fontSize: 15,
+                      if (_currentPhase == ScanPhase.phase1)
+                        Text(
+                          'Đợt 1/2 - Bán kính 5km',
+                          style: TextStyle(
+                            color: Colors.blue.shade200,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      else if (_currentPhase == ScanPhase.phase2)
+                        Text(
+                          'Đợt 2/2 - Bán kính 10km',
+                          style: TextStyle(
+                            color: Colors.orange.shade200,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
 
                       const SizedBox(height: 32),
 
@@ -186,12 +390,9 @@ class _UserRescueWaitingScreenState
                       
                       const SizedBox(height: 16),
 
+                      // Dynamic status checklist
                       RescueStatusChecklist(
-                        items: [
-                          'Yêu cầu cứu hộ đã gửi',
-                          'Vui lòng chờ garage phản hồi',
-                          'Bạn sẽ nhận thông báo sớm',
-                        ],
+                        items: _getStatusItems(),
                       ),
 
                       const SizedBox(height: 16),
@@ -235,7 +436,16 @@ class _UserRescueWaitingScreenState
 }
 
 class RadarScanner extends StatefulWidget {
-  const RadarScanner({super.key});
+  final ScanPhase phase;
+  final int phase1Count;
+  final int phase2Count;
+  
+  const RadarScanner({
+    super.key,
+    this.phase = ScanPhase.phase1,
+    this.phase1Count = 0,
+    this.phase2Count = 0,
+  });
 
   @override
   State<RadarScanner> createState() => _RadarScannerState();
@@ -250,7 +460,7 @@ class _RadarScannerState extends State<RadarScanner>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 4),
+      duration: Duration(seconds: widget.phase == ScanPhase.phase2 ? 3 : 4),
     )..repeat();
   }
 
@@ -260,8 +470,23 @@ class _RadarScannerState extends State<RadarScanner>
     super.dispose();
   }
 
+  Color _getRadarColor() {
+    switch (widget.phase) {
+      case ScanPhase.phase1:
+        return Colors.blue;
+      case ScanPhase.phase2:
+        return Colors.orange;
+      case ScanPhase.completed:
+        return Colors.green;
+      case ScanPhase.failed:
+        return Colors.red;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final radarColor = _getRadarColor();
+    
     return SizedBox(
       width: 150,
       height: 150,
@@ -271,6 +496,10 @@ class _RadarScannerState extends State<RadarScanner>
           return CustomPaint(
             painter: RadarPainterV4(
               angle: _controller.value * 2 * 3.1415926,
+              radarColor: radarColor,
+              phase: widget.phase,
+              phase1Count: widget.phase1Count,
+              phase2Count: widget.phase2Count,
             ),
           );
         },
@@ -281,7 +510,18 @@ class _RadarScannerState extends State<RadarScanner>
 
 class RadarPainterV4 extends CustomPainter {
   final double angle;
-  RadarPainterV4({required this.angle});
+  final Color radarColor;
+  final ScanPhase phase;
+  final int phase1Count;
+  final int phase2Count;
+  
+  RadarPainterV4({
+    required this.angle,
+    required this.radarColor,
+    required this.phase,
+    required this.phase1Count,
+    required this.phase2Count,
+  });
 
   static final Random _rand = Random();
 
@@ -308,7 +548,7 @@ class RadarPainterV4 extends CustomPainter {
 
     /// ===== Grid =====
     final gridPaint = Paint()
-      ..color = Colors.cyanAccent.withOpacity(0.15)
+      ..color = radarColor.withOpacity(0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -327,7 +567,7 @@ class RadarPainterV4 extends CustomPainter {
       gridPaint,
     );
 
-    /// ===== Radar sweep (1 tia) =====
+    /// ===== Radar sweep =====
     const sweepWidth = 0.35;
 
     final sweepPaint = Paint()
@@ -335,9 +575,9 @@ class RadarPainterV4 extends CustomPainter {
         startAngle: angle,
         endAngle: angle + sweepWidth,
         colors: [
-          Colors.cyanAccent.withOpacity(0.0),
-          Colors.cyanAccent.withOpacity(0.7),
-          Colors.cyanAccent.withOpacity(0.0),
+          radarColor.withOpacity(0.0),
+          radarColor.withOpacity(0.7),
+          radarColor.withOpacity(0.0),
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
 
@@ -349,6 +589,14 @@ class RadarPainterV4 extends CustomPainter {
       sweepPaint,
     );
 
+    /// ===== Phase indicators =====
+    if (phase1Count > 0) {
+      _drawPhaseIndicator(canvas, center, radius * 0.5, phase1Count, Colors.blue);
+    }
+    if (phase2Count > 0 && phase != ScanPhase.phase1) {
+      _drawPhaseIndicator(canvas, center, radius * 0.75, phase2Count, Colors.orange);
+    }
+
     /// ===== Blips =====
     for (final blip in blips) {
       final pos = Offset(
@@ -356,9 +604,7 @@ class RadarPainterV4 extends CustomPainter {
         center.dy + blip.offset.dy * radius,
       );
 
-      final blipAngle =
-          atan2(pos.dy - center.dy, pos.dx - center.dx);
-
+      final blipAngle = atan2(pos.dy - center.dy, pos.dx - center.dx);
       final diff = _angleDiff(blipAngle, angle);
 
       if (diff < 0.15) {
@@ -372,7 +618,7 @@ class RadarPainterV4 extends CustomPainter {
           pos,
           3 + blip.intensity * 2,
           Paint()
-            ..color = Colors.cyanAccent.withOpacity(blip.intensity),
+            ..color = radarColor.withOpacity(blip.intensity),
         );
       }
     }
@@ -382,7 +628,7 @@ class RadarPainterV4 extends CustomPainter {
       center,
       radius - 1.5,
       Paint()
-        ..color = Colors.cyanAccent.withOpacity(0.6)
+        ..color = radarColor.withOpacity(0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
     );
@@ -391,8 +637,23 @@ class RadarPainterV4 extends CustomPainter {
     canvas.drawCircle(
       center,
       5,
-      Paint()..color = Colors.cyanAccent,
+      Paint()..color = radarColor,
     );
+  }
+
+  void _drawPhaseIndicator(Canvas canvas, Offset center, double r, int count, Color color) {
+    for (int i = 0; i < count && i < 8; i++) {
+      final angle = (i * 2 * pi) / 8;
+      final pos = Offset(
+        center.dx + cos(angle) * r,
+        center.dy + sin(angle) * r,
+      );
+      canvas.drawCircle(
+        pos,
+        4,
+        Paint()..color = color.withOpacity(0.8),
+      );
+    }
   }
 
   double _angleDiff(double a, double b) {

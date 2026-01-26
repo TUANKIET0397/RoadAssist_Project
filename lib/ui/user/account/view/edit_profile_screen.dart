@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/auth/viewmodel/garage_register_vm.dart';
-import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
 import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
@@ -23,6 +23,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _emailCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
   final _birthCtrl = TextEditingController();
+  File? _avatarFile;
 
   bool _inited = false;
 
@@ -104,7 +105,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               child: Column(
                 children: [
                   /// ===== PROFILE CARD =====
-                  ProfileCard(user: user),
+                  ProfileCard(
+                    user: user,
+                    onAvatarPicked: (file) {
+                      setState(() {
+                        _avatarFile = file;
+                      });
+                    },
+                  ),
+
 
                   const SizedBox(height: 30),
 
@@ -186,8 +195,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           name: _nameCtrl.text,
                           phone: _phoneCtrl.text,
                           email: _emailCtrl.text,
-                          address: _addressCtrl.text,
+                          address: vm.addressController.text,
                           birthDate: _birthCtrl.text,
+                          avatarFile: _avatarFile,
                         );
 
                         if (error != null && mounted) {

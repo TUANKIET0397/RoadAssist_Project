@@ -6,13 +6,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_state.dart';
 
-///
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+
+
 final garageProvider =
 StateNotifierProvider.family<GarageVM, GarageState, String>(
       (ref, userId) => GarageVM(userId),
 );
 
-/// VIEW MODEL
 class GarageVM extends StateNotifier<GarageState> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String userId;
@@ -56,8 +59,8 @@ class GarageVM extends StateNotifier<GarageState> {
         state = state.copyWith(
           savedGarage: garage,
           draftGarage: garage,
-          workingDays: data['operatingDays'] != null
-              ? List<int>.from(data['operatingDays'])
+          workingDays: data['workingDays'] != null
+              ? List<int>.from(data['workingDays'])
               : const [1, 2, 3, 4, 5],
           taxCode: data['taxCode'] as String?,
           isLoading: false,
@@ -69,12 +72,62 @@ class GarageVM extends StateNotifier<GarageState> {
     );
   }
 
+  Future<String?> _pickAndUploadImage({
+    required String garageId,
+    required String fileName,
+  }) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+
+    if (picked == null) return null;
+
+    final file = File(picked.path);
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('garages/$garageId/$fileName');
+
+    await ref.putFile(file);
+    return await ref.getDownloadURL();
+  }
+
+  Future<void> changeAvatar() async {
+    final garageId = state.savedGarage.id;
+    if (garageId.isEmpty) return;
+
+    final url = await _pickAndUploadImage(
+      garageId: garageId,
+      fileName: 'avatar.jpg',
+    );
+
+    if (url == null) return;
+
+    await _firestore.collection('garages').doc(garageId).update({
+      'imageUrl': url,
+    });
+  }
+
+  Future<void> changeBackground() async {
+    final garageId = state.savedGarage.id;
+    if (garageId.isEmpty) return;
+
+    final url = await _pickAndUploadImage(
+      garageId: garageId,
+      fileName: 'background.jpg',
+    );
+
+    if (url == null) return;
+
+    await _firestore.collection('garages').doc(garageId).update({
+      'bgimgUrl': url,
+    });
+  }
 
   Future<void> addVehicleType({
     required String garageId,
     required String vehicleType,
   }) async {
     final vehicles = [...state.savedGarage.vehicleTypes];
+
     if (vehicles.contains(vehicleType)) return;
 
     vehicles.add(vehicleType);
@@ -102,7 +155,6 @@ class GarageVM extends StateNotifier<GarageState> {
     state = state.copyWith(workingDays: days);
   }
 
-
   void setOpenTime(TimeOfDay time) {
     final timeStr =
         '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
@@ -119,7 +171,6 @@ class GarageVM extends StateNotifier<GarageState> {
     );
   }
 
-  /// UPDATE
   void updateGarage(GarageModel garage) {
     state = state.copyWith(draftGarage: garage);
   }
@@ -128,7 +179,6 @@ class GarageVM extends StateNotifier<GarageState> {
     state = state.copyWith(taxCode: taxCode);
   }
 
-  /// SAVE GARAGE
   Future<void> saveGarage() async {
     if (state.isLoading) return;
 
@@ -138,15 +188,16 @@ class GarageVM extends StateNotifier<GarageState> {
       final garage = state.draftGarage;
 
       final data = garage.toMap()
-        ..['id'] = userId
-        ..['operatingDays'] = state.workingDays;
+        ..['userId'] = userId
+        ..['workingDays'] = state.workingDays;
 
       if (state.taxCode?.isNotEmpty == true) {
         data['taxCode'] = state.taxCode;
       }
 
-      final docId =
-      garage.id.isNotEmpty ? garage.id : userId;
+      final docId = garage.id.isNotEmpty
+          ? garage.id
+          : _firestore.collection('garages').doc().id;
 
       await _firestore
           .collection('garages')
@@ -160,7 +211,6 @@ class GarageVM extends StateNotifier<GarageState> {
     }
   }
 
-
   void toggleService(String service) {
     final services = [...state.draftGarage.issues];
 
@@ -173,14 +223,13 @@ class GarageVM extends StateNotifier<GarageState> {
     );
   }
 
-  /// MANUAL REFRESH
   Future<void> refresh() async {
     state = state.copyWith(isLoading: true);
 
     try {
       final query = await _firestore
           .collection('garages')
-          .where('id', isEqualTo: userId)
+          .where('userId', isEqualTo: userId)
           .limit(1)
           .get();
 
@@ -196,8 +245,8 @@ class GarageVM extends StateNotifier<GarageState> {
       state = state.copyWith(
         savedGarage: garage,
         draftGarage: garage,
-        workingDays: data['operatingDays'] != null
-            ? List<int>.from(data['operatingDays'])
+        workingDays: data['workingDays'] != null
+            ? List<int>.from(data['workingDays'])
             : const [1, 2, 3, 4, 5],
         taxCode: data['taxCode'] as String?,
         isLoading: false,
@@ -207,7 +256,6 @@ class GarageVM extends StateNotifier<GarageState> {
     }
   }
 
-  /// DISPOSE
   @override
   void dispose() {
     _garageSubscription?.cancel();

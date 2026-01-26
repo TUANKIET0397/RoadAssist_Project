@@ -79,7 +79,45 @@ class InfoScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GarageCard(garage: state.savedGarage), // Card dùng savedGarage
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: const Color(0xFF243158),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    builder: (_) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.person, color: Colors.white),
+                              title: const Text('Đổi ảnh đại diện',
+                                  style: TextStyle(color: Colors.white)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                await notifier.changeAvatar();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.image, color: Colors.white),
+                              title: const Text('Đổi ảnh nền',
+                                  style: TextStyle(color: Colors.white)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                await notifier.changeBackground();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: GarageCard(garage: state.savedGarage),
+              ),
               const SizedBox(height: 20),
 
               GarageTextField(

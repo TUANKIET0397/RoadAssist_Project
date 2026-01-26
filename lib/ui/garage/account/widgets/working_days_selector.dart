@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 
 class WorkingDaysSelector extends ConsumerWidget {
@@ -17,7 +18,13 @@ class WorkingDaysSelector extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final workingDays = ref.watch(garageProvider).workingDays;
+    final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Chưa đăng nhập')),
+      );
+    }
+    final workingDays = ref.watch(garageProvider(userId)).workingDays;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +50,7 @@ class WorkingDaysSelector extends ConsumerWidget {
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
                   onTap: () {
-                    ref.read(garageProvider.notifier).toggleWorkingDay(e.key);
+                    ref.read(garageProvider(userId).notifier).toggleWorkingDay(e.key);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(

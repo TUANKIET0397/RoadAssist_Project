@@ -10,6 +10,7 @@ class UserModel {
   final bool isActive;
   final String role;
   final String? birthDate;
+  final String? avatarUrl;
 
   UserModel({
     required this.id,
@@ -21,6 +22,7 @@ class UserModel {
     required this.isActive,
     required this.role,
     this.birthDate,
+    this.avatarUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class UserModel {
       isActive: json['isActive'] ?? false,
       role: json['role'] ?? '',
       birthDate: json['birthDate'],
+      avatarUrl: json['avatarUrl'],
     );
   }
 

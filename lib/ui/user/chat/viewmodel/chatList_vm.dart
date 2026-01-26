@@ -66,7 +66,7 @@ class ChatRepository {
 
     final existing = await _firestore
         .collection('chats')
-        .where('members', arrayContains: userId) // Chứa userId
+        .where('members', arrayContains: userId)
         .get();
 
 

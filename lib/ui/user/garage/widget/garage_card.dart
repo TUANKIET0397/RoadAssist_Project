@@ -6,7 +6,6 @@ import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/navigation/viewmodel/garage_navigation_provider.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
-import 'package:road_assist/ui/user/chat/view/chatList_screen.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/garage/viewmodel/garage_vm.dart';
 

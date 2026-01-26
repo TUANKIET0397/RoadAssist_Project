@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/auth/widgets/day_selector.dart';
 import 'package:road_assist/ui/auth/widgets/service_chip.dart';
@@ -16,8 +17,14 @@ class InfoScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(garageProvider);
-    final notifier = ref.read(garageProvider.notifier);
+    final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Chưa đăng nhập')),
+      );
+    }
+    final state = ref.watch(garageProvider(userId));
+    final notifier = ref.read(garageProvider(userId).notifier);
     final draftGarage = state.draftGarage;
 
     // Tạm thời hardcode ở đây, lý tưởng hơn là lấy từ 1 config file hoặc remote config
@@ -72,7 +79,45 @@ class InfoScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GarageCard(garage: state.savedGarage), // Card dùng savedGarage
+              GestureDetector(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    backgroundColor: const Color(0xFF243158),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    builder: (_) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.person, color: Colors.white),
+                              title: const Text('Đổi ảnh đại diện',
+                                  style: TextStyle(color: Colors.white)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                await notifier.changeAvatar();
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.image, color: Colors.white),
+                              title: const Text('Đổi ảnh nền',
+                                  style: TextStyle(color: Colors.white)),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                await notifier.changeBackground();
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+                child: GarageCard(garage: state.savedGarage),
+              ),
               const SizedBox(height: 20),
 
               GarageTextField(
@@ -168,6 +213,8 @@ class InfoScreen extends ConsumerWidget {
               ),
               SizedBox(height: 16),
               const SaveGarageButton(),
+              SizedBox(height: 120),
+
             ],
           ),
         ),

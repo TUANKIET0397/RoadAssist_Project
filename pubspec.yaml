@@ -60,7 +60,6 @@ dependencies:
     connectivity_plus: ^6.0.5
     skeletonizer: ^2.1.2
     go_router: ^17.0.1
-    agora_rtc_engine: ^6.3.0
 
     timeago: ^3.6.1
 

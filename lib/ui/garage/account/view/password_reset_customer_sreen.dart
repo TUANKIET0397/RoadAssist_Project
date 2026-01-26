@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/garage/account/models/change_password_state.dart';
 import 'package:road_assist/ui/garage/account/viewmodel/change_password_vm.dart';
@@ -70,7 +72,7 @@ class _PasswordResetSreenState
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context);
+          context.pop("/garage/account");
         }
 
         if (next.error != null &&
@@ -104,8 +106,14 @@ class _PasswordResetSreenState
 
   @override
   Widget build(BuildContext context) {
+    final userId = ref.watch(userIdProvider);
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('Chưa đăng nhập')),
+      );
+    }
     final colorScheme = Theme.of(context).colorScheme;
-    final garageState = ref.watch(garageProvider);
+    final garageState = ref.watch(garageProvider(userId));
     final garage = garageState.savedGarage;
 
     final pwdState = ref.watch(changePasswordProvider);

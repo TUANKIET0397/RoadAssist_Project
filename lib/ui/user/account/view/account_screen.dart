@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
-    as outViewModel;
+as outViewModel;
 
 import 'package:road_assist/ui/user/account/viewmodel/account_vm.dart';
 import 'package:road_assist/ui/user/account/widgets/action_grid.dart';
@@ -139,15 +139,15 @@ class AccountScreen extends ConsumerWidget {
   }
 
   Future<void> _removeVehicleFromFirebase(
-    WidgetRef ref,
-    Vehicle vehicle,
-    int vehicleIndex,
-  ) async {
+      WidgetRef ref,
+      Vehicle vehicle,
+      int vehicleIndex,
+      ) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
     final doc = FirebaseFirestore.instance.collection('users').doc(uid);
-    
+
     // Lấy current vehicles từ Firestore
     final docSnapshot = await doc.get();
     final data = docSnapshot.data();
@@ -172,11 +172,11 @@ class AccountScreen extends ConsumerWidget {
   }
 
   void _openEditBottomSheet(
-    BuildContext context,
-    WidgetRef ref,
-    Vehicle vehicle,
-    int vehicleIndex,
-  ) {
+      BuildContext context,
+      WidgetRef ref,
+      Vehicle vehicle,
+      int vehicleIndex,
+      ) {
     final controller = TextEditingController(text: vehicle.description ?? '');
 
     showModalBottomSheet(
@@ -253,10 +253,10 @@ class AccountScreen extends ConsumerWidget {
   }
 
   void _openAddVehicleBottomSheet(
-    BuildContext context,
-    WidgetRef ref,
-    List<Vehicle> currentVehicles,
-  ) {
+      BuildContext context,
+      WidgetRef ref,
+      List<Vehicle> currentVehicles,
+      ) {
     String? selectedType;
     final descController = TextEditingController();
     final existingTypes = currentVehicles.map((v) => v.type).toSet();
@@ -342,33 +342,33 @@ class AccountScreen extends ConsumerWidget {
                       onPressed: selectedType == null
                           ? null
                           : () async {
-                              final uid =
-                                  FirebaseAuth.instance.currentUser?.uid;
-                              if (uid == null) return;
+                        final uid =
+                            FirebaseAuth.instance.currentUser?.uid;
+                        if (uid == null) return;
 
-                              final vehicle = Vehicle(
-                                type: selectedType!,
-                                description: descController.text.trim().isEmpty
-                                    ? null
-                                    : descController.text.trim(),
-                              );
+                        final vehicle = Vehicle(
+                          type: selectedType!,
+                          description: descController.text.trim().isEmpty
+                              ? null
+                              : descController.text.trim(),
+                        );
 
-                              await FirebaseFirestore.instance
-                                  .collection('users')
-                                  .doc(uid)
-                                  .set({
-                                    'vehicles': FieldValue.arrayUnion([
-                                      vehicle.toMap(),
-                                    ]),
-                                  }, SetOptions(merge: true));
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(uid)
+                            .set({
+                          'vehicles': FieldValue.arrayUnion([
+                            vehicle.toMap(),
+                          ]),
+                        }, SetOptions(merge: true));
 
-                              // Invalidate providers để cập nhật UI ngay lập tức
-                              ref.invalidate(allUserVehiclesProvider);
-                              ref.invalidate(currentUserVehiclesProvider);
-                              ref.invalidate(currentUserVehiclesSubcollectionProvider);
+                        // Invalidate providers để cập nhật UI ngay lập tức
+                        ref.invalidate(allUserVehiclesProvider);
+                        ref.invalidate(currentUserVehiclesProvider);
+                        ref.invalidate(currentUserVehiclesSubcollectionProvider);
 
-                              Navigator.pop(context);
-                            },
+                        Navigator.pop(context);
+                      },
                       child: const Text('Thêm phương tiện'),
                     ),
                   ),

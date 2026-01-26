@@ -175,7 +175,7 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
                   ),
                   // Distance
                   Row(
-                    children: const [
+                    children: [
                       Icon(
                         Icons.location_on_outlined,
                         color: Color(0xFF2FB8FF),
@@ -183,11 +183,8 @@ class _GarageReviewViewState extends ConsumerState<GarageReviewView> {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        '2.1 km',
-                        style: TextStyle(
-                          color: Color(0xFF2FB8FF),
-                          fontSize: 16,
-                        ),
+                        '${widget.garage.distance!.toStringAsFixed(1)} km',
+                        style: const TextStyle(color: Color(0xFF2FB8FF), fontSize: 16),
                       ),
                     ],
                   ),

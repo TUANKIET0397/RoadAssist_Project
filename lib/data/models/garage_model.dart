@@ -115,4 +115,25 @@ class GarageModel {
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
+  factory GarageModel.initial() {
+    return GarageModel(
+      id: '',
+      name: '',
+      address: '',
+      phone: '',
+      vehicleTypes: const [],
+      issues: const [],
+      openTime: '08:00',
+      closeTime: '19:00',
+      lat: 0.0,
+      lng: 0.0,
+      rating: null,
+      isActive: true,
+      imageUrl: null,
+      bgimgUrl: null,
+      isFavorite: false,
+      distance: null,
+    );
+  }
+
 }

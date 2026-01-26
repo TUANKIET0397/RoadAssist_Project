@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
-import 'package:road_assist/ui/call/viewmodel/call_providers.dart';
 import 'package:road_assist/ui/navigation/viewmodel/rescue_navigation_provider.dart';
 import 'package:road_assist/ui/user/rescue/view/completion_screen.dart';
 import 'package:road_assist/data/models/completion_payload.dart';
-import 'package:road_assist/ui/user/rescue/view/user_rescue_success_screen.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/completion_vm.dart';
 
 class MainHome extends ConsumerWidget {

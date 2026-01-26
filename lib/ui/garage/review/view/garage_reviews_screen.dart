@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,15 +5,13 @@ import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 
-import 'package:road_assist/data/models/review_model.dart';
 import 'package:road_assist/ui/garage/review/viewmodel/review_vm.dart';
-
 import 'package:road_assist/ui/garage/review/widget/rating_overview.dart';
 import 'package:road_assist/ui/garage/review/widget/review_list_item.dart';
 
+import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
-
 
 class GarageReviewsScreen extends ConsumerStatefulWidget {
   const GarageReviewsScreen({super.key});
@@ -26,22 +23,27 @@ class GarageReviewsScreen extends ConsumerStatefulWidget {
 
 class _GarageReviewsScreenState
     extends ConsumerState<GarageReviewsScreen> {
-
   @override
   void initState() {
     super.initState();
 
     Future.microtask(() {
-      final userId = ref.read(userIdProvider);
-      final role = ref.read(userRoleProvider);
+      final auth = ref.read(authStateProvider);
+      if (!auth.isLoggedIn || auth.userId == null) return;
 
-      if (userId != null && role == UserRole.garage) {
-        ref
-            .read(garageReviewProvider.notifier)
-            .watchReviews(userId);
-      }
+      final garageId = auth.userId!;
+
+      final garageState = ref.read(garageProvider(garageId));
+      final garage = garageState.savedGarage;
+
+      if (garage.id.isEmpty) return;
+
+      ref
+          .read(garageReviewProvider.notifier)
+          .watchReviews(garage.id);
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -66,9 +68,7 @@ class _GarageReviewsScreenState
             ? const Center(child: CircularProgressIndicator())
             : Column(
           children: [
-            /// OVERVIEW
             RatingOverview(reviews: state.reviews),
-
             Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: 16, vertical: 8),
@@ -85,14 +85,12 @@ class _GarageReviewsScreenState
                 ],
               ),
             ),
-
-            /// LIST
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: state.reviews.length,
                 itemBuilder: (context, index) {
-                  final ReviewModel review = state.reviews[index];
+                  final review = state.reviews[index];
 
                   return ReviewListItem(
                     review: review,
@@ -100,27 +98,28 @@ class _GarageReviewsScreenState
                       final auth = ref.read(authStateProvider);
                       if (!auth.isLoggedIn || auth.userId == null) return;
 
-                      final chatRepo = ref.read(chatRepositoryProvider);
+                      final chatRepo =
+                      ref.read(chatRepositoryProvider);
 
-                      final garageId = auth.userId!;
-                      final userId = review.userId;
-
-                      final chatId = await chatRepo.getOrCreateChat(
-                        userId: userId,
-                        garageId: garageId,
+                      final chatId =
+                      await chatRepo.getOrCreateChat(
+                        userId: review.userId,
+                        garageId: auth.userId!,
                       );
 
                       if (!context.mounted) return;
 
                       Navigator.of(context, rootNavigator: true).push(
                         MaterialPageRoute(
-                          builder: (_) => ChatScreen(chatId: chatId),
+                          builder: (_) =>
+                              ChatScreen(chatId: chatId),
                         ),
                       );
                     },
                   );
                 },
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                separatorBuilder: (_, __) =>
+                const SizedBox(height: 16),
               ),
             ),
           ],

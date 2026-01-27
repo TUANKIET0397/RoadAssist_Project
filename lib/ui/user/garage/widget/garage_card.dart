@@ -275,8 +275,7 @@ class GarageCard extends ConsumerWidget {
                       );
 
                       if (context.mounted) {
-                        Navigator.push(
-                          context,
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(
                             builder: (_) => ChatScreen(chatId: chatId),
                           ),

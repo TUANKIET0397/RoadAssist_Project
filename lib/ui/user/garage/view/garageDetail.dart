@@ -626,12 +626,11 @@ class _GarageDetailScreenState extends ConsumerState<GarageDetailScreen> {
                 );
 
               if (!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(chatId: chatId),
-                ),
-              );
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(chatId: chatId),
+                  ),
+                );
               },
               icon: const Icon(Icons.wechat_outlined, size: 22),
               label: const Text('Chat', style: TextStyle(fontSize: 18)),

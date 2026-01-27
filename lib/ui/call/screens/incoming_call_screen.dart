@@ -96,18 +96,37 @@ class _IncomingCallDialogState extends State<IncomingCallDialog> {
 
   Future<void> _loadCallerName() async {
     try {
-      final callerData = await FirebaseFirestore.instance
+      // Thử tìm trong collection 'users' trước
+      var callerData = await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.callerId)
           .get();
+
+      // Nếu không tìm thấy trong 'users', thử tìm trong 'garages'
+      if (!callerData.exists) {
+        callerData = await FirebaseFirestore.instance
+            .collection('garages')
+            .doc(widget.callerId)
+            .get();
+      }
 
       if (mounted && callerData.exists) {
         setState(() {
           _callerName = callerData.data()?['name'] ?? widget.callerId;
         });
+      } else if (mounted) {
+        // Nếu không tìm thấy, dùng callerId làm tên
+        setState(() {
+          _callerName = widget.callerId;
+        });
       }
     } catch (e) {
       print('Error loading caller name: $e');
+      if (mounted) {
+        setState(() {
+          _callerName = widget.callerId;
+        });
+      }
     }
   }
 

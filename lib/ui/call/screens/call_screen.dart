@@ -20,7 +20,6 @@ class CallScreen extends ConsumerStatefulWidget {
 
 class _CallScreenState extends ConsumerState<CallScreen> {
   final CallService _service = CallService();
-  bool isMuted = false;
   bool isSpeakerOn = true;
   int seconds = 0;
   Timer? _timer;
@@ -303,9 +302,10 @@ class _CallScreenState extends ConsumerState<CallScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _btn(
-                      icon: isMuted ? Icons.mic_off : Icons.mic,
+                      icon: _service.isMuted ? Icons.mic_off : Icons.mic,
                       onTap: () {
-                        setState(() => isMuted = !isMuted);
+                        _service.toggleMute();
+                        setState(() {});
                       },
                     ),
                     _btn(

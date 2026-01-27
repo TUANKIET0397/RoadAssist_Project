@@ -7,6 +7,7 @@ class CallService {
   MediaStream? _localStream;
   final _firestore = FirebaseFirestore.instance;
   bool _isClosed = false;
+  bool _isMuted = false;
   final List<StreamSubscription> _subscriptions = [];
   final _onCallEndedController = StreamController<void>.broadcast();
 
@@ -217,6 +218,18 @@ class CallService {
   void closeConnection() {
     _closeInternal();
   }
+
+  /// Toggle mute/unmute audio
+  void toggleMute() {
+    if (_localStream == null) return;
+    _isMuted = !_isMuted;
+    for (var track in _localStream!.getAudioTracks()) {
+      track.enabled = !_isMuted;
+    }
+  }
+
+  /// Get current mute state
+  bool get isMuted => _isMuted;
 
   void dispose() {
     _closeInternal();

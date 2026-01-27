@@ -6,14 +6,14 @@ import 'package:road_assist/ui/call/screens/call_screen.dart';
 
 class WaitingCallScreen extends StatefulWidget {
   final String callId;
-  final String garageUid;
-  final String garageName;
+  final String receiverUid;
+  final String receiverName;
 
   const WaitingCallScreen({
     super.key,
     required this.callId,
-    required this.garageUid,
-    required this.garageName,
+    required this.receiverUid,
+    required this.receiverName,
   });
 
   @override
@@ -48,7 +48,7 @@ class _WaitingCallScreenState extends State<WaitingCallScreen> {
             print('📞 [WaitingCall] Status: $status');
 
             if (status == 'accepted') {
-              // Garage đã chấp nhận
+              // Receiver đã chấp nhận
               print('📞 [WaitingCall] Accepted - navigating to CallScreen');
               _isNavigating = true;
               _callSubscription.cancel();
@@ -62,7 +62,7 @@ class _WaitingCallScreenState extends State<WaitingCallScreen> {
                 );
               }
             } else if (status == 'rejected' || status == 'ended') {
-              // Garage từ chối hoặc kết thúc
+              // Receiver từ chối hoặc kết thúc
               print('📞 [WaitingCall] Rejected/Ended - navigating back');
               _isNavigating = true;
               _callSubscription.cancel();
@@ -71,7 +71,7 @@ class _WaitingCallScreenState extends State<WaitingCallScreen> {
                 try {
                   Navigator.of(context).maybePop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Garage từ chối cuộc gọi')),
+                    const SnackBar(content: Text('Người dùng từ chối cuộc gọi')),
                   );
                 } catch (e) {
                   print('❌ [WaitingCall] Error navigating: $e');
@@ -143,9 +143,9 @@ class _WaitingCallScreenState extends State<WaitingCallScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            // Garage name
+            // Receiver name
             Text(
-              widget.garageName,
+              widget.receiverName,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 28,

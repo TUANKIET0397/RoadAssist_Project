@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
+import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 
 import 'package:road_assist/data/models/chat_model.dart';
@@ -149,10 +150,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: Center(
               child: GestureDetector(
                 onTap: () {
-                  context.callGarage(
-                    otherParticipant.uid,
-                    garageName: otherParticipant.name,
-                  );
+                  final authState = ref.read(authStateProvider);
+                  final currentRole = authState.role;
+                  
+                  // Phát hiện role và gọi method phù hợp
+                  if (currentRole == UserRole.garage) {
+                    // Garage gọi User
+                    context.callUser(
+                      otherParticipant.uid,
+                      userName: otherParticipant.name,
+                    );
+                  } else {
+                    // User gọi Garage
+                    context.callGarage(
+                      otherParticipant.uid,
+                      garageName: otherParticipant.name,
+                    );
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

@@ -1,15 +1,21 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Participant {
+  final String uid;
   final String name;
   final String avatar;
   final String role;
 
-  Participant({required this.name, required this.avatar, required this.role});
+  Participant({
+    required this.uid,
+    required this.name,
+    required this.avatar,
+    required this.role,
+  });
 
-  factory Participant.fromMap(Map<String, dynamic> map) {
+  factory Participant.fromMap(String uid, Map<String, dynamic> map) {
     return Participant(
+      uid: uid,
       name: map['name'] ?? '',
       avatar: map['avatar'] ?? '',
       role: map['role'] ?? '',
@@ -40,8 +46,9 @@ class ChatModel {
     return ChatModel(
       chatId: id,
       members: List<String>.from(map['members'] ?? []),
-      memberInfo: (map['memberInfo'] as Map<String, dynamic>?)?.map(
-            (key, value) => MapEntry(key, Participant.fromMap(value)),
+      memberInfo:
+          (map['memberInfo'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(key, Participant.fromMap(key, value)),
           ) ??
           {},
       lastMessage: map['lastMessage'] ?? '',
@@ -52,7 +59,10 @@ class ChatModel {
   }
 
   Participant? getOtherParticipant(String currentUserId) {
-    final otherMemberId = members.firstWhere((id) => id != currentUserId, orElse: () => '');
+    final otherMemberId = members.firstWhere(
+      (id) => id != currentUserId,
+      orElse: () => '',
+    );
     if (otherMemberId.isEmpty) {
       return null;
     }

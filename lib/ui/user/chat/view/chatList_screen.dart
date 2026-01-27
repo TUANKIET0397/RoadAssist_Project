@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class ChatListScreen extends ConsumerWidget {
   const ChatListScreen({Key? key}) : super(key: key);
@@ -36,19 +37,6 @@ class ChatListScreen extends ConsumerWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          actions: [
-            Container(
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3b82f6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.search, color: Colors.white),
-                onPressed: () {},
-              ),
-            ),
-          ],
         ),
         body: chatList.when(
           data: (chats) {
@@ -107,13 +95,16 @@ class ChatListScreen extends ConsumerWidget {
               itemCount: chats.length,
               itemBuilder: (context, index) {
                 final chat = chats[index];
-                final otherParticipant = chat.getOtherParticipant(currentUserId!);
+                final otherParticipant = chat.getOtherParticipant(
+                  currentUserId!,
+                );
                 final avatarUrl = otherParticipant?.avatar ?? '';
 
                 // Format time ago
                 String timeAgo;
                 if (chat.updatedAt != null) {
-                  final dateTime = (chat.updatedAt as dynamic).toDate() as DateTime;
+                  final dateTime =
+                      (chat.updatedAt as dynamic).toDate() as DateTime;
                   timeAgo = timeago.format(
                     dateTime,
                     locale: 'en_short',
@@ -122,7 +113,10 @@ class ChatListScreen extends ConsumerWidget {
                 }
 
                 return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1e2538),
                     borderRadius: BorderRadius.circular(16),
@@ -149,19 +143,19 @@ class ChatListScreen extends ConsumerWidget {
                                 height: 58,
                                 child: avatarUrl.isNotEmpty
                                     ? Image.network(
-                                  avatarUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(
-                                      'assets/images/illustrations/avatarDefault.png',
-                                      fit: BoxFit.cover,
-                                    );
-                                  },
-                                )
+                                        avatarUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Image.asset(
+                                            'assets/images/illustrations/avatarDefault.png',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                      )
                                     : Image.asset(
-                                  'assets/images/illustrations/avatarDefault.png',
-                                  fit: BoxFit.cover,
-                                ),
+                                        'assets/images/illustrations/avatarDefault.png',
+                                        fit: BoxFit.cover,
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -197,6 +191,8 @@ class ChatListScreen extends ConsumerWidget {
                               ),
                             ),
 
+                            const SizedBox(width: 8),
+
                             // Time ago
                             Text(
                               timeAgo,
@@ -214,10 +210,9 @@ class ChatListScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF3b82f6),
-            ),
+          loading: () => SkeletonListBuilder(
+            itemCount: 5,
+            itemBuilder: (context, index) => const SkeletonChatListItem(),
           ),
           error: (error, stack) => Center(
             child: Text(

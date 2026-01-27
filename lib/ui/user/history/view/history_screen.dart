@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/user/history/viewmodel/history_vm.dart';
 import 'package:road_assist/ui/user/history/widgets/history_card.dart';
 import 'package:road_assist/ui/user/history/widgets/history_filter_tabs.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
@@ -61,8 +62,15 @@ class HistoryScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          loading: () => ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            children: [
+              const SizedBox(height: 16),
+              const HistoryFilterTabs(),
+              const SizedBox(height: 20),
+              ...List.generate(5, (index) => const SkeletonHistoryCard()),
+              const SizedBox(height: 100),
+            ],
           ),
           error: (err, stack) => Center(
             child: Text(

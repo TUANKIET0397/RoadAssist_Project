@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/garage/history/viewmodel/garage_history_vm.dart';
 import 'package:road_assist/ui/garage/history/widgets/garage_history_card.dart';
 import 'package:road_assist/ui/garage/history/widgets/garage_history_filter_tabs.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class GarageHistoryScreen extends ConsumerWidget {
   const GarageHistoryScreen({super.key});
@@ -61,8 +62,15 @@ class GarageHistoryScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          loading: () => ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            children: [
+              const SizedBox(height: 16),
+              const GarageHistoryFilterTabs(),
+              const SizedBox(height: 20),
+              ...List.generate(5, (index) => const SkeletonHistoryCard()),
+              const SizedBox(height: 100),
+            ],
           ),
           error: (err, stack) => Center(
             child: Text(

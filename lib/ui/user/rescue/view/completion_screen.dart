@@ -85,6 +85,8 @@ class _CompletionScreenState extends ConsumerState<CompletionScreen> {
               const SizedBox(height: 12),
               ViewHistoryButton(
                 onPressed: () {
+                  // Clear payload trước khi navigate
+                  ref.read(completionProvider.notifier).clear();
                   context.pushReplacement('/user/history');
                 },
               ),

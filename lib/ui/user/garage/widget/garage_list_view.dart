@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/data/models/garage_model.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 import 'garage_card.dart';
 
@@ -21,7 +22,12 @@ class GarageListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (isLoading && garages.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.builder(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+        itemCount: 5,
+        itemBuilder: (context, index) => const SkeletonGarageCard(),
+      );
     }
 
     if (garages.isEmpty) {

@@ -146,6 +146,55 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 
 
+  /// =======================
+  /// SEND CALL HISTORY MESSAGE
+  /// =======================
+
+  Future<void> sendCallHistoryMessage({
+    required int durationSeconds,
+  }) async {
+    final now = DateTime.now();
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    final messageRef = chatRef.collection('messages').doc();
+
+    final sender = role == UserRole.customer ? 'customer' : 'garage';
+    final receiver = role == UserRole.customer ? 'garage' : 'customer';
+
+    // Format duration
+    final minutes = durationSeconds ~/ 60;
+    final seconds = durationSeconds % 60;
+    final durationText = minutes > 0
+        ? '$minutes phút ${seconds}s'
+        : '$seconds giây';
+
+    final callHistoryText = '📞 Cuộc gọi đã kết thúc. Thời lượng: $durationText';
+
+    final message = MessageModel(
+      id: messageRef.id,
+      senderId: userId,
+      senderRole: sender,
+      type: 'text',
+      text: callHistoryText,
+      imageUrl: null,
+      createdAt: now,
+      readBy: [userId],
+    );
+
+    await _firestore.runTransaction((tx) async {
+      tx.set(messageRef, message.toMap());
+
+      tx.update(chatRef, {
+        'lastMessage': callHistoryText,
+        'lastMessageTime': Timestamp.fromDate(now),
+        'lastSenderId': userId,
+        'lastSenderRole': sender,
+
+        'unread.$receiver': FieldValue.increment(1),
+      });
+    });
+  }
+
+  /// =======================
   /// MARK AS READ
   Future<void> markAsRead() async {
     final chatRef = _firestore.collection('chats').doc(chatId);

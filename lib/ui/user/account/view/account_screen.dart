@@ -14,6 +14,7 @@ import 'package:road_assist/ui/user/account/widgets/action_item.dart';
 import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 import 'package:road_assist/ui/user/account/widgets/profile_card.dart';
 import 'package:road_assist/ui/user/account/widgets/vehicle_section.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 import '../model/vehicle_model.dart';
 
@@ -25,7 +26,45 @@ class AccountScreen extends ConsumerWidget {
     final userAsync = ref.watch(accountStreamProvider);
 
     return userAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Trang cá nhân',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color.fromRGBO(37, 44, 59, 1),
+        ),
+        body: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0E1A2B), Color(0xFF2E3CBF)],
+            ),
+          ),
+          child: ListView(
+            children: [
+              const SkeletonProfileCard(),
+              const SizedBox(height: 20),
+              const Text(
+                'Phương tiện của tôi',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...List.generate(2, (index) => const SkeletonVehicleItem()),
+            ],
+          ),
+        ),
+      ),
       error: (e, _) => Center(child: Text('Có lỗi xảy ra: $e')),
       data: (user) {
         if (user == null) {

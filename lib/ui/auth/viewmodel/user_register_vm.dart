@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:road_assist/core/services/gps/location_geolocator.dart';
-import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 
 final userRegisterVMProvider = ChangeNotifierProvider<UserRegisterViewModel>(
   (ref) => UserRegisterViewModel(),
@@ -82,23 +81,6 @@ class UserRegisterViewModel extends ChangeNotifier {
       selectedVehicleTypes[index] = newType;
       notifyListeners();
     }
-  }
-
-  Future<void> setLocationFromLatLng({
-    required double lat,
-    required double lng,
-  }) async {
-    latitude = lat;
-    longitude = lng;
-
-    try {
-      final addr = await LocationService.getAddressFromLatLng(lat, lng);
-      addressController.text = addr;
-    } catch (e) {
-      addressController.text = '$lat, $lng';
-    }
-
-    notifyListeners();
   }
 
   bool _isValidPhone(String phone) {

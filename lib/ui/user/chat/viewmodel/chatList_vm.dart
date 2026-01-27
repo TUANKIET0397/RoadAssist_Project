@@ -126,15 +126,4 @@ class ChatRepository {
           .toList(),
     );
   }
-
-  Future<void> markAsRead({
-    required String chatId,
-    required String readerId,
-  }) async {
-    final chatRef = _firestore.collection('chats').doc(chatId);
-
-    await chatRef.update({
-      'unread.$readerId': 0,
-    });
-  }
 }

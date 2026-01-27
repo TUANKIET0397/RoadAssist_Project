@@ -25,7 +25,6 @@ class LocationService {
           'Quyền truy cập vị trí bị từ chối vĩnh viễn. Vui lòng cấp quyền trong cài đặt');
     }
 
-    // 3. Lấy vị trí hiện tại
     return await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
@@ -53,21 +52,6 @@ class LocationService {
       return addressParts.join(', ');
     } catch (e) {
       throw Exception('Không thể lấy địa chỉ từ GPS');
-    }
-  }
-
-  /// ĐỊA CHỈ → GPS
-  static Future<Location?> getLatLngFromAddress(
-      String address) async {
-    try {
-      final List<Location> locations =
-      await locationFromAddress(address);
-
-      if (locations.isEmpty) return null;
-
-      return locations.first;
-    } catch (e) {
-      return null;
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/core/theme/app_palette.dart';
 
 import 'package:road_assist/data/models/chat_model.dart';
+import 'package:road_assist/ui/call/extensions/call_extension.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatGarage_vm.dart';
 
 import 'package:road_assist/ui/user/chat/widgets/date_divider.dart';
@@ -73,12 +74,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(chatBoxProvider(widget.chatId));
-    final chatNotifier =
-    ref.read(chatBoxProvider(widget.chatId).notifier);
+    final chatNotifier = ref.read(chatBoxProvider(widget.chatId).notifier);
+    final currentUserId = ref.watch(userIdProvider);
 
-    return Scaffold(
+    final chatContent = Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(chatState.chat, ref.watch(userIdProvider)),
+      appBar: _buildAppBar(chatState.chat, currentUserId),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -97,8 +98,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
     );
-  }
 
+    // Return scaffold directly - IncomingCallListener is at the main screen level
+    return chatContent;
+  }
 
   PreferredSizeWidget _buildAppBar(ChatModel? chat, String? currentUserId) {
     final otherParticipant = chat?.getOtherParticipant(currentUserId!);
@@ -114,21 +117,49 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       title: chat == null
           ? const SizedBox.shrink()
           : Row(
-        children: [
-          _buildAvatar(otherParticipant),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              otherParticipant?.name ?? 'Unknown',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+              children: [
+                _buildAvatar(otherParticipant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    otherParticipant?.name ?? 'Unknown',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      actions: [
+        // Call button - nằm trong AppBar
+        if (otherParticipant != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  context.callGarage(
+                    otherParticipant.uid,
+                    garageName: otherParticipant.name,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3b82f6),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.call, color: Colors.white, size: 20),
+                ),
               ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -146,15 +177,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           image: hasAvatar
               ? NetworkImage(img)
               : const AssetImage(
-            'assets/images/illustrations/avatarDefault.png',
-          ) as ImageProvider,
+                      'assets/images/illustrations/avatarDefault.png',
+                    )
+                    as ImageProvider,
           fit: BoxFit.cover,
         ),
       ),
     );
   }
-
-
 
   Widget _buildMessages(ChatState state, ChatNotifier notifier) {
     if (state.isLoading) {
@@ -189,11 +219,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         final msg = state.messages[index];
         final isMe = msg.senderId == notifier.userId;
 
-        bool showDate = index == 0 ||
-            !_isSameDay(
-              state.messages[index - 1].createdAt,
-              msg.createdAt,
-            );
+        bool showDate =
+            index == 0 ||
+            !_isSameDay(state.messages[index - 1].createdAt, msg.createdAt);
 
         return Column(
           children: [
@@ -206,9 +234,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   bool _isSameDay(DateTime d1, DateTime d2) {
-    return d1.year == d2.year &&
-        d1.month == d2.month &&
-        d1.day == d2.day;
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 
   Widget _buildInput(ChatNotifier notifier) {

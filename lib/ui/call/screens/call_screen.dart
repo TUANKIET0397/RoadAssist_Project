@@ -1,115 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-enum CallStatus { connecting, connected }
-
-/// ======================
-/// CALL SERVICE (WEBRTC)
-/// ======================
-class CallService {
-  late RTCPeerConnection _peer;
-  MediaStream? _localStream;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  Future<void> initPeer({
-    required String callId,
-    required bool isCaller,
-  }) async {
-    final config = {
-      'iceServers': [
-        {'urls': 'stun:stun.l.google.com:19302'},
-      ],
-    };
-
-    _peer = await createPeerConnection(config);
-
-    _localStream = await navigator.mediaDevices.getUserMedia({'audio': true});
-
-    for (var track in _localStream!.getTracks()) {
-      _peer.addTrack(track, _localStream!);
-    }
-
-    _peer.onIceCandidate = (candidate) {
-      if (candidate.candidate != null) {
-        _firestore
-            .collection('calls')
-            .doc(callId)
-            .collection('candidates')
-            .add(candidate.toMap());
-      }
-    };
-
-    if (isCaller) {
-      final offer = await _peer.createOffer();
-      await _peer.setLocalDescription(offer);
-
-      await _firestore.collection('calls').doc(callId).set({
-        'offer': offer.toMap(),
-        'status': 'calling',
-      });
-
-      _firestore.collection('calls').doc(callId).snapshots().listen((
-        doc,
-      ) async {
-        if (doc.data()?['answer'] != null) {
-          final answer = doc['answer'];
-          await _peer.setRemoteDescription(
-            RTCSessionDescription(answer['sdp'], answer['type']),
-          );
-        }
-      });
-    } else {
-      final doc = await _firestore.collection('calls').doc(callId).get();
-      final offer = doc['offer'];
-
-      await _peer.setRemoteDescription(
-        RTCSessionDescription(offer['sdp'], offer['type']),
-      );
-
-      final answer = await _peer.createAnswer();
-      await _peer.setLocalDescription(answer);
-
-      await doc.reference.update({
-        'answer': answer.toMap(),
-        'status': 'accepted',
-      });
-    }
-
-    _firestore
-        .collection('calls')
-        .doc(callId)
-        .collection('candidates')
-        .snapshots()
-        .listen((snapshot) {
-          for (var doc in snapshot.docs) {
-            final data = doc.data();
-            _peer.addCandidate(
-              RTCIceCandidate(
-                data['candidate'],
-                data['sdpMid'],
-                data['sdpMLineIndex'],
-              ),
-            );
-          }
-        });
-
-    await Helper.setSpeakerphoneOn(true);
-  }
-
-  void toggleMute(bool muted) {
-    for (var track in _localStream!.getAudioTracks()) {
-      track.enabled = !muted;
-    }
-  }
-
-  Future<void> endCall(String callId) async {
-    await _peer.close();
-    await _localStream?.dispose();
-    await _firestore.collection('calls').doc(callId).delete();
-  }
-}
+import 'package:road_assist/ui/call/services/call_service.dart';
 
 /// ======================
 /// CALL SCREEN (UI GIỮ NGUYÊN)
@@ -125,37 +17,112 @@ class CallScreen extends StatefulWidget {
 }
 
 class _CallScreenState extends State<CallScreen> {
-  final CallService _callService = CallService();
-
-  CallStatus status = CallStatus.connecting;
+  final CallService _service = CallService();
   bool isMuted = false;
   bool isSpeakerOn = true;
-
   int seconds = 0;
   Timer? _timer;
+  StreamSubscription? _callEndSubscription;
+  bool _isEnding = false;
 
   @override
   void initState() {
     super.initState();
-    _initCall();
-  }
-
-  Future<void> _initCall() async {
-    await _callService.initPeer(
-      callId: widget.callId,
-      isCaller: widget.isCaller,
-    );
-
-    setState(() => status = CallStatus.connected);
+    _service.startCall(callId: widget.callId, isCaller: widget.isCaller);
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => seconds++);
+      if (mounted) setState(() => seconds++);
     });
+
+    // Listen for when the other party ends the call
+    _listenForCallEnd();
+
+    // Also set a timeout - if no response from other party after 60 seconds, auto-end
+    Future.delayed(const Duration(seconds: 60), () {
+      if (mounted && !_isEnding && _timer != null) {
+        print('📞 Call timeout - auto ending call');
+        _endCall();
+      }
+    });
+  }
+
+  void _listenForCallEnd() {
+    _callEndSubscription = FirebaseFirestore.instance
+        .collection('calls')
+        .doc(widget.callId)
+        .snapshots()
+        .listen(
+          (doc) {
+            if (!mounted || _isEnding) return;
+
+            final status = doc.data()?['status'] as String?;
+            print('📞 [CallScreen] Call status: $status');
+
+            // Check if document still exists
+            if (!doc.exists) {
+              print('📞 [CallScreen] Call document deleted');
+              _handleCallEnded();
+              return;
+            }
+
+            if (status == 'ended' || status == 'rejected') {
+              print('📞 [CallScreen] Other party ended/rejected call');
+              _handleCallEnded();
+            }
+          },
+          onError: (e) {
+            print('❌ [CallScreen] Listener error: $e');
+            // Even on error, try to close connection and navigate
+            if (!_isEnding && mounted) {
+              print('📞 [CallScreen] Handling error by ending call');
+              _handleCallEnded();
+            }
+          },
+          cancelOnError: false, // Don't auto-cancel on error
+        );
+  }
+
+  void _handleCallEnded() {
+    if (_isEnding) return;
+    _isEnding = true;
+
+    print('📞 [_handleCallEnded] Call ended by other party');
+
+    // Cancel listener first
+    _cancelSubscription();
+
+    // Close service in background (don't wait)
+    Future.microtask(() {
+      try {
+        print('📞 [_handleCallEnded] Closing WebRTC connection');
+        _service.closeConnection();
+        print('✅ [_handleCallEnded] Connection closed');
+      } catch (e) {
+        print('❌ [_handleCallEnded] Error closing service: $e');
+      }
+    });
+
+    // Pop back to previous screen
+    if (mounted) {
+      try {
+        print('📞 [_handleCallEnded] Popping CallScreen');
+        Navigator.of(context).pop();
+        print('✅ [_handleCallEnded] Popped');
+      } catch (e) {
+        print('❌ [_handleCallEnded] Error navigating: $e');
+      }
+    }
+  }
+
+  void _cancelSubscription() {
+    _callEndSubscription?.cancel();
+    _callEndSubscription = null;
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _cancelSubscription();
     super.dispose();
   }
 
@@ -166,8 +133,55 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   void _endCall() async {
-    await _callService.endCall(widget.callId);
-    Navigator.pop(context);
+    if (_isEnding) return;
+    _isEnding = true;
+
+    print('📞 [_endCall] User pressed end call button');
+
+    // Cancel listener immediately to prevent race conditions
+    _cancelSubscription();
+
+    try {
+      // Update Firebase FIRST - this must reach the other side
+      print('📞 [_endCall] Updating Firebase status to ended');
+      await FirebaseFirestore.instance
+          .collection('calls')
+          .doc(widget.callId)
+          .update({'status': 'ended', 'endedAt': DateTime.now()})
+          .timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              print('⚠️ [_endCall] Firebase update timeout but continuing');
+              return; // Continue even if timeout
+            },
+          );
+      print('✅ [_endCall] Firebase updated successfully');
+    } catch (e) {
+      print('❌ [_endCall] Error updating Firebase: $e');
+      // Continue anyway
+    }
+
+    // Close service in background - don't block navigation
+    Future.microtask(() {
+      try {
+        print('📞 [_endCall] Closing WebRTC connection');
+        _service.closeConnection();
+        print('✅ [_endCall] WebRTC connection closed');
+      } catch (e) {
+        print('❌ [_endCall] Error closing service: $e');
+      }
+    });
+
+    // Pop back to previous screen
+    if (mounted) {
+      try {
+        print('📞 [_endCall] Popping CallScreen');
+        Navigator.of(context).pop();
+        print('✅ [_endCall] Popped');
+      } catch (e) {
+        print('❌ [_endCall] Error navigating: $e');
+      }
+    }
   }
 
   @override
@@ -189,7 +203,9 @@ class _CallScreenState extends State<CallScreen> {
               const SizedBox(height: 24),
               const CircleAvatar(
                 radius: 48,
-                backgroundImage: AssetImage('assets/avatar.png'),
+                backgroundImage: AssetImage(
+                  'assets/images/illustrations/avatarDefault.png',
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -207,30 +223,11 @@ class _CallScreenState extends State<CallScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                status == CallStatus.connecting
-                    ? 'Đang kết nối với Garage'
-                    : 'Đang trò chuyện',
+                formatTime(seconds),
                 style: const TextStyle(
-                  color: Colors.lightBlueAccent,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 48),
-              Container(
-                width: 80,
-                height: 80,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.6),
-                ),
-                child: Text(
-                  formatTime(seconds),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const Spacer(),
@@ -243,7 +240,6 @@ class _CallScreenState extends State<CallScreen> {
                       icon: isMuted ? Icons.mic_off : Icons.mic,
                       onTap: () {
                         setState(() => isMuted = !isMuted);
-                        _callService.toggleMute(isMuted);
                       },
                     ),
                     _btn(
@@ -253,7 +249,7 @@ class _CallScreenState extends State<CallScreen> {
                     _btn(
                       icon: Icons.call_end,
                       color: Colors.red,
-                      onTap: _endCall,
+                      onTap: _isEnding ? null : _endCall,
                     ),
                   ],
                 ),
@@ -267,7 +263,7 @@ class _CallScreenState extends State<CallScreen> {
 
   Widget _btn({
     required IconData icon,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     Color color = Colors.black54,
   }) {
     return GestureDetector(

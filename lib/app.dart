@@ -39,18 +39,7 @@ class MyApp extends ConsumerWidget {
     final themeType = ref.watch(appThemeProvider);
     final router = ref.watch(goRouterProvider);
 
-    // 🎯 Update navbar visibility immediately and on route changes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Update navbar for current route on initial load
-      _updateNavbarVisibility(ref, router);
-      
-      // Listen for subsequent route changes
-      router.routerDelegate.addListener(() {
-        _updateNavbarVisibility(ref, router);
-      });
-    });
-
-    // 🔥 FORCE update navbar whenever router changes
+    // 🔥 Update navbar whenever router changes
     ref.listen(goRouterProvider, (_, newRouter) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateNavbarVisibility(ref, newRouter);

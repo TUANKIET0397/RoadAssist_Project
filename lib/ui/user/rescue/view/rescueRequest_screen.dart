@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/map/location_pick_result.dart';
 import 'package:road_assist/ui/map/map_pick_screen.dart';
 import 'package:road_assist/ui/user/account/model/vehicle_model.dart';
@@ -237,10 +238,9 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(56, 56, 224, 1),
-              Color.fromRGBO(46, 144, 183, 1),
-            ],
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(

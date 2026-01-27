@@ -1,22 +1,24 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/ui/call/services/call_service.dart';
+import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
 
 /// ======================
 /// CALL SCREEN (UI GIỮ NGUYÊN)
 /// ======================
-class CallScreen extends StatefulWidget {
+class CallScreen extends ConsumerStatefulWidget {
   final String callId;
   final bool isCaller;
 
   const CallScreen({super.key, required this.callId, required this.isCaller});
 
   @override
-  State<CallScreen> createState() => _CallScreenState();
+  ConsumerState<CallScreen> createState() => _CallScreenState();
 }
 
-class _CallScreenState extends State<CallScreen> {
+class _CallScreenState extends ConsumerState<CallScreen> {
   final CallService _service = CallService();
   bool isMuted = false;
   bool isSpeakerOn = true;
@@ -91,6 +93,9 @@ class _CallScreenState extends State<CallScreen> {
     // Cancel listener first
     _cancelSubscription();
 
+    // Send call history message
+    _sendCallHistory();
+
     // Close service in background (don't wait)
     Future.microtask(() {
       try {
@@ -161,6 +166,9 @@ class _CallScreenState extends State<CallScreen> {
       // Continue anyway
     }
 
+    // Send call history message
+    _sendCallHistory();
+
     // Close service in background - don't block navigation
     Future.microtask(() {
       try {
@@ -181,6 +189,64 @@ class _CallScreenState extends State<CallScreen> {
       } catch (e) {
         print('❌ [_endCall] Error navigating: $e');
       }
+    }
+  }
+
+  /// Send call history message to chat
+  /// Only sends from caller to avoid duplicate messages
+  Future<void> _sendCallHistory() async {
+    try {
+      // Only send history from caller
+      if (!widget.isCaller) {
+        print('📞 Not caller, skipping history message');
+        return;
+      }
+
+      // Get call document to find callerId and receiverId
+      final callDoc = await FirebaseFirestore.instance
+          .collection('calls')
+          .doc(widget.callId)
+          .get();
+
+      if (!callDoc.exists) {
+        print('⚠️ Call document not found, skipping history message');
+        return;
+      }
+
+      final callData = callDoc.data();
+      final callerId = callData?['callerId'] as String?;
+      final receiverId = callData?['receiverId'] as String?;
+
+      if (callerId == null || receiverId == null) {
+        print('⚠️ Missing callerId or receiverId, skipping history message');
+        return;
+      }
+
+      // Only send if call was accepted (not rejected)
+      final status = callData?['status'] as String?;
+      if (status == 'rejected') {
+        print('📞 Call was rejected, skipping history message');
+        return;
+      }
+
+      // Only send if call duration is more than 0 (call was actually connected)
+      if (seconds == 0) {
+        print('📞 Call duration is 0, skipping history message');
+        return;
+      }
+
+      // Get chat repository and send history message
+      final chatRepo = ref.read(chatRepositoryProvider);
+      await chatRepo.sendCallHistoryMessage(
+        callerId: callerId,
+        receiverId: receiverId,
+        durationSeconds: seconds,
+      );
+
+      print('✅ Call history message sent successfully');
+    } catch (e) {
+      print('❌ Error sending call history message: $e');
+      // Don't throw - this is a non-critical operation
     }
   }
 

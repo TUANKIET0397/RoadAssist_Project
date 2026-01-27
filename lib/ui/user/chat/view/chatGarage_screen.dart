@@ -9,6 +9,7 @@ import 'package:road_assist/ui/user/chat/viewmodel/chatGarage_vm.dart';
 
 import 'package:road_assist/ui/user/chat/widgets/date_divider.dart';
 import 'package:road_assist/ui/user/chat/widgets/message_bubble.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String chatId;
@@ -188,8 +189,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildMessages(ChatState state, ChatNotifier notifier) {
     if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return SkeletonMessageBubble(isMe: index % 2 == 0);
+        },
       );
     }
 

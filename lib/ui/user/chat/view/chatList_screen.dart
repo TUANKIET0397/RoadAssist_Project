@@ -6,6 +6,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:road_assist/ui/user/chat/view/chatGarage_screen.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class ChatListScreen extends ConsumerWidget {
   const ChatListScreen({Key? key}) : super(key: key);
@@ -209,8 +210,9 @@ class ChatListScreen extends ConsumerWidget {
               },
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF3b82f6)),
+          loading: () => SkeletonListBuilder(
+            itemCount: 5,
+            itemBuilder: (context, index) => const SkeletonChatListItem(),
           ),
           error: (error, stack) => Center(
             child: Text(

@@ -8,6 +8,7 @@ import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/garage/review/viewmodel/review_vm.dart';
 import 'package:road_assist/ui/garage/review/widget/rating_overview.dart';
 import 'package:road_assist/ui/garage/review/widget/review_list_item.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 import 'package:road_assist/ui/garage/account/viewmodel/garage_vm.dart';
 import 'package:road_assist/ui/user/chat/viewmodel/chatList_vm.dart';

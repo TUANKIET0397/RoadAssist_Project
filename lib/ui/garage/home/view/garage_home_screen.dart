@@ -6,6 +6,7 @@ import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/garage/home/widgets/rescue_request_card.dart';
 import 'package:road_assist/core/providers/auth_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:road_assist/ui/shared/skeleton/skeleton_widgets.dart';
 
 class GarageHomeScreen extends ConsumerStatefulWidget {
   final Function(String)? onSelectRequest;
@@ -117,8 +118,48 @@ class _GarageHomeScreenState extends ConsumerState<GarageHomeScreen> {
             ),
           );
         },
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.blue)),
+        loading: () => Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF0f172a), Color(0xFF1e3a8a)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.notifications_active,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Đang tải...',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.grey.shade400,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: 5,
+                  itemBuilder: (context, index) => const SkeletonRescueRequestCard(),
+                ),
+              ),
+            ],
+          ),
+        ),
         error: (error, _) => Center(
           child: Text(
             'Lỗi: $error',

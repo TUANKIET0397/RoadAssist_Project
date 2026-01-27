@@ -137,4 +137,93 @@ class ChatRepository {
       'unread.$readerId': 0,
     });
   }
+
+  /// Send call history message to chat
+  /// Determines customer and garage from userIds and sends message
+  Future<void> sendCallHistoryMessage({
+    required String callerId,
+    required String receiverId,
+    required int durationSeconds,
+  }) async {
+    try {
+      // Determine which is customer and which is garage
+      // Check both users and garages collections
+      final callerUserDoc = await _firestore.collection('users').doc(callerId).get();
+      final callerGarageDoc = await _firestore.collection('garages').doc(callerId).get();
+      final receiverUserDoc = await _firestore.collection('users').doc(receiverId).get();
+      final receiverGarageDoc = await _firestore.collection('garages').doc(receiverId).get();
+      
+      String customerId;
+      String garageId;
+      
+      if (callerUserDoc.exists) {
+        // Caller is customer
+        customerId = callerId;
+        garageId = receiverId;
+      } else if (callerGarageDoc.exists) {
+        // Caller is garage
+        customerId = receiverId;
+        garageId = callerId;
+      } else if (receiverUserDoc.exists) {
+        // Receiver is customer
+        customerId = receiverId;
+        garageId = callerId;
+      } else {
+        // Receiver is garage
+        customerId = callerId;
+        garageId = receiverId;
+      }
+
+      // Get or create chat
+      final chatId = await getOrCreateChat(
+        userId: customerId,
+        garageId: garageId,
+      );
+
+      // Format duration
+      final minutes = durationSeconds ~/ 60;
+      final seconds = durationSeconds % 60;
+      final durationText = minutes > 0 
+          ? '$minutes phút ${seconds}s'
+          : '$seconds giây';
+      
+      final callHistoryText = '📞 Cuộc gọi đã kết thúc. Thời lượng: $durationText';
+
+      final now = DateTime.now();
+      final chatRef = _firestore.collection('chats').doc(chatId);
+      final messageRef = chatRef.collection('messages').doc();
+
+      // Determine sender (use caller as sender)
+      final senderId = callerId;
+      final senderRole = callerId == customerId ? 'customer' : 'garage';
+      final receiverRole = senderRole == 'customer' ? 'garage' : 'customer';
+
+      final message = MessageModel(
+        id: messageRef.id,
+        senderId: senderId,
+        senderRole: senderRole,
+        type: 'text',
+        text: callHistoryText,
+        imageUrl: null,
+        createdAt: now,
+        readBy: [senderId],
+      );
+
+      await _firestore.runTransaction((tx) async {
+        tx.set(messageRef, message.toMap());
+
+        tx.update(chatRef, {
+          'lastMessage': callHistoryText,
+          'lastMessageTime': Timestamp.fromDate(now),
+          'lastSenderId': senderId,
+          'lastSenderRole': senderRole,
+          'updatedAt': FieldValue.serverTimestamp(),
+          'unread.$receiverRole': FieldValue.increment(1),
+        });
+      });
+    } catch (e) {
+      print('❌ Error sending call history message: $e');
+      // Don't throw - this is a non-critical operation
+    }
+  }
 }

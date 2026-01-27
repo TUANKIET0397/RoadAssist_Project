@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:road_assist/core/providers/garage_notification_provider.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
-import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 
 Future<void> logout() async {
   await FirebaseAuth.instance.signOut();

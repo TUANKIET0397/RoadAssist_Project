@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
+import 'package:road_assist/data/models/completion_payload.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/ui/user/rescue/viewmodel/completion_vm.dart';
 import 'package:road_assist/ui/shared/widgets/rescue_progress_timeline.dart';
 
-class UserRescueTrackingScreen extends ConsumerWidget {
+class UserRescueTrackingScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
   final String? garageId;
 
@@ -14,9 +18,18 @@ class UserRescueTrackingScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserRescueTrackingScreen> createState() =>
+      _UserRescueTrackingScreenState();
+}
+
+class _UserRescueTrackingScreenState
+    extends ConsumerState<UserRescueTrackingScreen> {
+  bool _hasNavigatedToCompletion = false;
+
+  @override
+  Widget build(BuildContext context) {
     final rescueRequest = ref.watch(
-      currentRescueRequestProvider(rescueRequestId),
+      currentRescueRequestProvider(widget.rescueRequestId),
     );
 
     return Scaffold(
@@ -28,6 +41,40 @@ class UserRescueTrackingScreen extends ConsumerWidget {
         data: (request) {
           if (request == null) {
             return const Center(child: Text('Không tìm thấy yêu cầu'));
+          }
+
+          // 🎯 CHECK IF COMPLETED - auto navigate
+          final isCompleted = request.status == 'completed' || request.progressStep >= 4;
+          
+          if (isCompleted && !_hasNavigatedToCompletion) {
+            _hasNavigatedToCompletion = true;
+            debugPrint('✅ [TrackingScreen] NAVIGATING TO COMPLETION');
+            
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              
+              final completedTime = request.completedAt ?? DateTime.now();
+              
+              final payload = CompletionPayload(
+                title: 'Hoàn thành cứu hộ',
+                subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
+                vehicleImage:
+                    kVehicleImages[request.vehicleType] ??
+                    'assets/images/illustrations/vehicle.png',
+                vehicleName: request.vehicleType,
+                vehicleModel: request.vehicleModel,
+                issue: request.issues.join(', '),
+                address: request.location,
+                completedTime:
+                    '${completedTime.hour}:${completedTime.minute.toString().padLeft(2, '0')} ${completedTime.day}/${completedTime.month}/${completedTime.year}',
+                garageName: request.name ?? 'Garage',
+                garageAvatar: 'assets/images/garage/default.png',
+              );
+
+              ref.read(completionProvider.notifier).setCompletion(payload);
+
+              context.pushReplacement('/user/completion');
+            });
           }
 
           return Container(

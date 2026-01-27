@@ -10,6 +10,7 @@ import 'package:road_assist/data/datasources/local/vehicle_constants.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_status_checklist.dart';
 import 'package:road_assist/ui/user/rescue/widgets/rescue_location_card.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
+import 'package:road_assist/ui/user/rescue/viewmodel/rescue_navigation_provider.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/completion_vm.dart';
 import 'package:road_assist/data/models/completion_payload.dart';
 import 'package:road_assist/ui/user/rescue/view/user_rescue_tracking_screen.dart';
@@ -20,14 +21,12 @@ class UserRescueSuccessScreen extends ConsumerStatefulWidget {
   final String rescueRequestId;
   final String? garageId;
   final String? garageName;
-  final Function() onBack;
 
   const UserRescueSuccessScreen({
     super.key,
     required this.rescueRequestId,
     this.garageId,
     this.garageName,
-    required this.onBack,
   });
 
   @override
@@ -38,6 +37,7 @@ class UserRescueSuccessScreen extends ConsumerStatefulWidget {
 class _UserRescueSuccessScreenState
     extends ConsumerState<UserRescueSuccessScreen> {
   bool _isCancelling = false;
+  bool _hasNavigatedToCompletion = false; // Flag tránh duplicate navigation
 
   @override
   void initState() {
@@ -52,20 +52,20 @@ class _UserRescueSuccessScreenState
       final success = await repo.cancelRescueRequest(widget.rescueRequestId);
 
       if (success && mounted) {
-        widget.onBack();
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đã hủy yêu cầu cứu hộ')));
+        ref.read(rescueNavigationProvider.notifier).backToRequest();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã hủy yêu cầu cứu hộ')),
+        );
       } else if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Lỗi khi hủy yêu cầu')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lỗi khi hủy yêu cầu')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
       }
     } finally {
       if (mounted) {
@@ -117,9 +117,23 @@ class _UserRescueSuccessScreenState
             return const Center(child: Text('Không tìm thấy yêu cầu'));
           }
 
-          // 🎯 CHECK IF COMPLETED - auto navigate
-          if (request.status == 'completed' && request.completedAt != null) {
+          // Debug logging
+          debugPrint('🔍 [SuccessScreen] status=${request.status}, progressStep=${request.progressStep}, completedAt=${request.completedAt}, _hasNavigated=$_hasNavigatedToCompletion');
+
+          // 🎯 CHECK IF COMPLETED - auto navigate (tránh duplicate)
+          // Sử dụng progressStep >= 4 để khớp với garage logic
+          final isCompleted = request.status == 'completed' || request.progressStep >= 4;
+          
+          if (isCompleted && !_hasNavigatedToCompletion) {
+            _hasNavigatedToCompletion = true;
+            debugPrint('✅ [SuccessScreen] NAVIGATING TO COMPLETION');
+            
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              
+              // Lấy completedAt hoặc dùng thời gian hiện tại
+              final completedTime = request.completedAt ?? DateTime.now();
+              
               final payload = CompletionPayload(
                 title: 'Hoàn thành cứu hộ',
                 subtitle: 'Cảm ơn bạn đã sử dụng RoadAssist',
@@ -131,8 +145,8 @@ class _UserRescueSuccessScreenState
                 issue: request.issues.join(', '),
                 address: request.location,
                 completedTime:
-                    '${request.completedAt!.hour}:${request.completedAt!.minute.toString().padLeft(2, '0')} ${request.completedAt!.day}/${request.completedAt!.month}/${request.completedAt!.year}',
-                garageName: request.name ?? 'Garage',
+                    '${completedTime.hour}:${completedTime.minute.toString().padLeft(2, '0')} ${completedTime.day}/${completedTime.month}/${completedTime.year}',
+                garageName: request.name ?? widget.garageName ?? 'Garage',
                 garageAvatar: 'assets/images/garage/default.png',
               );
 
@@ -251,7 +265,6 @@ class _UserRescueSuccessScreenState
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () => _contactGarage(context, ref, request),
-                          child: const Text('Chat với garage'),
                           style: TextButton.styleFrom(
                             foregroundColor: const Color.fromARGB(
                               255,
@@ -264,6 +277,7 @@ class _UserRescueSuccessScreenState
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          child: const Text('Chat với garage'),
                         ),
 
                         const SizedBox(height: 24),
@@ -277,7 +291,7 @@ class _UserRescueSuccessScreenState
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () {
-                        widget.onBack();
+                        ref.read(rescueNavigationProvider.notifier).backToRequest();
                       },
                     ),
                   ),

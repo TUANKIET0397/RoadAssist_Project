@@ -4,6 +4,7 @@ class VehicleGridData {
   final String subtitle2;
   final String image;
   final bool isFavorite;
+  final String? vehicleType; // Loại xe để dùng khi navigate
 
   VehicleGridData({
     required this.title,
@@ -11,6 +12,7 @@ class VehicleGridData {
     required this.subtitle2,
     required this.image,
     this.isFavorite = false,
+    this.vehicleType,
   });
 
   VehicleGridData copyWith({bool? isFavorite}) {
@@ -20,6 +22,7 @@ class VehicleGridData {
       subtitle2: subtitle2,
       image: image,
       isFavorite: isFavorite ?? this.isFavorite,
+      vehicleType: vehicleType,
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
-import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 
 /// Provider để garage nhận rescue request từ notification system
 /// Tự động cập nhật khi:
@@ -116,23 +115,23 @@ Future<void> _fetchAndEmitRequests(
         if (data != null && data['status'] == 'pending') {
           final rescueRequest = RescueRequestModel.fromMap(requestId, data);
           rescueRequests.add(rescueRequest);
-          debugPrint('✅ Loaded rescue request: ${rescueRequest.id} - ${rescueRequest.vehicleType}');
+          debugPrint(' Loaded rescue request: ${rescueRequest.id} - ${rescueRequest.vehicleType}');
         } else {
-          debugPrint('⚠️ Rescue request $requestId không còn pending (status: ${data?['status']}), bỏ qua');
+          debugPrint(' Rescue request $requestId không còn pending (status: ${data?['status']}), bỏ qua');
           // Xóa notification cho request không còn pending
           _cleanupStaleNotification(garageId, requestId);
         }
       } else {
-        debugPrint('⚠️ Rescue request $requestId không tồn tại');
+        debugPrint(' Rescue request $requestId không tồn tại');
         // Xóa notification cho request không tồn tại
         _cleanupStaleNotification(garageId, requestId);
       }
     } catch (e) {
-      debugPrint('❌ Lỗi load rescue request $requestId: $e');
+      debugPrint(' Lỗi load rescue request $requestId: $e');
     }
   }
   
-  debugPrint('📦 Garage $garageId có ${rescueRequests.length} rescue requests active');
+  debugPrint(' Garage $garageId có ${rescueRequests.length} rescue requests active');
   
   if (!controller.isClosed) {
     controller.add(rescueRequests);
@@ -148,9 +147,9 @@ Future<void> _cleanupStaleNotification(String garageId, String requestId) async 
         .collection('rescue_requests')
         .doc(requestId)
         .delete();
-    debugPrint('🧹 Đã xóa notification cũ cho request: $requestId');
+    debugPrint(' Đã xóa notification cũ cho request: $requestId');
   } catch (e) {
-    debugPrint('❌ Lỗi xóa notification cũ: $e');
+    debugPrint(' Lỗi xóa notification cũ: $e');
   }
 }
 
@@ -178,9 +177,9 @@ class NotificationActionService {
         'viewedAt': FieldValue.serverTimestamp(),
       });
       
-      debugPrint('✅ Marked notification viewed: garage=$garageId, request=$rescueRequestId');
+      debugPrint(' Marked notification viewed: garage=$garageId, request=$rescueRequestId');
     } catch (e) {
-      debugPrint('❌ Lỗi mark notification viewed: $e');
+      debugPrint(' Lỗi mark notification viewed: $e');
     }
   }
 
@@ -200,9 +199,32 @@ class NotificationActionService {
         'acceptedAt': FieldValue.serverTimestamp(),
       });
       
-      debugPrint('✅ Marked notification accepted: garage=$garageId, request=$rescueRequestId');
+      debugPrint(' Marked notification accepted: garage=$garageId, request=$rescueRequestId');
     } catch (e) {
-      debugPrint('❌ Lỗi mark notification accepted: $e');
+      debugPrint(' Lỗi mark notification accepted: $e');
+    }
+  }
+
+  /// Từ chối request - CHỈ xóa notification của garage này
+  /// KHÔNG ảnh hưởng đến các garage khác và KHÔNG thay đổi rescue_request status
+  Future<void> rejectNotification({
+    required String garageId,
+    required String rescueRequestId,
+  }) async {
+    try {
+      // Chỉ xóa notification của garage này
+      await _firestore
+          .collection('garage_notifications')
+          .doc(garageId)
+          .collection('rescue_requests')
+          .doc(rescueRequestId)
+          .delete();
+      
+      debugPrint(' Rejected & deleted notification: garage=$garageId, request=$rescueRequestId');
+      debugPrint(' Các garage khác vẫn có thể nhận request này');
+    } catch (e) {
+      debugPrint(' Lỗi reject notification: $e');
+      rethrow;
     }
   }
 
@@ -226,9 +248,9 @@ class NotificationActionService {
         });
       }
       
-      debugPrint('🧹 Cleaned up ${expiredDocs.docs.length} expired notifications for garage $garageId');
+      debugPrint(' Cleaned up ${expiredDocs.docs.length} expired notifications for garage $garageId');
     } catch (e) {
-      debugPrint('❌ Lỗi cleanup notifications: $e');
+      debugPrint(' Lỗi cleanup notifications: $e');
     }
   }
 }

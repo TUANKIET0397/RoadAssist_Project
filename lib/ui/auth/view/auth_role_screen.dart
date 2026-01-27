@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:road_assist/core/auth/auth_state.dart';
 import 'package:road_assist/core/providers/selected_role.dart';
 import 'package:road_assist/core/routes/route_paths.dart';
+import 'package:road_assist/core/services/call_hotline.dart';
 import 'package:road_assist/ui/auth/viewmodel/login_viewmodel.dart';
 
 class AuthRoleScreen extends ConsumerWidget {
@@ -13,6 +14,7 @@ class AuthRoleScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final h = MediaQuery.of(context).size.height;
     final viewModel = ref.watch(loginViewModelProvider);
+    final hotlineService = HotlineService();
 
     return Scaffold(
       body: Stack(
@@ -184,7 +186,47 @@ class AuthRoleScreen extends ConsumerWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('Xác nhận'),
+                                  content: const Text(
+                                    'Bạn sắp gọi hotline hỗ trợ khẩn cấp. Tiếp tục?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, false),
+                                      child: const Text('HỦY'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context, true),
+                                      child: const Text('GỌI'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                try {
+                                  await hotlineService.callHotline();
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Không thể gọi hotline'),
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color.fromRGBO(249, 64, 90, 0.39),
                               foregroundColor: Colors.white,

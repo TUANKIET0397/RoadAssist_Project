@@ -38,10 +38,7 @@ class ChatState {
   }
 }
 
-/// =======================
 /// CHAT NOTIFIER
-/// =======================
-
 class ChatNotifier extends StateNotifier<ChatState> {
   final FirebaseFirestore _firestore;
   final String chatId;
@@ -62,10 +59,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     _listenMessages();
   }
 
-  /// =======================
-  /// LISTEN CHAT INFO
-  /// =======================
 
+  /// LISTEN CHAT INFO
   void _listenChat() {
     _chatSub = _firestore
         .collection('chats')
@@ -84,10 +79,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
   }
 
-  /// =======================
-  /// LISTEN MESSAGES
-  /// =======================
 
+  /// LISTEN MESSAGES
   void _listenMessages() {
     _messageSub = _firestore
         .collection('chats')
@@ -115,10 +108,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     );
   }
 
-  /// =======================
   /// SEND MESSAGE
-  /// =======================
-
   Future<void> sendTextMessage(String text) async {
     final content = text.trim();
     if (content.isEmpty) return;
@@ -173,10 +163,10 @@ class ChatNotifier extends StateNotifier<ChatState> {
     // Format duration
     final minutes = durationSeconds ~/ 60;
     final seconds = durationSeconds % 60;
-    final durationText = minutes > 0 
+    final durationText = minutes > 0
         ? '$minutes phút ${seconds}s'
         : '$seconds giây';
-    
+
     final callHistoryText = '📞 Cuộc gọi đã kết thúc. Thời lượng: $durationText';
 
     final message = MessageModel(
@@ -206,8 +196,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// =======================
   /// MARK AS READ
-  /// =======================
-
   Future<void> markAsRead() async {
     final chatRef = _firestore.collection('chats').doc(chatId);
     final messagesRef = chatRef.collection('messages');
@@ -247,10 +235,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 }
 
-/// =======================
 /// PROVIDER
-/// =======================
-
 final chatBoxProvider = StateNotifierProvider.family<
     ChatNotifier, ChatState, String>((ref, chatId) {
   final auth = ref.watch(authStateProvider);

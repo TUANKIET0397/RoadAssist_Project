@@ -126,18 +126,6 @@ class ChatRepository {
           .toList(),
     );
   }
-
-  Future<void> markAsRead({
-    required String chatId,
-    required String readerId,
-  }) async {
-    final chatRef = _firestore.collection('chats').doc(chatId);
-
-    await chatRef.update({
-      'unread.$readerId': 0,
-    });
-  }
-
   /// Send call history message to chat
   /// Determines customer and garage from userIds and sends message
   Future<void> sendCallHistoryMessage({
@@ -152,10 +140,10 @@ class ChatRepository {
       final callerGarageDoc = await _firestore.collection('garages').doc(callerId).get();
       final receiverUserDoc = await _firestore.collection('users').doc(receiverId).get();
       final receiverGarageDoc = await _firestore.collection('garages').doc(receiverId).get();
-      
+
       String customerId;
       String garageId;
-      
+
       if (callerUserDoc.exists) {
         // Caller is customer
         customerId = callerId;
@@ -183,10 +171,10 @@ class ChatRepository {
       // Format duration
       final minutes = durationSeconds ~/ 60;
       final seconds = durationSeconds % 60;
-      final durationText = minutes > 0 
+      final durationText = minutes > 0
           ? '$minutes phút ${seconds}s'
           : '$seconds giây';
-      
+
       final callHistoryText = '📞 Cuộc gọi đã kết thúc. Thời lượng: $durationText';
 
       final now = DateTime.now();

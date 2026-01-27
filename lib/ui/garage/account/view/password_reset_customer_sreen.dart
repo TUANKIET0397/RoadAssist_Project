@@ -13,12 +13,10 @@ class PasswordResetSreen extends ConsumerStatefulWidget {
   const PasswordResetSreen({super.key});
 
   @override
-  ConsumerState<PasswordResetSreen> createState() =>
-      _PasswordResetSreenState();
+  ConsumerState<PasswordResetSreen> createState() => _PasswordResetSreenState();
 }
 
-class _PasswordResetSreenState
-    extends ConsumerState<PasswordResetSreen> {
+class _PasswordResetSreenState extends ConsumerState<PasswordResetSreen> {
   final _oldController = TextEditingController();
   final _newController = TextEditingController();
   final _confirmController = TextEditingController();
@@ -29,8 +27,7 @@ class _PasswordResetSreenState
   final _newFocus = FocusNode();
   final _confirmFocus = FocusNode();
 
-  late final ProviderSubscription<ChangePasswordState>
-  _passwordListener;
+  late final ProviderSubscription<ChangePasswordState> _passwordListener;
 
   @override
   void initState() {
@@ -62,7 +59,7 @@ class _PasswordResetSreenState
     /// ✅ LISTEN SIDE EFFECT (CHỈ 1 LẦN)
     _passwordListener = ref.listenManual<ChangePasswordState>(
       changePasswordProvider,
-          (prev, next) {
+      (prev, next) {
         if (!mounted) return;
 
         if (next.isSuccess) {
@@ -75,13 +72,9 @@ class _PasswordResetSreenState
           context.pop("/garage/account");
         }
 
-        if (next.error != null &&
-            next.error != prev?.error) {
+        if (next.error != null && next.error != prev?.error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(next.error!),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(next.error!), backgroundColor: Colors.red),
           );
         }
       },
@@ -108,9 +101,7 @@ class _PasswordResetSreenState
   Widget build(BuildContext context) {
     final userId = ref.watch(userIdProvider);
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Chưa đăng nhập')),
-      );
+      return const Scaffold(body: Center(child: Text('Chưa đăng nhập')));
     }
     final colorScheme = Theme.of(context).colorScheme;
     final garageState = ref.watch(garageProvider(userId));
@@ -126,8 +117,7 @@ class _PasswordResetSreenState
         actions: [
           Container(
             padding: const EdgeInsets.all(10),
-            margin:
-            const EdgeInsets.only(right: 16, bottom: 10),
+            margin: const EdgeInsets.only(right: 16, bottom: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               gradient: const LinearGradient(
@@ -137,8 +127,7 @@ class _PasswordResetSreenState
                 ],
               ),
             ),
-            child:
-            const Icon(Icons.key_sharp, color: Colors.white),
+            child: const Icon(Icons.key_sharp, color: Colors.white),
           ),
         ],
       ),
@@ -155,8 +144,7 @@ class _PasswordResetSreenState
           padding: EdgeInsets.only(
             left: 20,
             right: 20,
-            bottom:
-            MediaQuery.of(context).viewInsets.bottom + 10,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 10,
           ),
           child: Column(
             children: [
@@ -188,29 +176,26 @@ class _PasswordResetSreenState
                       ? null
                       : _onChangePasswordPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    const Color.fromRGBO(75, 76, 237, 1),
+                    backgroundColor: const Color.fromRGBO(75, 76, 237, 1),
                     elevation: 8,
-                    padding:
-                    const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
                   child: pwdState.isLoading
                       ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text(
-                    'Đổi mật khẩu',
-                    style: TextStyle(
-                        color: Colors.white, fontSize: 16),
-                  ),
+                          'Đổi mật khẩu',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
                 ),
               ),
 
@@ -219,7 +204,7 @@ class _PasswordResetSreenState
                 'Đổi mật khẩu để nâng cao bảo mật!',
                 style: TextStyle(color: Colors.white),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 90),
             ],
           ),
         ),
@@ -232,9 +217,7 @@ class _PasswordResetSreenState
     final newPwd = _newController.text.trim();
     final confirmPwd = _confirmController.text.trim();
 
-    if (oldPwd.isEmpty ||
-        newPwd.isEmpty ||
-        confirmPwd.isEmpty) {
+    if (oldPwd.isEmpty || newPwd.isEmpty || confirmPwd.isEmpty) {
       _showSnack('Vui lòng nhập đầy đủ thông tin');
       return;
     }
@@ -249,19 +232,18 @@ class _PasswordResetSreenState
       return;
     }
 
-    ref.read(changePasswordProvider.notifier).changePassword(
-      oldPassword: oldPwd,
-      newPassword: newPwd,
-      confirmPassword: confirmPwd,
-    );
+    ref
+        .read(changePasswordProvider.notifier)
+        .changePassword(
+          oldPassword: oldPwd,
+          newPassword: newPwd,
+          confirmPassword: confirmPwd,
+        );
   }
 
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.orange,
-      ),
+      SnackBar(content: Text(msg), backgroundColor: Colors.orange),
     );
   }
 }

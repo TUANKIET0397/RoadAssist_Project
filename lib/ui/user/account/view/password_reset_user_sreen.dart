@@ -137,8 +137,7 @@ class _PasswordResetUserSreenState
           ),
           body: Container(
             padding: const EdgeInsets.only(top: 16),
-            decoration: const
-            BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: AppPalette.bgColors,
                 begin: Alignment.topCenter,
@@ -156,7 +155,6 @@ class _PasswordResetUserSreenState
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   /// GARAGE INFO
-                  // GarageCard(garage: garage),
                   ProfileCard(user: user),
                   const SizedBox(height: 38),
 
@@ -214,7 +212,10 @@ class _PasswordResetUserSreenState
                             )
                           : const Text(
                               'Đổi mật khẩu',
-                              style: TextStyle(color: Colors.white, fontSize: 16),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
                             ),
                     ),
                   ),
@@ -226,7 +227,7 @@ class _PasswordResetUserSreenState
                     'Đổi mật khẩu để nâng cao bảo mật!',
                     style: TextStyle(color: Colors.white),
                   ),
-                  // const SizedBox(height: 40),
+                  const SizedBox(height: 300),
                 ],
               ),
             ),

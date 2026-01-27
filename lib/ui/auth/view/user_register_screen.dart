@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/auth/view/login_screen.dart';
 import 'package:road_assist/ui/auth/viewmodel/user_register_vm.dart';
 import 'package:road_assist/ui/auth/widgets/custom_text_field.dart';
@@ -20,7 +21,7 @@ class UserRegisterScreen extends ConsumerWidget {
         constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF202A44), Color(0xFF334268)],
+            colors: AppPalette.bgColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -65,7 +66,7 @@ class UserRegisterScreen extends ConsumerWidget {
                 CustomTextField(
                   controller: vm.phoneController,
                   hint: 'Số điện thoại của bạn',
-                  hintColor: Colors.white70
+                  hintColor: Colors.white70,
                 ),
 
                 // Password Section

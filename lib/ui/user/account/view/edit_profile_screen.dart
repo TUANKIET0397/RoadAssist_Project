@@ -72,8 +72,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         ],
       ),
       body: Container(
-        decoration: const
-        BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: AppPalette.bgColors,
             begin: Alignment.topCenter,
@@ -114,7 +113,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     },
                   ),
 
-
                   const SizedBox(height: 30),
 
                   _field('Họ và tên *', _nameCtrl),
@@ -125,91 +123,92 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                   _field('Email', _emailCtrl),
 
-                GestureDetector(
-                  onTap: () async {
-                    final result = await Navigator.push<LocationPickResult>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MapPickScreen(
-                          initialLat: vm.latitude,
-                          initialLng: vm.longitude,
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await Navigator.push<LocationPickResult>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => MapPickScreen(
+                            initialLat: vm.latitude,
+                            initialLng: vm.longitude,
+                          ),
                         ),
-                      ),
-                    );
-
-                    if (result != null) {
-                      await vmNotifier.setLocationFromLatLng(
-                        lat: result.latitude,
-                        lng: result.longitude,
-                        address: result.address,
                       );
-                    }
-                  },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: "Đia chỉ *",
-                      labelStyle: const TextStyle(color: Colors.white70),
 
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: Colors.white),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF4B4CED),
-                          width: 2,
+                      if (result != null) {
+                        await vmNotifier.setLocationFromLatLng(
+                          lat: result.latitude,
+                          lng: result.longitude,
+                          address: result.address,
+                        );
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: "Đia chỉ *",
+                        labelStyle: const TextStyle(color: Colors.white70),
+
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: Colors.white),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4B4CED),
+                            width: 2,
+                          ),
+                        ),
+                        suffixIcon: const Icon(
+                          Icons.location_on,
+                          color: Colors.white70,
                         ),
                       ),
-                      suffixIcon: const Icon(
-                        Icons.location_on,
-                        color: Colors.white70,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(
-                        vm.addressController.text.isEmpty
-                            ? 'Chọn vị trí'
-                            : vm.addressController.text,
-                        style: TextStyle(
-                          color: vm.addressController.text.isEmpty
-                              ? Colors.white70
-                              : Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          vm.addressController.text.isEmpty
+                              ? 'Chọn vị trí'
+                              : vm.addressController.text,
+                          style: TextStyle(
+                            color: vm.addressController.text.isEmpty
+                                ? Colors.white70
+                                : Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
                   Center(
                     child: ElevatedButton(
                       onPressed: isSaving
                           ? null
                           : () async {
-                        final error = await ref
-                            .read(editProfileProvider.notifier)
-                            .saveProfile(
-                          name: _nameCtrl.text,
-                          phone: _phoneCtrl.text,
-                          email: _emailCtrl.text,
-                          address: vm.addressController.text,
-                          birthDate: _birthCtrl.text,
-                          avatarFile: _avatarFile,
-                        );
+                              final error = await ref
+                                  .read(editProfileProvider.notifier)
+                                  .saveProfile(
+                                    name: _nameCtrl.text,
+                                    phone: _phoneCtrl.text,
+                                    email: _emailCtrl.text,
+                                    address: vm.addressController.text,
+                                    birthDate: _birthCtrl.text,
+                                    avatarFile: _avatarFile,
+                                  );
 
-                        if (error != null && mounted) {
-                          ScaffoldMessenger.of(context)
-                              .showSnackBar(SnackBar(content: Text(error)));
-                          return;
-                        }
+                              if (error != null && mounted) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(SnackBar(content: Text(error)));
+                                return;
+                              }
 
-                        if (mounted) {
-                          Navigator.pop(context);
-                        }
-                      },
+                              if (mounted) {
+                                Navigator.pop(context);
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4B4CED),
                         padding: const EdgeInsets.symmetric(
@@ -222,20 +221,22 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ),
                       child: isSaving
                           ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
                           : const Text(
-                        'Lưu thông tin',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white
-                        ),
-                      ),
+                              'Lưu thông tin',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                   ),
+
+                  const SizedBox(height: 300),
                 ],
               ),
             );
@@ -257,18 +258,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Colors.white,
-              width: 1,
-            ),
+            borderSide: const BorderSide(color: Colors.white, width: 1),
           ),
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFF4B4CED),
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Color(0xFF4B4CED), width: 2),
           ),
         ),
       ),

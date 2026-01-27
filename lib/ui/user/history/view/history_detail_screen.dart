@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/user/history/model/history_item.dart';
@@ -37,7 +38,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
       appBar: AppBar(
         title: const Text('Chi tiết cứu hộ'),
         centerTitle: true,
-        backgroundColor: const Color(0xFF0f172a),
+        backgroundColor: Color.fromRGBO(37, 45, 60, 1),
       ),
       body: rescueRequest.when(
         data: (request) {
@@ -46,7 +47,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
               body: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                    colors: AppPalette.bgColors,
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -67,7 +68,7 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                colors: AppPalette.bgColors,
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -155,9 +156,9 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
 
             // Timeline progress
             RescueProgressTimeline(request: request, showBorder: true),
-            
+
             const SizedBox(height: 20),
-            
+
             // Contact garage button
             if (request.garageId != null)
               ViewHistoryButton(
@@ -167,39 +168,40 @@ class _HistoryDetailScreenState extends ConsumerState<HistoryDetailScreen> {
               ),
 
             const SizedBox(height: 200),
-
           ],
         ),
       ),
     );
   }
 
-  Future<void> _contactGarage(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+  Future<void> _contactGarage(
+    BuildContext context,
+    WidgetRef ref,
+    RescueRequestModel request,
+  ) async {
     if (request.garageId == null) return;
-    
+
     try {
       final userId = ref.read(userIdProvider);
       if (userId == null) return;
-      
+
       final chatRepo = ref.read(chatRepositoryProvider);
       final chatId = await chatRepo.getOrCreateChat(
         userId: userId,
         garageId: request.garageId!,
       );
-      
+
       if (context.mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(chatId: chatId),
-          ),
+          MaterialPageRoute(builder: (_) => ChatScreen(chatId: chatId)),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi kết nối: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi kết nối: $e')));
       }
     }
   }

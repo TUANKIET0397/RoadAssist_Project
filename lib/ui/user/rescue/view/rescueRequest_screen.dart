@@ -62,7 +62,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   /// Load pre-selected vehicle type and issue from providers (if any)
   void _loadPreSelectedValues() {
     if (!mounted) return;
-    
+
     // Read pre-selected vehicle type
     final preSelectedVehicle = ref.read(preSelectedVehicleTypeProvider);
     if (preSelectedVehicle != null && preSelectedVehicle.isNotEmpty) {
@@ -115,8 +115,12 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+      maxWidth: 1024,
+      maxHeight: 1024,
+    );
     if (image == null) return;
     // {
     //   setState(() {
@@ -162,19 +166,22 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
     final userName = userInfo?['name'] ?? 'User';
     final userPhone = userInfo?['phone'] ?? 'N/A';
     final vehiclesAsync = ref.read(allUserVehiclesProvider);
-    
+
     final vehicles = vehiclesAsync.value ?? [];
     final currentVehicle = vehicles.firstWhere(
       (v) => v.type == selectedVehicleType,
-      orElse: () => Vehicle(type: selectedVehicleType, description: 'Model mặc định'),
+      orElse: () =>
+          Vehicle(type: selectedVehicleType, description: 'Model mặc định'),
     );
 
     final repo = ref.read(rescueRequestRepoProvider);
 
     debugPrint('🔥 === CREATING RESCUE REQUEST ===');
     debugPrint('👤 User: $userName ($userId)');
-    debugPrint('📱 Phone: $userPhone'); 
-    debugPrint('🚗 Vehicle: $selectedVehicleType - ${currentVehicle.description}');
+    debugPrint('📱 Phone: $userPhone');
+    debugPrint(
+      '🚗 Vehicle: $selectedVehicleType - ${currentVehicle.description}',
+    );
     debugPrint('📍 Location: $currentAddress');
     debugPrint('🌍 Coordinates: lat=$currentLat, lng=$currentLng');
     debugPrint('❗ Issues: $selectedIssues');
@@ -191,7 +198,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       longitude: currentLng!,
       image: selectedImages.isNotEmpty ? selectedImages.first : null,
     );
-    
+
     if (id != null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -206,9 +213,9 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gửi yêu cầu thất bại!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gửi yêu cầu thất bại!')));
       }
     }
   }
@@ -269,7 +276,7 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                               selectedVehicleType = kUserVehicleTypes.first;
                             }
                           }
-                          
+
                           return RescueVehicleSelector(
                             selectedVehicleType: selectedVehicleType,
                             vehicles: vehicles,
@@ -330,12 +337,13 @@ class _RescueRequestScreenState extends ConsumerState<RescueRequestScreen> {
                         currentAddress: currentAddress,
                         isLoading: isLoadingLocation,
                         onTap: () async {
-                          final result = await Navigator.push<LocationPickResult>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const MapPickScreen(),
-                            ),
-                          );
+                          final result =
+                              await Navigator.push<LocationPickResult>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const MapPickScreen(),
+                                ),
+                              );
 
                           if (result != null && mounted) {
                             setState(() {

@@ -14,68 +14,6 @@ class MainHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ListView(
       children: [
-        /// 🧪 DEBUG BUTTON - Test success screen
-        // Padding(
-        //   padding: const EdgeInsets.all(16),
-        //   child: ElevatedButton(
-        //     onPressed: () {
-        //       // Mock rescue request
-        //     //   final mockRequest = RescueRequestModel(
-        //     //     id: '123',
-        //     //     userId: 'user_test',
-        //     //     userName: 'Nguyễn Văn A',
-        //     //     userPhone: '0901234567',
-        //     //     vehicleType: 'Xe tay ga',
-        //     //     vehicleModel: 'Honda SH Mode 2025',
-        //     //     issues: ['Hết xăng', 'Bể lốp'],
-        //     //     location: 'Đường Nguyễn Hữu Cảnh, Q1, HCM',
-        //     //     latitude: 37.4219983,
-        //     //     longitude: -122.084,
-        //     //     imageUrl: null,
-        //     //     status: 'accepted',
-        //     //     createdAt: DateTime.now(),
-        //     //     garageId: 'garage_123',
-        //     //     garageName: 'Garage Minh Thuận',
-        //     //     acceptedAt: DateTime.now(),
-        //     //     completedAt: null,
-        //     //     cancelledAt: null, progressStep: 1,
-        //     //   );
-
-        //     //   Navigator.of(context).push(
-        //     //     MaterialPageRoute(
-        //     //       builder: (context) => UserRescueSuccessScreen(
-        //     //         // Truyền biến mockRequest vào đây
-        //     //         rescueRequestId: mockRequest.id,
-        //     //         // Xử lý nút back
-        //     //         onBack: () => Navigator.of(context).pop(), request: mockRequest,
-        //     //       ),
-        //     //     ),
-        //     //   );
-        //      },
-        //     style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-        //     child: const Text('🧪 DEBUG: Xem Success Screen'),
-        //   ),
-        // ),
-
-        // /// ================= BIG CARD =================
-        // LayoutBuilder(
-        //   builder: (context, constraints) {
-        //     final width = constraints.maxWidth;
-
-        //     return Transform.translate(
-        //       offset: const Offset(0, -35),
-        //       child: Center(
-        //         child: ClippedCard(
-        //           width: width,
-        //           heightFactor: 1.0,
-        //           clipper: RPSClipperBig(),
-        //           child: const BigVehicleCardContent(recuerequest: null),
-        //         ),
-        //       ),
-        //     );
-        //   },
-        // ),
-
         /// ================= FEATURE ICONS =================
         LayoutBuilder(
           builder: (context, constraints) {
@@ -125,31 +63,6 @@ class MainHome extends ConsumerWidget {
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
-          ),
-        ),
-
-        /// ================= GRID =================
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 2,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 0,
-              childAspectRatio:
-                  0.8, // ✅ FIX: Giảm xuống 0.68 để card cao hơn nữa
-            ),
-            itemBuilder: (context, index) {
-              return const VehicleGridItem(
-                title: 'Xe Máy Các Loại',
-                subtitle1: 'Tay ga',
-                subtitle2: 'Bạn đã đăng ký',
-                image: 'assets/images/illustrations/vehicle1.png',
-              );
-            },
           ),
         ),
 

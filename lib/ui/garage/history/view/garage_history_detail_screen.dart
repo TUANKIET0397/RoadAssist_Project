@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/data/models/rescue_request_model.dart';
 import 'package:road_assist/ui/user/rescue/viewmodel/rescue_viewmodel.dart';
 import 'package:road_assist/ui/garage/history/model/garage_history_item.dart';
@@ -12,17 +13,15 @@ import 'package:road_assist/core/providers/auth_provider.dart';
 class GarageHistoryDetailScreen extends ConsumerStatefulWidget {
   final GarageHistoryItem historyItem;
 
-  const GarageHistoryDetailScreen({
-    super.key,
-    required this.historyItem,
-  });
+  const GarageHistoryDetailScreen({super.key, required this.historyItem});
 
   @override
   ConsumerState<GarageHistoryDetailScreen> createState() =>
       _GarageHistoryDetailScreenState();
 }
 
-class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailScreen> {
+class _GarageHistoryDetailScreenState
+    extends ConsumerState<GarageHistoryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     if (widget.historyItem.rescueRequestId == null) {
@@ -49,7 +48,7 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
               body: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                    colors: AppPalette.bgColors,
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -70,7 +69,7 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF1E3A8A), Color(0xFF0F172A)],
+                colors: AppPalette.bgColors,
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -125,10 +124,7 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
                 _buildStatusRow(request),
                 _buildInfoRow('Loại xe', request.vehicleType),
                 _buildInfoRow('Mẫu xe', request.vehicleModel),
-                _buildInfoRow(
-                  'Các vấn đề',
-                  request.issues.join(', '),
-                ),
+                _buildInfoRow('Các vấn đề', request.issues.join(', ')),
               ],
             ),
 
@@ -159,22 +155,19 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
 
             const SizedBox(height: 16),
 
-            RescueProgressTimeline(
-              request: request,
-              showBorder: true,
-            ),
-            
+            RescueProgressTimeline(request: request, showBorder: true),
+
             const SizedBox(height: 20),
-            
+
             // Contact user button
             ViewHistoryButton(
               text: 'Liên hệ với người dùng',
               icon: Icons.chat,
               onPressed: () => _contactUser(context, ref, request),
             ),
-            
+
             // Timeline
-           const SizedBox(height: 200),
+            const SizedBox(height: 200),
           ],
         ),
       ),
@@ -209,30 +202,32 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
     );
   }
 
-  Future<void> _contactUser(BuildContext context, WidgetRef ref, RescueRequestModel request) async {
+  Future<void> _contactUser(
+    BuildContext context,
+    WidgetRef ref,
+    RescueRequestModel request,
+  ) async {
     try {
       final garageId = ref.read(userIdProvider); // Current garage ID
       if (garageId == null) return;
-      
+
       final chatRepo = ref.read(chatRepositoryProvider);
       final chatId = await chatRepo.getOrCreateChat(
         userId: request.userId,
         garageId: garageId,
       );
-      
+
       if (context.mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(chatId: chatId),
-          ),
+          MaterialPageRoute(builder: (_) => ChatScreen(chatId: chatId)),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi kết nối: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi kết nối: $e')));
       }
     }
   }
@@ -269,10 +264,7 @@ class _GarageHistoryDetailScreenState extends ConsumerState<GarageHistoryDetailS
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 16,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
           const Spacer(),
           Expanded(

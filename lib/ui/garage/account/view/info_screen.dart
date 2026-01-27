@@ -19,9 +19,7 @@ class InfoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userId = ref.watch(userIdProvider);
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Chưa đăng nhập')),
-      );
+      return const Scaffold(body: Center(child: Text('Chưa đăng nhập')));
     }
     final state = ref.watch(garageProvider(userId));
     final notifier = ref.read(garageProvider(userId).notifier);
@@ -85,7 +83,9 @@ class InfoScreen extends ConsumerWidget {
                     context: context,
                     backgroundColor: const Color(0xFF243158),
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
                     ),
                     builder: (_) {
                       return SafeArea(
@@ -93,18 +93,28 @@ class InfoScreen extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ListTile(
-                              leading: const Icon(Icons.person, color: Colors.white),
-                              title: const Text('Đổi ảnh đại diện',
-                                  style: TextStyle(color: Colors.white)),
+                              leading: const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                              ),
+                              title: const Text(
+                                'Đổi ảnh đại diện',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               onTap: () async {
                                 Navigator.pop(context);
                                 await notifier.changeAvatar();
                               },
                             ),
                             ListTile(
-                              leading: const Icon(Icons.image, color: Colors.white),
-                              title: const Text('Đổi ảnh nền',
-                                  style: TextStyle(color: Colors.white)),
+                              leading: const Icon(
+                                Icons.image,
+                                color: Colors.white,
+                              ),
+                              title: const Text(
+                                'Đổi ảnh nền',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               onTap: () async {
                                 Navigator.pop(context);
                                 await notifier.changeBackground();
@@ -168,10 +178,7 @@ class InfoScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFF243158),
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: const Color(0xFF34CAE8),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0xFF34CAE8), width: 1),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -214,7 +221,6 @@ class InfoScreen extends ConsumerWidget {
               SizedBox(height: 16),
               const SaveGarageButton(),
               SizedBox(height: 120),
-
             ],
           ),
         ),

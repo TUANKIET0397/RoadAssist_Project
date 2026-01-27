@@ -80,76 +80,76 @@ class _VehicleGridItemState extends State<VehicleGridItem>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                    GestureDetector(
-                      onTap: widget.onFavoriteTap,
-                      child: ScaleTransition(
-                        scale: _scale,
-                        child: Icon(
-                          widget.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: widget.isFavorite
-                              ? Colors.red
-                              : Colors.white70,
-                          size: 18,
+                      GestureDetector(
+                        onTap: widget.onFavoriteTap,
+                        child: ScaleTransition(
+                          scale: _scale,
+                          child: Icon(
+                            widget.isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: widget.isFavorite
+                                ? const Color.fromARGB(255, 120, 199, 255)
+                                : Colors.white70,
+                            size: 18,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
 
-                /// 🛵 IMAGE – GIỮ NGUYÊN Expanded
-                Expanded(
-                  flex: 3,
-                  child: Center(
-                    child: Image.asset(widget.image, fit: BoxFit.contain),
+                  /// 🛵 IMAGE – GIỮ NGUYÊN Expanded
+                  Expanded(
+                    flex: 3,
+                    child: Center(
+                      child: Image.asset(widget.image, fit: BoxFit.contain),
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 2),
+                  const SizedBox(height: 2),
 
-                /// TEXT – BÁM ĐÁY (KHÔNG ĐỤNG)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    widget.subtitle1,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                      height: 1.2,
+                  /// TEXT – BÁM ĐÁY (KHÔNG ĐỤNG)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      widget.subtitle1,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        height: 1.2,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    widget.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      height: 1.2,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    widget.subtitle2,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11,
-                      height: 1.2,
+                  const SizedBox(height: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      widget.subtitle2,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
           ),
         );
       },

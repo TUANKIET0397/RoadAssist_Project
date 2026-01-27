@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/garage/history/viewmodel/garage_history_vm.dart';
 import 'package:road_assist/ui/garage/history/widgets/garage_history_card.dart';
 import 'package:road_assist/ui/garage/history/widgets/garage_history_filter_tabs.dart';
@@ -27,9 +28,9 @@ class GarageHistoryScreen extends ConsumerWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0B1C2D), Color(0xFF2F52FF)],
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: listAsync.when(
@@ -46,17 +47,13 @@ class GarageHistoryScreen extends ConsumerWidget {
                       padding: EdgeInsets.all(32),
                       child: Text(
                         'Chưa có lịch sử cứu hộ',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                     ),
                   )
                 else ...[
                   ...list.map((e) => GarageHistoryCard(item: e)),
                 ],
-                
 
                 const SizedBox(height: 100),
               ],

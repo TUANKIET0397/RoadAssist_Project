@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 import 'package:road_assist/ui/user/home/widgets/main_home.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -37,10 +38,9 @@ class HomeScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromRGBO(56, 56, 224, 1),
-              Color.fromRGBO(46, 144, 183, 1),
-            ],
+            colors: AppPalette.bgColors,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: MainHome(),

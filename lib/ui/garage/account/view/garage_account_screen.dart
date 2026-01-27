@@ -11,7 +11,7 @@ import 'package:road_assist/ui/garage/account/widgets/action_button.dart';
 import 'package:road_assist/ui/garage/account/widgets/vehicle_support_item.dart';
 import 'package:road_assist/ui/garage/account/widgets/add_vehicle_dialog.dart';
 import 'package:road_assist/ui/garage/home/viewmodel/garage_home_viewmodel.dart'
-as vm;
+    as vm;
 import 'package:road_assist/ui/user/account/widgets/logout_button.dart';
 
 import '../widgets/garage_card.dart';
@@ -30,15 +30,11 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
     final auth = ref.watch(authStateProvider);
 
     if (!auth.isInitialized) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (!auth.isLoggedIn || auth.userId == null) {
-      return const Scaffold(
-        body: Center(child: Text('Chưa đăng nhập')),
-      );
+      return const Scaffold(body: Center(child: Text('Chưa đăng nhập')));
     }
 
     final userId = auth.userId!;
@@ -126,11 +122,11 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
   }
 
   Widget _buildGarageContent(
-      BuildContext context,
-      String userId,
-      dynamic state,
-      dynamic garage,
-      ) {
+    BuildContext context,
+    String userId,
+    dynamic state,
+    dynamic garage,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(garageProvider(userId).notifier).refresh();
@@ -165,10 +161,10 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
   }
 
   Widget _buildVehicleTypesSection(
-      BuildContext context,
-      String userId,
-      dynamic garage,
-      ) {
+    BuildContext context,
+    String userId,
+    dynamic garage,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -203,7 +199,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
           )
         else
           ...garage.vehicleTypes.map(
-                (vehicle) => VehicleSupportItem(
+            (vehicle) => VehicleSupportItem(
               name: vehicle,
               onAdd: () =>
                   _handleRemoveVehicle(context, userId, garage, vehicle),
@@ -214,19 +210,18 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
   }
 
   void _showAddVehicleDialog(
-      BuildContext context,
-      String userId,
-      dynamic garage,
-      ) {
+    BuildContext context,
+    String userId,
+    dynamic garage,
+  ) {
     showDialog(
       context: context,
       builder: (_) => AddVehicleDialog(
         existingVehicles: garage.vehicleTypes,
         onAdd: (vehicleType) async {
-          await ref.read(garageProvider(userId).notifier).addVehicleType(
-            garageId: garage.id,
-            vehicleType: vehicleType,
-          );
+          await ref
+              .read(garageProvider(userId).notifier)
+              .addVehicleType(garageId: garage.id, vehicleType: vehicleType);
 
           if (!mounted) return;
 
@@ -242,11 +237,11 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
   }
 
   Future<void> _handleRemoveVehicle(
-      BuildContext context,
-      String userId,
-      dynamic garage,
-      String vehicle,
-      ) async {
+    BuildContext context,
+    String userId,
+    dynamic garage,
+    String vehicle,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -255,8 +250,10 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
           borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: Color(0xFF4FC3F7), width: 2),
         ),
-        title: const Text('Xác nhận xóa',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Xác nhận xóa',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Bạn có chắc muốn xóa "$vehicle"?',
           style: const TextStyle(color: Colors.white70),
@@ -264,8 +261,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child:
-            const Text('Hủy', style: TextStyle(color: Colors.white70)),
+            child: const Text('Hủy', style: TextStyle(color: Colors.white70)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -277,18 +273,14 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
 
     if (confirm != true || !mounted) return;
 
-    await ref.read(garageProvider(userId).notifier).removeVehicleType(
-      garageId: garage.id,
-      vehicleType: vehicle,
-    );
+    await ref
+        .read(garageProvider(userId).notifier)
+        .removeVehicleType(garageId: garage.id, vehicleType: vehicle);
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Đã xóa $vehicle'),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text('Đã xóa $vehicle'), backgroundColor: Colors.green),
     );
   }
 
@@ -305,10 +297,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
           icon: Icons.search,
           label: 'Các cuộc cứu hộ',
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SearchScreen()),
-            );
+            context.push('/garage/home');
           },
         ),
         ActionButton(
@@ -324,8 +313,7 @@ class _GarageAccountScreenState extends ConsumerState<GarageAccountScreen> {
         ActionButton(
           icon: Icons.lock,
           label: 'Đổi mật khẩu',
-          onTap: () =>
-              context.push('/garage/account/passwordreset'),
+          onTap: () => context.push('/garage/account/passwordreset'),
         ),
       ],
     );

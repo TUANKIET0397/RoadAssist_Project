@@ -78,6 +78,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatNotifier = ref.read(chatBoxProvider(widget.chatId).notifier);
     final currentUserId = ref.watch(userIdProvider);
 
+    // ⭐ AUTO SCROLL KHI VÀO PAGE & CÓ MESSAGE
+    if (!chatState.isLoading && chatState.messages.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom(animated: false);
+      });
+    }
+
     final chatContent = Scaffold(
       backgroundColor: Colors.transparent,
       appBar: _buildAppBar(chatState.chat, currentUserId),
@@ -93,6 +100,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           child: Column(
             children: [
               Expanded(child: _buildMessages(chatState, chatNotifier)),
+              const SizedBox(height: 14),
               _buildInput(chatNotifier),
             ],
           ),

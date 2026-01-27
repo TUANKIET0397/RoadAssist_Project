@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:road_assist/core/theme/app_palette.dart';
 
 import 'package:road_assist/data/models/garage_model.dart';
 import 'package:road_assist/ui/auth/viewmodel/garage_success_vm.dart';
@@ -37,7 +38,7 @@ class GarageSuccessView extends ConsumerWidget {
         constraints: const BoxConstraints.expand(),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF202A44), Color(0xFF334268)],
+            colors: AppPalette.bgColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

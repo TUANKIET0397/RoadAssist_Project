@@ -1,433 +1,536 @@
-# 📱 ROAD ASSIST
+# 📱 Road Assist - Ứng Dụng Hỗ Trợ Gọi Garage Sửa Xe
 
-## ĐỒ ÁN MÔN LẬP TRÌNH THIẾT BỊ DI ĐỘNG
+🚀 Một ứng dụng di động hiện đại được xây dựng bằng **Flutter** (Frontend) và **Firebase** (Backend) nhằm kết nối người dùng với các garage sửa chữa xe.
 
-## 📌 Thông tin đồ án
+## 📋 Mục Lục
 
-- **Tên đề tài:** Ứng dụng hỗ trợ gọi garage sửa xe – _Road Assist_
+- [Giới Thiệu](#-giới-thiệu)
+- [Tính Năng](#-tính-năng)
+- [Công Nghệ](#-công-nghệ)
+- [Cấu Trúc Dự Án](#-cấu-trúc-dự-án)
+- [Yêu Cầu Hệ Thống](#-yêu-cầu-hệ-thống)
+- [Cài Đặt](#-cài-đặt)
+- [Cấu Hình Firebase](#-cấu-hình-firebase)
+- [Chạy Ứng Dụng](#-chạy-ứng-dụng)
+- [Giao Diện Ứng Dụng](#-giao-diện-ứng-dụng)
+- [Đóng Góp](#-đóng-góp)
+- [License](#-license)
+
+## 🎯 Giới Thiệu
+
+**Road Assist** là một ứng dụng di động hỗ trợ người dùng nhanh chóng liên hệ với các garage sửa xe khi gặp sự cố trên đường.
+
+Ứng dụng đóng vai trò là cầu nối giữa:
+- ✅ **Người dùng** cần hỗ trợ
+- ✅ **Garage** cung cấp dịch vụ sửa chữa
+
+### Thông Tin Đồ Án
+
+- **Tên đề tài:** Ứng dụng hỗ trợ gọi garage sửa xe – Road Assist
 - **Môn học:** Lập trình Thiết bị Di động
 - **Công nghệ:** Flutter
 - **Hình thức:** Đồ án nhóm (4 sinh viên)
 - **Giảng viên hướng dẫn:** Trương Quang Tuấn
 - **Thời gian thực hiện:** 2 tháng
 
----
+## ✨ Tính Năng
 
-## 📖 1. Giới thiệu đề tài
+### 👤 Người Dùng (User)
+- 🔐 Đăng ký, đăng nhập tài khoản
+- 📍 Xem danh sách garage gần nhất
+- 📞 Thực hiện cuộc gọi đến garage
+- 📋 Xem thông tin chi tiết garage
+- ⭐ Đánh giá và bình luận garage
+- 💬 Chat trực tiếp với garage
+- 📱 Quản lý thông tin cá nhân
+- 🚗 Quản lý danh sách xe của mình
+- 📊 Lịch sử các lần gọi hỗ trợ
+- ❤️ Lưu garage yêu thích
 
-Trong bối cảnh thiết bị di động ngày càng phổ biến, việc xây dựng các ứng dụng hỗ trợ người dùng trong các tình huống khẩn cấp là rất cần thiết.  
-Đề tài **Road Assist** được nhóm thực hiện nhằm xây dựng một ứng dụng di động cho phép **người dùng nhanh chóng liên hệ với các garage sửa xe** khi gặp sự cố.
+### 🏪 Garage (Garage Owner)
+- 🔐 Đăng ký, đăng nhập tài khoản
+- 📊 Quản lý thông tin garage
+- 📞 Nhận và xử lý cuộc gọi từ người dùng
+- 💬 Chat với người dùng
+- 📍 Quản lý loại phương tiện hỗ trợ
+- ⏰ Quản lý giờ làm việc
+- 📋 Lịch sử đơn hỗ trợ
+- ⭐ Xem đánh giá từ khách hàng
 
-Ứng dụng đóng vai trò là cầu nối giữa:
+### ⚙️ Hệ Thống
+- 🔐 Lưu trữ dữ liệu người dùng và garage
+- 📡 Đồng bộ dữ liệu thời gian thực
+- 🔑 Quản lý xác thực người dùng
+- 📍 GPS tracking realtime
+- 🌐 Xác định vị trí garage gần nhất
 
-- **Người dùng** cần hỗ trợ
-- **Garage** cung cấp dịch vụ sửa chữa
+## 🛠 Công Nghệ
 
----
+### Frontend Stack
+```json
+{
+  "framework": "Flutter 3.x",
+  "language": "Dart",
+  "ui": "Material Design",
+  "state_management": "Provider",
+  "local_storage": "SharedPreferences",
+  "design": "Figma"
+}
+```
 
-## 🎯 2. Mục tiêu đề tài
+### Backend Stack
+```json
+{
+  "platform": "Firebase",
+  "database": "Cloud Firestore",
+  "authentication": "Firebase Authentication",
+  "storage": "Firebase Storage",
+  "realtime": "Firebase Realtime Database"
+}
+```
 
-- Vận dụng kiến thức Flutter vào dự án thực tế
-- Làm việc nhóm theo mô hình phân vai (BA – Developer)
-- Hiểu quy trình phân tích yêu cầu và triển khai phần mềm
-- Tích hợp backend cloud (Firebase)
-- Hoàn thiện một ứng dụng di động chạy được trên Android
-
----
-
-## ✨ 3. Chức năng chính
-
-### 👤 Người dùng
-
-- Đăng ký, đăng nhập tài khoản
-- Xem danh sách garage
-- Thực hiện cuộc gọi đến garage
-- Xem thông tin garage
-
-### 🏪 Garage
-
-- Quản lý thông tin garage
-- Nhận cuộc gọi từ người dùng
-- Phản hồi hỗ trợ
-
-### ⚙️ Hệ thống
-
-- Lưu trữ dữ liệu người dùng và garage
-- Đồng bộ dữ liệu thời gian thực
-- Quản lý xác thực người dùng
-
----
-
-## 🛠 4. Công nghệ sử dụng
-
-| Thành phần     | Công nghệ               |
-| -------------- | ----------------------- |
-| Ngôn ngữ       | Dart                    |
-| Framework      | Flutter                 |
-| Backend        | Firebase                |
-| Database       | Cloud Firestore         |
+### Key Technologies
+| Thành phần | Công Nghệ |
+|-----------|-----------|
+| Ngôn ngữ | Dart |
+| Framework | Flutter |
+| Backend | Firebase |
+| Database | Cloud Firestore |
 | Authentication | Firebase Authentication |
-| UI             | Material Design         |
-| Thiết kế       | Figma                   |
+| Storage | Firebase Storage |
+| UI Design | Material Design |
+| Design Tool | Figma |
+| Location | Geolocator, Google Maps |
 
----
-
-## 📱 5. Giao diện ứng dụng
-
-<p align="center">
-  <img src="assets/images/intro/intro1.png" height="400"/>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/images/intro/intro3.png" height="400"/>
-</p>
-
-<p align="center">
-  <img src="assets/images/intro/intro1.png" height="400"/>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/images/intro/intro3.png" height="400"/>
-</p>
-
-## 🗂 6. Cấu trúc thư mục
+## 📁 Cấu Trúc Dự Án
 
 ```
-└── 📁lib
-    └── 📁config
-        ├── app_config.dart
-    └── 📁core
-        └── 📁auth
-            ├── auth_state.dart
-        └── 📁errors
-            └── 📁widgets
-                ├── emergency_card.dart
-            ├── no_internet_screen.dart
-        └── 📁network
-            ├── network_service.dart
-            ├── network_status.dart
-        └── 📁providers
-            ├── auth_provider.dart
-            ├── garage_notification_provider.dart
-            ├── navigation_provider.dart
-            ├── selected_role.dart
-        └── 📁routes
-            ├── app_routes.dart
-            ├── navigation_observer.dart
-            ├── route_config.dart
-            ├── route_paths.dart
-            ├── route_redirect.dart
-        └── 📁services
-            └── 📁gps
-                ├── location_geolocator.dart
-            └── 📁login
-                ├── login_option.dart
-            └── 📁storage
-                ├── firebase_storage_service.dart
-                ├── storage_provider.dart
-            ├── call_hotline.dart
-            ├── garage_scanner_service.dart
-        └── 📁theme
-            ├── app_palette.dart
-            ├── app_theme_type.dart
-            ├── app_theme.dart
-            ├── theme_provider.dart
-        └── 📁utils
-            ├── geo_utils.dart
-    └── 📁data
-        └── 📁datasources
-            └── 📁local
-                ├── vehicle_constants.dart
-            └── 📁remote
-                ├── auth_remote_datasource.dart
-                ├── rescue_service.dart
-        └── 📁models
-            ├── chat_model.dart
-            ├── completion_payload.dart
-            ├── garage_completion_payload.dart
-            ├── garage_model.dart
-            ├── message_model.dart
-            ├── rescue_request_model.dart
-            ├── review_model.dart
-            ├── user_input.dart
-            ├── user_model.dart
-    └── 📁ui
-        └── 📁auth
-            └── 📁view
-                ├── auth_role_screen.dart
-                ├── garage_register_screen.dart
-                ├── garage_success_screen.dart
-                ├── login_screen.dart
-                ├── user_register_screen.dart
-            └── 📁viewmodel
-                ├── garage_register_vm.dart
-                ├── garage_success_vm.dart
-                ├── login_viewmodel.dart
-                ├── user_register_vm.dart
-            └── 📁widgets
-                ├── custom_text_field.dart
-                ├── day_selector.dart
-                ├── garage_info_card.dart
-                ├── password_text_field.dart
-                ├── phone_text_field.dart
-                ├── section_header.dart
-                ├── service_chip.dart
-                ├── success_header.dart
-                ├── time_picker_field.dart
-                ├── vehicle_type_item.dart
-        └── 📁call
-            └── 📁extensions
-                ├── call_extension.dart
-            └── 📁models
-                ├── call_model.dart
-            └── 📁screens
-                ├── call_screen.dart
-                ├── incoming_call_screen.dart
-                ├── waiting_call_screen.dart
-            └── 📁services
-                ├── call_initiation_service.dart
-                ├── call_service.dart
-            └── 📁widgets
-                ├── wave_form_painter.dart
-        └── 📁garage
-            └── 📁account
-                └── 📁models
-                    ├── change_password_state.dart
-                └── 📁view
-                    ├── garage_account_screen.dart
-                    ├── info_screen.dart
-                    ├── password_reset_customer_sreen.dart
-                    ├── search_screen.dart
-                └── 📁viewmodel
-                    ├── change_password_state.dart
-                    ├── change_password_vm.dart
-                    ├── garage_state.dart
-                    ├── garage_vm.dart
-                └── 📁widgets
-                    ├── action_button.dart
-                    ├── add_vehicle_dialog.dart
-                    ├── garage_card.dart
-                    ├── garage_text_field.dart
-                    ├── password_field.dart
-                    ├── save_garage_button.dart
-                    ├── service_support_section.dart
-                    ├── services_selector.dart
-                    ├── vehicle_support_item.dart
-                    ├── vehicle_support_section.dart
-                    ├── working_days_selector.dart
-                    ├── working_time_selector.dart
-            └── 📁history
-                └── 📁model
-                    ├── garage_history_item.dart
-                └── 📁view
-                    ├── garage_history_detail_screen.dart
-                    ├── garage_history_screen.dart
-                └── 📁viewmodel
-                    ├── garage_history_vm.dart
-                └── 📁widgets
-                    ├── garage_history_card.dart
-                    ├── garage_history_filter_tabs.dart
-                    ├── garage_history_status_badge.dart
-            └── 📁home
-                └── 📁view
-                    ├── garage_completion_screen.dart
-                    ├── garage_home_screen.dart
-                    ├── garage_rescue_request_detail_screen.dart
-                    ├── garage_rescue_status_update_screen.dart
-                └── 📁viewmodel
-                    ├── garage_completion_vm.dart
-                    ├── garage_distance_vm.dart
-                    ├── garage_home_viewmodel.dart
-                └── 📁widgets
-                    ├── garage_completion_actions.dart
-                    ├── garage_completion_header.dart
-                    ├── garage_completion_info_card.dart
-                    ├── rescue_request_card.dart
-            └── 📁review
-                └── 📁view
-                    ├── garage_reviews_screen.dart
-                └── 📁viewmodel
-                    ├── review_vm.dart
-                └── 📁widget
-                    ├── rating_bar_item.dart
-                    ├── rating_overview.dart
-                    ├── review_list_item.dart
-        └── 📁map
-            ├── location_pick_result.dart
-            ├── map_pick_screen.dart
-        └── 📁navigation
-            └── 📁configs
-                ├── garage_bottom_nav.dart
-                ├── user_bottom_nav.dart
-            └── 📁view
-                ├── garage_main_screen.dart
-                ├── user_main_screen.dart
-            └── 📁viewmodel
-                ├── garage_navigation_provider.dart
-                ├── rescue_navigation_provider.dart
-            └── 📁widgets
-                ├── bottom_nav_item.dart.dart
-                ├── slanted_animated_bottom_bar.dart
-        └── 📁shared
-            └── 📁skeleton
-                ├── skeleton_widgets.dart
-            └── 📁widgets
-                ├── rescue_progress_timeline.dart
-                ├── view_history_button.dart
-        └── 📁user
-            └── 📁account
-                └── 📁model
-                    ├── vehicle_model.dart
-                └── 📁view
-                    ├── account_screen.dart
-                    ├── edit_profile_screen.dart
-                    ├── password_reset_user_sreen.dart
-                └── 📁viewmodel
-                    ├── account_vm.dart
-                    ├── edit_profile_vm.dart
-                    ├── profile_viewmodel.dart
-                    ├── vehicle_action_vm.dart
-                └── 📁widgets
-                    ├── action_grid.dart
-                    ├── action_item.dart
-                    ├── birth_date_field.dart
-                    ├── logout_button.dart
-                    ├── profile_card.dart
-                    ├── vehicle_item.dart
-                    ├── vehicle_section.dart
-            └── 📁chat
-                └── 📁view
-                    ├── chatGarage_screen.dart
-                    ├── chatList_screen.dart
-                └── 📁viewmodel
-                    ├── chatGarage_vm.dart
-                    ├── chatList_vm.dart
-                └── 📁widgets
-                    ├── date_divider.dart
-                    ├── message_bubble.dart
-                    ├── triangle_gradient_painter.dart
-            └── 📁garage
-                └── 📁view
-                    ├── garage_list_screen.dart
-                    ├── garage_screen.dart
-                    ├── garageDetail.dart
-                    ├── review_screen.dart
-                └── 📁viewmodel
-                    ├── garage_favourite_vm.dart
-                    ├── garage_vm.dart
-                    ├── garageDetail_viewmodel.dart
-                └── 📁widget
-                    ├── garage_card.dart
-                    ├── garage_favourite_screen.dart
-                    ├── garage_list_view.dart
-            └── 📁history
-                └── 📁model
-                    ├── history_item.dart
-                └── 📁view
-                    ├── history_detail_screen.dart
-                    ├── history_screen.dart
-                └── 📁viewmodel
-                    ├── history_vm.dart
-                └── 📁widgets
-                    ├── history_card.dart
-                    ├── history_filter_tabs.dart
-                    ├── history_status_badge.dart
-            └── 📁home
-                └── 📁clippers
-                    ├── rps_clipper_big.dart
-                    ├── rps_clipper_small.dart
-                └── 📁models
-                    ├── vehicle_grid_data.dart
-                    ├── vehicle_model.dart
-                └── 📁painters
-                    ├── clipper_border_painter.dart
-                └── 📁view
-                    ├── home_screen.dart
-                    ├── main_home.dart
-                └── 📁viewmodel
-                    ├── home_vehicle_provider.dart
-                    ├── vehicle_grid_provider.dart
-                └── 📁widgets
-                    ├── big_vehicle_card.dart
-                    ├── clipped_card.dart
-                    ├── feature_card.dart
-                    ├── main_home.dart
-                    ├── vehicle_favorite_grid.dart
-                    ├── vehicle_grid_item.dart
-            └── 📁rescue
-                └── 📁view
-                    ├── completion_screen.dart
-                    ├── rescue_screen_wrapper.dart
-                    ├── rescueRequest_screen.dart
-                    ├── user_rescue_no_garage_screen_new.dart
-                    ├── user_rescue_success_screen.dart
-                    ├── user_rescue_tracking_screen.dart
-                    ├── user_rescue_waiting_screen.dart
-                └── 📁viewmodel
-                    ├── completion_vm.dart
-                    ├── rescue_navigation_provider.dart
-                    ├── rescue_viewmodel.dart
-                └── 📁widgets
-                    ├── completion_actions.dart
-                    ├── completion_header.dart
-                    ├── completion_info_card.dart
-                    ├── completion_rating_card.dart
-                    ├── radar_scanner.dart
-                    ├── rating_logic.dart
-                    ├── rating_stars.dart
-                    ├── rescue_cancel_button.dart
-                    ├── rescue_cancel_dialog.dart
-                    ├── rescue_image_picker.dart
-                    ├── rescue_issue_selector.dart
-                    ├── rescue_location_card.dart
-                    ├── rescue_location_picker.dart
-                    ├── rescue_status_checklist.dart
-                    ├── rescue_vehicle_selector.dart
-                    ├── rescue_vehiclecard.dart
-    ├── app.dart
-    ├── firebase_options.dart
-    └── main.dart
+lib/
+├── 📁config/                          # Configuration
+│   └── app_config.dart
+│
+├── 📁core/                            # Core Infrastructure
+│   ├── 📁auth/
+│   │   └── auth_state.dart
+│   ├── 📁errors/
+│   │   ├── 📁widgets/
+│   │   │   └── emergency_card.dart
+│   │   └── no_internet_screen.dart
+│   ├── 📁network/
+│   │   ├── network_service.dart
+│   │   └── network_status.dart
+│   ├── 📁providers/
+│   │   ├── auth_provider.dart
+│   │   ├── garage_notification_provider.dart
+│   │   ├── navigation_provider.dart
+│   │   └── selected_role.dart
+│   ├── 📁routes/
+│   │   ├── app_routes.dart
+│   │   ├── navigation_observer.dart
+│   │   ├── route_config.dart
+│   │   ├── route_paths.dart
+│   │   └── route_redirect.dart
+│   ├── 📁services/
+│   │   ├── 📁gps/
+│   │   │   └── location_geolocator.dart
+│   │   ├── 📁login/
+│   │   │   └── login_option.dart
+│   │   ├── 📁storage/
+│   │   │   ├── firebase_storage_service.dart
+│   │   │   └── storage_provider.dart
+│   │   ├── call_hotline.dart
+│   │   └── garage_scanner_service.dart
+│   ├── 📁theme/
+│   │   ├── app_palette.dart
+│   │   ├── app_theme_type.dart
+│   │   ├── app_theme.dart
+│   │   └── theme_provider.dart
+│   └── 📁utils/
+│       └── geo_utils.dart
+│
+├── 📁data/                            # Data Layer
+│   ├── 📁datasources/
+│   │   ├── 📁local/
+│   │   │   └── vehicle_constants.dart
+│   │   └── 📁remote/
+│   │       ├── auth_remote_datasource.dart
+│   │       └── rescue_service.dart
+│   └── 📁models/
+│       ├── chat_model.dart
+│       ├── completion_payload.dart
+│       ├── garage_completion_payload.dart
+│       ├── garage_model.dart
+│       ├── message_model.dart
+│       ├── rescue_request_model.dart
+│       ├── review_model.dart
+│       ├── user_input.dart
+│       └── user_model.dart
+│
+├── 📁ui/                             # Presentation Layer
+│   ├── 📁auth/
+│   │   ├── 📁view/
+│   │   │   ├── auth_role_screen.dart
+│   │   │   ├── garage_register_screen.dart
+│   │   │   ├── garage_success_screen.dart
+│   │   │   ├── login_screen.dart
+│   │   │   └── user_register_screen.dart
+│   │   ├── 📁viewmodel/
+│   │   │   ├── garage_register_vm.dart
+│   │   │   ├── garage_success_vm.dart
+│   │   │   ├── login_viewmodel.dart
+│   │   │   └── user_register_vm.dart
+│   │   └── 📁widgets/
+│   │       ├── custom_text_field.dart
+│   │       ├── day_selector.dart
+│   │       ├── garage_info_card.dart
+│   │       ├── password_text_field.dart
+│   │       ├── phone_text_field.dart
+│   │       ├── section_header.dart
+│   │       ├── service_chip.dart
+│   │       ├── success_header.dart
+│   │       ├── time_picker_field.dart
+│   │       └── vehicle_type_item.dart
+│   │
+│   ├── 📁call/
+│   │   ├── 📁extensions/
+│   │   │   └── call_extension.dart
+│   │   ├── 📁models/
+│   │   │   └── call_model.dart
+│   │   ├── 📁screens/
+│   │   │   ├── call_screen.dart
+│   │   │   ├── incoming_call_screen.dart
+│   │   │   └── waiting_call_screen.dart
+│   │   ├── 📁services/
+│   │   │   ├── call_initiation_service.dart
+│   │   │   └── call_service.dart
+│   │   └── 📁widgets/
+│   │       └── wave_form_painter.dart
+│   │
+│   ├── 📁garage/
+│   │   ├── 📁account/
+│   │   ├── 📁history/
+│   │   ├── 📁home/
+│   │   └── 📁review/
+│   │
+│   ├── 📁navigation/
+│   │   ├── 📁configs/
+│   │   ├── 📁view/
+│   │   ├── 📁viewmodel/
+│   │   └── 📁widgets/
+│   │
+│   ├── 📁user/
+│   │   ├── 📁account/
+│   │   ├── 📁chat/
+│   │   ├── 📁garage/
+│   │   ├── 📁history/
+│   │   ├── 📁home/
+│   │   └── 📁rescue/
+│   │
+│   ├── 📁shared/
+│   │   ├── 📁skeleton/
+│   │   └── 📁widgets/
+│   │
+│   └── 📁map/
+│       ├── location_pick_result.dart
+│       └── map_pick_screen.dart
+│
+├── app.dart                           # Root App Widget
+├── firebase_options.dart              # Firebase Configuration
+└── main.dart                          # Entry Point
 ```
 
----
+## 📋 Yêu Cầu Hệ Thống
 
-## ⚙️ 7. Cài đặt và chạy chương trình
+- **Flutter SDK**: >= 3.x
+- **Dart SDK**: >= 2.17.x
+- **Android**: API Level 21+
+- **iOS**: iOS 11.0+
+- **IDE**: Android Studio, VS Code hoặc XCode
+- **Emulator/Device**: Android Emulator, iOS Simulator hoặc thiết bị thật
+- **Firebase Account**: Để tạo project Firebase
 
-### Bước 1: Clone project
+## 🚀 Cài Đặt
+
+### 1. Clone Repository
 
 ```bash
-git clone https://github.com/TUANKIET0397/RoadAssist_Project.git
-cd road-assist
+git clone https://github.com/TUANKIET0397/RoadAssist.git
+cd RoadAssist
 ```
 
-### Bước 2: Cài đặt thư viện
+### 2. Cài Đặt Dependencies
 
 ```bash
 flutter pub get
 ```
 
-### Bước 3: Chạy ứng dụng
+### 3. Cấu Hình Flutter (nếu cần)
 
+```bash
+# Check Flutter installation
+flutter doctor
+
+# Nếu gặp lỗi, chạy:
+flutter doctor --android-licenses
+```
+
+## 🔐 Cấu Hình Firebase
+
+### Bước 1: Tạo Firebase Project
+
+1. Truy cập [Firebase Console](https://console.firebase.google.com)
+2. Nhấn **Add Project**
+3. Điền tên project: `Road Assist`
+4. Chọn region phù hợp
+5. Bấm **Create Project**
+
+### Bước 2: Thêm Ứng Dụng Android
+
+1. Trong Firebase Console, bấm **+ Add app**
+2. Chọn **Android**
+3. Điền Package name: `com.tuankiet0397.roadassist`
+4. Tải file `google-services.json`
+5. Đặt file vào: `android/app/google-services.json`
+
+### Bước 3: Thêm Ứng Dụng iOS (Optional)
+
+1. Bấn **+ Add app** → **iOS**
+2. Điền Bundle ID: `com.tuankiet0397.roadassist`
+3. Tải file `GoogleService-Info.plist`
+4. Đặt file vào: `ios/Runner/GoogleService-Info.plist`
+
+### Bước 4: Bật các Dịch Vụ Firebase
+
+Trong Firebase Console, bấn **Build** và bật:
+
+- ✅ **Authentication**
+  - Chọn Sign-in methods: Email/Password
+  - (Optional) Google, Facebook
+
+- ✅ **Cloud Firestore**
+  - Chọn region
+  - Bắt đầu ở chế độ test (hoặc production)
+  
+- ✅ **Firebase Storage**
+  - Cho lưu trữ ảnh, tệp
+
+- ✅ **Realtime Database** (Optional)
+  - Cho đồng bộ dữ liệu realtime
+
+### Bước 5: Cấu Hình Security Rules (Firestore)
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // Garages collection
+    match /garages/{garageId} {
+      allow read: if true;
+      allow write: if request.auth.uid == resource.data.ownerId;
+    }
+    
+    // Reviews collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+## 🎮 Chạy Ứng Dụng
+
+### Chế Độ Development
+
+#### Trên Android Emulator/Device
 ```bash
 flutter run
 ```
 
-### ✍️ Yêu cầu môi trường
+#### Trên iOS Simulator/Device
+```bash
+flutter run -d ios
+```
 
-- Flutter SDK >= 3.x
+#### Chạy trên thiết bị cụ thể
+```bash
+# List thiết bị có sẵn
+flutter devices
 
-- Android Studio hoặc VS Code
+# Chạy trên thiết bị cụ thể
+flutter run -d <device_id>
+```
 
-- Android Emulator hoặc thiết bị thật
+### Chế Độ Release
 
-## 🔐 8. Cấu hình Firebase
+#### Android APK
+```bash
+flutter build apk --release
+# Output: build/app/outputs/flutter-apk/app-release.apk
+```
 
-- Tạo project Firebase
+#### Android App Bundle
+```bash
+flutter build appbundle --release
+# Output: build/app/outputs/bundle/release/app-release.aab
+```
 
-- Kết nối app Android
+#### iOS App
+```bash
+flutter build ios --release
+# Output: build/ios/iphoneos/Runner.app
+```
 
-- Thêm file google-services.json vào thư mục android/app
+## 🧪 Testing
 
-#### Bật các dịch vụ:
+### Chạy Unit Tests
+```bash
+flutter test
+```
 
-- Firebase Authentication
+### Chạy Widget Tests
+```bash
+flutter test --verbose
+```
 
-- Cloud Firestore
+### Chạy Integration Tests
+```bash
+flutter test integration_test/
+```
 
-- Storage
+## 📱 Giao Diện Ứng Dụng
+
+<p align="center">
+  <img src="assets/images/intro/intro1.png" height="400" alt="Screen 1"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/images/intro/intro3.png" height="400" alt="Screen 2"/>
+</p>
+
+<p align="center">
+  <img src="assets/images/intro/intro1.png" height="400" alt="Screen 3"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/images/intro/intro3.png" height="400" alt="Screen 4"/>
+</p>
+
+## 📚 Tính Năng Chi Tiết
+
+### Authentication
+- Đăng ký tài khoản (User hoặc Garage)
+- Đăng nhập với email/password
+- Khôi phục mật khẩu
+- Xác thực email
+
+### User Features
+- Tìm kiếm garage gần nhất (dựa trên vị trí GPS)
+- Xem danh sách garage
+- Chi tiết garage (giờ làm, dịch vụ, reviews)
+- Gọi garage cấp cứu
+- Chat với garage
+- Đánh giá garage
+- Lưu garage yêu thích
+- Quản lý xe của mình
+- Lịch sử gọi hỗ trợ
+
+### Garage Features
+- Quản lý thông tin garage
+- Quản lý loại xe hỗ trợ
+- Quản lý dịch vụ
+- Quản lý giờ làm việc
+- Nhận cuộc gọi từ user
+- Chat với user
+- Xem lịch sử hỗ trợ
+- Xem đánh giá từ khách hàng
+
+## 🏗 Architecture
+
+### Kiến Trúc Layers
+
+```
+Presentation Layer (UI/Screens)
+    ↓
+ViewModel/Provider Layer (Business Logic)
+    ↓
+Service Layer (Use Cases)
+    ↓
+Data Layer (Repositories)
+    ↓
+Remote/Local Data Sources
+    ↓
+Firebase Backend
+```
+
+### Key Components
+
+1. **Screens** - UI components
+2. **ViewModels** - State management với Provider
+3. **Services** - Business logic
+4. **Repositories** - Data access
+5. **Models** - Data classes
+6. **Widgets** - Reusable UI widgets
+
+## 🔒 Security Best Practices
+
+- ✅ Firebase Authentication cho xác thực
+- ✅ Firestore Security Rules
+- ✅ HTTPS cho tất cả API calls
+- ✅ Input validation
+- ✅ Sensitive data encryption
+- ✅ Secure token storage
+
+## 📝 Code Style
+
+- Tuân theo [Dart Style Guide](https://dart.dev/guides/language/effective-dart/style)
+- Sử dụng `const` constructors khi có thể
+- Null safety enabled
+- Comprehensive documentation
+
+## 🤝 Đóng Góp
+
+Chúng tôi chào đón những đóng góp từ cộng đồng!
+
+### Các Bước:
+1. Fork repository
+2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📄 License
+
+Dự án này được cấp phép dưới MIT License - xem chi tiết trong file [LICENSE](LICENSE)
+
+## 👥 Tác Giả
+
+**TUANKIET0397**
+- GitHub: [@TUANKIET0397](https://github.com/TUANKIET0397)
+- Repository: [Road Assist](https://github.com/TUANKIET0397/RoadAssist)
+
+## 📞 Support
+
+Nếu bạn gặp vấn đề, vui lòng:
+1. Kiểm tra [Issues](https://github.com/TUANKIET0397/RoadAssist/issues)
+2. Tạo issue mới với mô tả chi tiết
+3. Đặt tiêu đề rõ ràng và thêm labels thích hợp
+
+## 🙏 Cảm Ơn
+
+- Flutter documentation
+- Firebase documentation
+- Material Design
+- Dart language
+- Tất cả contributors
+
+---
+
+**Last Updated**: 2026-06-07 | **Status**: 🟢 Active Development

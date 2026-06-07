@@ -13,17 +13,6 @@
 
 ---
 
-## 👥 Thành viên nhóm & phân công nhiệm vụ
-
-| STT | Họ và tên         | Vai trò   | Nhiệm vụ chính                                         |
-| --- | ----------------- | --------- | ------------------------------------------------------ |
-| 1   | Nguyễn Minh Thuận | BA        | Phân tích yêu cầu, xây dựng use case, đặc tả chức năng |
-| 2   | Nguyễn Gia Bảo    | Developer | Phát triển chức năng Flutter, xử lý UI & logic         |
-| 3   | Lê Tuấn Kiệt      | Developer | Phát triển chức năng gọi, tích hợp Firebase            |
-| 4   | Nguyễn Đức Mạnh   | Developer | Xử lý backend, dữ liệu Firestore, hỗ trợ tích hợp      |
-
----
-
 ## 📖 1. Giới thiệu đề tài
 
 Trong bối cảnh thiết bị di động ngày càng phổ biến, việc xây dựng các ứng dụng hỗ trợ người dùng trong các tình huống khẩn cấp là rất cần thiết.  

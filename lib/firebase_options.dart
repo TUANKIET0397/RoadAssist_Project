@@ -41,48 +41,44 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD691BByqeCs9eynWq5chFdyMhiZ4vZpbU',
-    appId: '1:642950415530:web:829f975dda37c81ff6fcd3',
-    messagingSenderId: '642950415530',
-    projectId: 'roadassist-f1081',
-    authDomain: 'roadassist-f1081.firebaseapp.com',
-    storageBucket: 'roadassist-f1081.firebasestorage.app',
-    measurementId: 'G-NNSXTLFTVZ',
+    apiKey: 'AIzaSyBCeIhexOSdN8lWxAjRF_BCk5TD0FF8WNs',
+    appId: '1:937068128406:web:2350ef84dbd6269951bab7',
+    messagingSenderId: '937068128406',
+    projectId: 'roadassist-90f40',
+    authDomain: 'roadassist-90f40.firebaseapp.com',
+    storageBucket: 'roadassist-90f40.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBMi86rIU-Me3Y_Y6sXM40JhUsKCeqbt3k',
-    appId: '1:642950415530:android:8b8bd3c0bd7bf61af6fcd3',
-    messagingSenderId: '642950415530',
-    projectId: 'roadassist-f1081',
-    storageBucket: 'roadassist-f1081.firebasestorage.app',
+    apiKey: 'AIzaSyAPLM3vFwudMxMg5T5yLE-s65lo2h0_Hcc',
+    appId: '1:937068128406:android:6dd4814f94c6bf8551bab7',
+    messagingSenderId: '937068128406',
+    projectId: 'roadassist-90f40',
+    storageBucket: 'roadassist-90f40.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCktEPAc4WGxzLhL3RrhksPEQO4zC26kCo',
-    appId: '1:642950415530:ios:fa8e8740791f3136f6fcd3',
-    messagingSenderId: '642950415530',
-    projectId: 'roadassist-f1081',
-    storageBucket: 'roadassist-f1081.firebasestorage.app',
+    apiKey: 'AIzaSyC2RmvKN7eNpL_u8aQzQxvT7Xn6QZKDUQE',
+    appId: '1:937068128406:ios:392613eda707b5c151bab7',
+    messagingSenderId: '937068128406',
+    projectId: 'roadassist-90f40',
+    storageBucket: 'roadassist-90f40.firebasestorage.app',
     iosBundleId: 'com.example.roadAssist',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCktEPAc4WGxzLhL3RrhksPEQO4zC26kCo',
-    appId: '1:642950415530:ios:fa8e8740791f3136f6fcd3',
-    messagingSenderId: '642950415530',
-    projectId: 'roadassist-f1081',
-    storageBucket: 'roadassist-f1081.firebasestorage.app',
+    apiKey: 'AIzaSyC2RmvKN7eNpL_u8aQzQxvT7Xn6QZKDUQE',
+    appId: '1:937068128406:ios:392613eda707b5c151bab7',
+    messagingSenderId: '937068128406',
+    projectId: 'roadassist-90f40',
+    storageBucket: 'roadassist-90f40.firebasestorage.app',
     iosBundleId: 'com.example.roadAssist',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD691BByqeCs9eynWq5chFdyMhiZ4vZpbU',
-    appId: '1:642950415530:web:f02b91234e983ec6f6fcd3',
-    messagingSenderId: '642950415530',
-    projectId: 'roadassist-f1081',
-    authDomain: 'roadassist-f1081.firebaseapp.com',
-    storageBucket: 'roadassist-f1081.firebasestorage.app',
-    measurementId: 'G-SH79JG419N',
+    apiKey: 'AIzaSyBCeIhexOSdN8lWxAjRF_BCk5TD0FF8WNs',
+    appId: '1:937068128406:web:096e9c7619f52a3d51bab7',
+    messagingSenderId: '937068128406',
+    projectId: 'roadassist-90f40',
+    authDomain: 'roadassist-90f40.firebaseapp.com',
+    storageBucket: 'roadassist-90f40.firebasestorage.app',
   );
 }

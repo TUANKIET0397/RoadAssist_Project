@@ -8,11 +8,7 @@ class MapPickScreen extends StatefulWidget {
   final double? initialLat;
   final double? initialLng;
 
-  const MapPickScreen({
-    super.key,
-    this.initialLat,
-    this.initialLng,
-  });
+  const MapPickScreen({super.key, this.initialLat, this.initialLng});
 
   @override
   State<MapPickScreen> createState() => _MapPickScreenState();
@@ -47,17 +43,14 @@ class _MapPickScreenState extends State<MapPickScreen> {
         selectedLatLng!.longitude,
       );
     } catch (_) {
-      address =
-      '${selectedLatLng!.latitude}, ${selectedLatLng!.longitude}';
+      address = '${selectedLatLng!.latitude}, ${selectedLatLng!.longitude}';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (selectedLatLng == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -75,11 +68,8 @@ class _MapPickScreenState extends State<MapPickScreen> {
                 ),
               );
             },
-            child: const Text(
-              'Xong',
-              style: TextStyle(color: Colors.white),
-            ),
-          )
+            child: const Text('Xong', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
       body: FlutterMap(
@@ -95,7 +85,7 @@ class _MapPickScreenState extends State<MapPickScreen> {
         children: [
           TileLayer(
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            userAgentPackageName: 'com.roadassist.app',
+            userAgentPackageName: 'com.example.roadAssist',
           ),
           MarkerLayer(
             markers: [
